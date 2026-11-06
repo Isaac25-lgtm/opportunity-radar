@@ -102,8 +102,8 @@ https://opportunity-radar.omodingisaac123.workers.dev
 
 ## 12. Deployed version
 
-Worker version `37f1879a-2483-4481-b71d-438a52c3941c` (uploaded as a preview, smoke-tested at its preview URL,
-then promoted to 100%). Previous version `a09d7729-97ae-4417-a521-3a51fb2ee42b` is available for rollback.
+Worker version `43a679b9-aafd-4108-9c4d-bab478754803` (uploaded as a preview, smoke-tested at its preview URL,
+then promoted to 100%). Previous version `37f1879a-2483-4481-b71d-438a52c3941c` is available for rollback.
 Git branch `release/v1.0` (local), commit recorded in the final hand-over message.
 
 ## 13. Cron schedule
@@ -131,7 +131,7 @@ privacy policy not legally reviewed.
 ## 17. Rollback
 
 ```bash
-npx wrangler rollback a09d7729-97ae-4417-a521-3a51fb2ee42b
+npx wrangler rollback 37f1879a-2483-4481-b71d-438a52c3941c
 ```
 
 Schema changes are additive, so code rollback needs no database rollback.
