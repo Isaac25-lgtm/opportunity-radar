@@ -6,7 +6,6 @@ import { api, ApiError } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
 import { safeNext } from '../../lib/redirect';
 
-
 function Shell({ title, subtitle, children }: { title: string; subtitle?: ReactNode; children: ReactNode }) {
   return (
     <section className="bg-ink-100 py-10 sm:py-16">

@@ -20,7 +20,8 @@ export default tseslint.config(
       'no-restricted-syntax': [
         'error',
         {
-          selector: 'CallExpression[callee.name=/^use(Layout)?Effect$/] > ArrowFunctionExpression[expression=true]',
+          selector:
+            'CallExpression[callee.name=/^use(Layout)?Effect$/] > ArrowFunctionExpression[expression=true]',
           message: 'Use a block body in effect callbacks so nothing is returned by accident.',
         },
       ],
