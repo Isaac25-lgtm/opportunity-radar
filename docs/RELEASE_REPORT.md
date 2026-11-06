@@ -105,8 +105,8 @@ https://opportunity-radar.omodingisaac123.workers.dev
 
 ## 12. Deployed version
 
-Worker version `43a679b9-aafd-4108-9c4d-bab478754803` (uploaded as a preview, smoke-tested at its preview URL,
-then promoted to 100%). Previous version `37f1879a-2483-4481-b71d-438a52c3941c` is available for rollback.
+Worker version `6757f62d-945a-4f63-8969-3320705e07c9` with the audit hardening (uploaded as a preview, smoke-tested at its preview URL,
+then promoted to 100%). Previous version `43a679b9-aafd-4108-9c4d-bab478754803` is available for rollback. The audit patch was verified natively on Windows with Wrangler: 139 Vitest tests against local D1/KV and 15 Playwright tests (3 intentional skips) against `wrangler dev`, plus a 14-step authenticated smoke test of the preview.
 Git branch `release/v1.0` (local), commit recorded in the final hand-over message.
 
 ## 13. Cron schedule
@@ -134,7 +134,7 @@ privacy policy not legally reviewed.
 ## 17. Rollback
 
 ```bash
-npx wrangler rollback 37f1879a-2483-4481-b71d-438a52c3941c
+npx wrangler rollback 43a679b9-aafd-4108-9c4d-bab478754803
 ```
 
 Schema changes are additive, so code rollback needs no database rollback.
