@@ -95,6 +95,7 @@ export function requireAdmin(c: Context<AppEnv>): AppUser {
 }
 
 export function isBootstrapAdmin(env: Env, email: string): boolean {
+  if (isProduction(env)) return false;
   const list = (env.ADMIN_EMAILS ?? '')
     .split(',')
     .map((e) => e.trim().toLowerCase())

@@ -1,7 +1,7 @@
 import { SECTION_TIPS, SectionEditor } from '../../cv/editor/SectionEditor';
 import { ArrowLeft, Check, Download, Eye, LayoutGrid, Loader2, Pencil, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   CV_SECTION_LABELS,
   careerFieldsFromCv,
@@ -24,6 +24,10 @@ import { downloadBlob } from '../../lib/format';
 /** Full-screen CV editor (form on the left, live A4 preview on the right). */
 export default function CvEditor() {
   const { id } = useParams();
+  return <Editor key={id} id={id!} />;
+}
+
+function Editor({ id }: { id: string }) {
   const [sp, setSp] = useSearchParams();
   const nav = useNavigate();
   const toast = useToast();
@@ -38,41 +42,65 @@ export default function CvEditor() {
   const [menu, setMenu] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout>>();
   const latest = useRef<Cv | null>(null);
+  const saved = useRef<Cv | null>(null);
+  const saveQueue = useRef(Promise.resolve());
 
   useEffect(() => {
+    let active = true;
     api
       .get<{ cv: Cv }>(`/cvs/${id}`)
       .then((r) => {
+        if (!active) return;
         setCv(r.cv);
         latest.current = r.cv;
+        saved.current = r.cv;
       })
-      .catch(setErr);
+      .catch((error) => {
+        if (active) setErr(error);
+      });
+    return () => {
+      active = false;
+    };
   }, [id]);
 
   const persist = useCallback(async (snapshot = false, note?: string) => {
+    clearTimeout(timer.current);
+    timer.current = undefined;
     const c = latest.current;
     if (!c) return;
     setSaveState('saving');
+    const request = saveQueue.current.then(async () => {
+      if (saved.current !== c || snapshot) {
+        await api.put(`/cvs/${c.id}`, { title: c.title, template: c.template, data: c.data, snapshot, note });
+        saved.current = c;
+      }
+    });
+    saveQueue.current = request.catch(() => {});
     try {
-      await api.put(`/cvs/${c.id}`, { title: c.title, template: c.template, data: c.data, snapshot, note });
-      setSaveState('saved');
+      await request;
+      if (latest.current === c) {
+        setSaveState('saved');
+        setErr(null);
+      }
+      return c;
     } catch (e) {
-      setSaveState('error');
-      setErr(e);
+      if (latest.current === c) {
+        setSaveState('error');
+        setErr(e);
+      }
+      throw e;
     }
   }, []);
 
   const update = useCallback(
     (fn: (c: Cv) => Cv) => {
-      setCv((prev) => {
-        if (!prev) return prev;
-        const next = fn(prev);
-        latest.current = next;
-        return next;
-      });
+      if (!latest.current) return;
+      const next = fn(latest.current);
+      latest.current = next;
+      setCv(next);
       setSaveState('dirty');
       clearTimeout(timer.current);
-      timer.current = setTimeout(() => void persist(), 1200);
+      timer.current = setTimeout(() => void persist().catch(() => {}), 1200);
     },
     [persist],
   );
@@ -80,11 +108,17 @@ export default function CvEditor() {
 
   useEffect(() => {
     const f = (e: BeforeUnloadEvent) => {
-      if (saveState === 'dirty' || saveState === 'saving') e.preventDefault();
+      if (latest.current !== saved.current) e.preventDefault();
     };
     window.addEventListener('beforeunload', f);
     return () => window.removeEventListener('beforeunload', f);
-  }, [saveState]);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (timer.current !== undefined) void persist().catch(() => {});
+    };
+  }, [persist]);
 
   const comp = useMemo(() => (cv ? cvCompleteness(cv.data) : { score: 0, warnings: [] }), [cv]);
 
@@ -118,17 +152,22 @@ export default function CvEditor() {
     setMenu(false);
     setExporting(format);
     setErr(null);
+    const printWindow = format === 'pdf' ? window.open('about:blank', '_blank') : null;
     try {
-      clearTimeout(timer.current);
-      await persist();
-      await api.post(`/cvs/${cv.id}/export`, { format });
-      if (format === 'pdf') window.open(`/app/cvs/${cv.id}/print`, '_blank', 'noopener');
-      else
+      if (format === 'pdf' && !printWindow) throw new Error('Allow pop-ups to open the PDF print view.');
+      if (printWindow) printWindow.opener = null;
+      const current = await persist();
+      if (!current) return;
+      if (printWindow) printWindow.location.replace(`/app/cvs/${current.id}/print`);
+      else {
+        await api.post(`/cvs/${current.id}/export`, { format });
         downloadBlob(
-          await cvToDocx(cv.data),
-          `${(p.fullName || cv.title).replace(/[^\w\- ]+/g, '').trim() || 'CV'}.docx`,
+          await cvToDocx(current.data),
+          `${(current.data.personal.fullName || current.title).replace(/[^\w\- ]+/g, '').trim() || 'CV'}.docx`,
         );
+      }
     } catch (e) {
+      printWindow?.close();
       setErr(e);
     } finally {
       setExporting(null);
@@ -142,13 +181,18 @@ export default function CvEditor() {
       {/* LEFT: form */}
       <div className="flex min-h-0 flex-1 flex-col lg:w-1/2 lg:flex-none">
         <div className="flex items-center gap-3 border-b border-ink-100 px-4 py-3 sm:px-10">
-          <Link
-            to="/app/cvs"
+          <button
+            type="button"
+            onClick={() =>
+              void persist()
+                .then(() => nav('/app/cvs'))
+                .catch(() => {})
+            }
             className="rounded p-1.5 text-ink-500 hover:bg-ink-100"
             aria-label="Back to CVs"
           >
             <ArrowLeft className="h-5 w-5" />
-          </Link>
+          </button>
           <div className="flex min-w-0 flex-1 justify-center">
             {editingTitle ? (
               <input
@@ -383,11 +427,16 @@ export default function CvEditor() {
         <HistoryModal
           cvId={cv.id}
           onClose={() => setPanel(null)}
-          onSnapshot={() => persist(true, 'Saved version')}
-          onRestored={async () => {
+          onSnapshot={async () => {
+            await persist(true, 'Saved version');
+          }}
+          onRestore={async (version) => {
+            await persist();
+            await api.post(`/cvs/${cv.id}/versions/${version}/restore`);
             const r = await api.get<{ cv: Cv }>(`/cvs/${cv.id}`);
             setCv(r.cv);
             latest.current = r.cv;
+            saved.current = r.cv;
             setPanel(null);
             toast('Version restored');
           }}

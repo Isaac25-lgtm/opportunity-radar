@@ -75,14 +75,10 @@ test.describe('job seeker journey', () => {
 });
 
 test.describe('CV builder', () => {
-  test.skip(
-    ({ isMobile }) => isMobile,
-    'editor flow verified on desktop; mobile layout covered by screenshots',
-  );
-
   test('imports a PDF CV, reviews it, edits, switches template and opens the print view', async ({
     page,
     context,
+    isMobile,
   }) => {
     await signUp(page, 'Brian Okello');
     await page.goto('/app/cvs/import');
@@ -97,17 +93,29 @@ test.describe('CV builder', () => {
       .getByLabel(/Write 2–4 short/)
       .fill('Accountant with five years of NGO audit and reporting experience.');
     await expect(page.getByText('Saved', { exact: true })).toBeVisible({ timeout: 15000 });
-    await page.getByRole('button', { name: 'Select template' }).click();
+    await page.getByRole('button', { name: isMobile ? 'Templates' : 'Select template', exact: true }).click();
     await page.getByRole('button', { name: /Clarity/ }).click();
     await page.getByRole('button', { name: 'Back to editor' }).click();
 
     const [popup] = await Promise.all([
       context.waitForEvent('page'),
-      page.getByRole('button', { name: 'Download PDF' }).first().click(),
+      page.getByRole('button', { name: isMobile ? 'PDF' : 'Download PDF', exact: true }).click(),
     ]);
     await popup.waitForLoadState();
     await expect(popup.getByText('Save as PDF')).toBeVisible();
     await expect(popup.getByText('Brian Okello').first()).toBeVisible();
+
+    const printUrl = popup.url();
+    const exportUrl = new URL(printUrl).pathname.replace(/^\/app/, '/api').replace(/\/print$/, '/export');
+    for (let i = 0; i < 4; i++) {
+      const exportResponse = await page.request.post(exportUrl, {
+        headers: { 'X-OR-CSRF': '1' },
+        data: { format: 'pdf' },
+      });
+      expect(exportResponse.ok()).toBe(true);
+    }
+    await popup.goto(printUrl);
+    await expect(popup.getByText(/Free plan allows 5 CV exports per month/)).toBeVisible();
 
     // The career profile was filled from the reviewed CV.
     await page.goto('/app/profiles/career');
@@ -153,11 +161,10 @@ test.describe('admin console', () => {
     await page.goto('/admin');
     await expect(page).toHaveURL(/\/app(\/onboarding)?$/);
     await page.context().clearCookies();
-    await page.goto('/signin');
+    await page.goto('/signin?next=%2Fadmin');
     await page.getByLabel('Email').fill(process.env.E2E_ADMIN_EMAIL ?? 'admin@example.test');
     await page.getByLabel('Password').fill(process.env.E2E_ADMIN_PASSWORD ?? 'Password1234');
     await page.getByRole('button', { name: 'Sign in' }).click();
-    await page.goto('/admin');
     await expect(page.getByRole('heading', { name: 'Admin overview' })).toBeVisible();
     await page.getByRole('navigation', { name: 'Admin' }).getByRole('link', { name: 'Sources' }).click();
     await expect(page.getByText('World Bank procurement notices (East Africa)')).toBeVisible();

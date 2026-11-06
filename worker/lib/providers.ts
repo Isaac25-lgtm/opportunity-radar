@@ -167,12 +167,16 @@ export function checkEnv(env: Env): EnvCheck[] {
       present: has(env.APP_URL),
       purpose: 'Absolute links in emails and payment callbacks',
     },
-    {
-      name: 'ADMIN_EMAILS',
-      required: prod,
-      present: has(env.ADMIN_EMAILS),
-      purpose: 'Bootstrap administrator accounts',
-    },
+    ...(!prod
+      ? [
+          {
+            name: 'ADMIN_EMAILS',
+            required: false,
+            present: has(env.ADMIN_EMAILS),
+            purpose: 'Bootstrap local administrator accounts',
+          },
+        ]
+      : []),
     {
       name: 'EMAIL_PROVIDER',
       required: false,

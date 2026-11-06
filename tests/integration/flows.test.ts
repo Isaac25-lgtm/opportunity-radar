@@ -395,8 +395,10 @@ describe('CV builder API', () => {
     // Free plan: second CV refused, DOCX refused, PDF allowed 5 times
     expect((await c.post('/api/cvs', { title: 'Second' })).status).toBe(402);
     expect((await c.post(`/api/cvs/${cv.json.id}/export`, { format: 'docx' })).status).toBe(402);
-    for (let i = 0; i < 5; i++)
-      expect((await c.post(`/api/cvs/${cv.json.id}/export`, { format: 'pdf' })).status).toBe(200);
+    const exports = await Promise.all(
+      Array.from({ length: 6 }, () => c.post(`/api/cvs/${cv.json.id}/export`, { format: 'pdf' })),
+    );
+    expect(exports.map(({ status }) => status).sort()).toEqual([200, 200, 200, 200, 200, 402]);
     expect((await c.post(`/api/cvs/${cv.json.id}/export`, { format: 'pdf' })).status).toBe(402);
     // Tailoring analysis is available; creating a tailored copy needs a paid plan
     const opp = await addOpp({ title: 'Analyst', description: 'SQL and Tableau required' });
@@ -408,6 +410,25 @@ describe('CV builder API', () => {
     expect(
       (await c.post('/api/cover-letters/draft', { cv_id: cv.json.id, opportunity_id: opp })).status,
     ).toBe(402);
+  });
+
+  it('assigns distinct version numbers to concurrent snapshots', async () => {
+    const c = await signup(env, 'cv-versions@example.test');
+    const created = await c.post('/api/cvs', { title: 'Main' });
+    const path = `/api/cvs/${created.json.id}`;
+    const { cv } = (await c.get(path)).json;
+    const snapshots = await Promise.all(
+      ['First change', 'Second change'].map((summary) =>
+        c.put(path, {
+          title: cv.title,
+          template: cv.template,
+          data: { ...cv.data, summary },
+          snapshot: true,
+        }),
+      ),
+    );
+    expect(snapshots.map(({ status }) => status)).toEqual([200, 200]);
+    expect(snapshots.map(({ json }) => json.version).sort()).toEqual([2, 3]);
   });
 
   it('parses CV text without inventing facts', async () => {

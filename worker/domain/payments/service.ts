@@ -16,8 +16,6 @@ export type PaymentRow = {
   completed_at: string | null;
 };
 
-const TERMINAL = new Set(['completed', 'failed', 'cancelled', 'expired', 'refunded']);
-
 /**
  * Apply an authoritative status fetched server-side from the provider. Idempotent:
  * - duplicate notifications for the same status are recorded once (unique event key) and change nothing;
@@ -32,7 +30,7 @@ export async function applyProviderStatus(
 ): Promise<{ status: string; changed: boolean; reason?: string }> {
   const ts = nowIso(now);
   const eventKey = `${payment.provider}:${payment.provider_tracking_id}:${st.status}`;
-  const ev = await env.DB.prepare(
+  await env.DB.prepare(
     'INSERT OR IGNORE INTO payment_events (id, payment_id, provider, event_key, kind, payload, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
   )
     .bind(
@@ -45,104 +43,97 @@ export async function applyProviderStatus(
       ts,
     )
     .run();
-  const firstTime = (ev.meta.changes ?? 0) > 0;
-
   if (st.status === 'completed') {
-    if (payment.status === 'completed')
-      return { status: 'completed', changed: false, reason: 'already_completed' };
     const mismatch =
-      (st.amount !== null && Math.round(st.amount) !== payment.amount) ||
-      (st.currency !== null && st.currency.toUpperCase() !== payment.currency.toUpperCase()) ||
-      (st.merchantReference !== null && st.merchantReference !== payment.merchant_reference);
+      st.amount !== payment.amount ||
+      st.currency?.toUpperCase() !== payment.currency.toUpperCase() ||
+      st.merchantReference !== payment.merchant_reference;
     if (mismatch) {
-      await env.DB.prepare(
-        "UPDATE payments SET status_detail = 'amount/currency/reference mismatch — manual review', updated_at = ? WHERE id = ?",
+      const review = await env.DB.prepare(
+        "UPDATE payments SET status_detail = 'amount/currency/reference mismatch — manual review', updated_at = ? WHERE id = ? AND status NOT IN ('completed', 'refunded')",
       )
         .bind(ts, payment.id)
         .run();
-      await audit(env, null, 'payment.mismatch', 'payment', payment.id, {
-        provider_amount: st.amount,
-        expected: payment.amount,
-      });
-      log('warn', 'payment.mismatch', { paymentId: payment.id });
-      return { status: payment.status, changed: false, reason: 'mismatch' };
+      if (review.meta.changes) {
+        await audit(env, null, 'payment.mismatch', 'payment', payment.id, {
+          provider_amount: st.amount,
+          expected: payment.amount,
+        });
+        log('warn', 'payment.mismatch', { paymentId: payment.id });
+      }
+      return { status: await currentStatus(env, payment), changed: false, reason: 'mismatch' };
     }
-    // Conditional update guarantees a single activation under concurrent IPN + callback.
-    const upd = await env.DB.prepare(
-      `UPDATE payments SET status = 'completed', status_detail = ?, confirmation_code = ?, payment_method = ?, completed_at = ?, updated_at = ?
-       WHERE id = ? AND status != 'completed'`,
-    )
-      .bind(st.description.slice(0, 200), st.confirmationCode, st.paymentMethod, ts, ts, payment.id)
-      .run();
-    if ((upd.meta.changes ?? 0) === 0)
-      return { status: 'completed', changed: false, reason: 'already_completed' };
-    await activateSubscription(env, payment, now);
+    if (!(await activateSubscription(env, payment, st, ts)))
+      return { status: await currentStatus(env, payment), changed: false };
     await audit(env, null, 'payment.completed', 'payment', payment.id, { source });
     return { status: 'completed', changed: true };
   }
 
   if (st.status === 'refunded') {
-    const upd = await env.DB.prepare(
-      "UPDATE payments SET status = 'refunded', status_detail = ?, updated_at = ? WHERE id = ? AND status != 'refunded'",
-    )
-      .bind(st.description.slice(0, 200), ts, payment.id)
-      .run();
-    if ((upd.meta.changes ?? 0) > 0) {
-      await env.DB.prepare(
+    const [upd] = await env.DB.batch([
+      env.DB.prepare(
+        "UPDATE payments SET status = 'refunded', status_detail = ?, updated_at = ? WHERE id = ? AND status != 'refunded'",
+      ).bind(st.description.slice(0, 200), ts, payment.id),
+      env.DB.prepare(
         "UPDATE subscriptions SET status = 'revoked', updated_at = ? WHERE payment_id = ? AND status = 'active'",
-      )
-        .bind(ts, payment.id)
-        .run();
+      ).bind(ts, payment.id),
+    ]);
+    if ((upd.meta.changes ?? 0) > 0) {
       await audit(env, null, 'payment.refunded', 'payment', payment.id, { source });
       return { status: 'refunded', changed: true };
     }
     return { status: 'refunded', changed: false };
   }
 
-  if (st.status === 'pending') return { status: payment.status, changed: false };
+  if (st.status === 'pending') return { status: await currentStatus(env, payment), changed: false };
   // failed / cancelled / expired: never downgrade a completed payment because of a late or spoofed event.
-  if (TERMINAL.has(payment.status) && payment.status !== 'pending')
-    return { status: payment.status, changed: false };
-  await env.DB.prepare(
+  const upd = await env.DB.prepare(
     'UPDATE payments SET status = ?, status_detail = ?, updated_at = ? WHERE id = ? AND status = ?',
   )
     .bind(st.status, st.description.slice(0, 200), ts, payment.id, 'pending')
     .run();
-  return { status: st.status, changed: firstTime };
+  return upd.meta.changes
+    ? { status: st.status, changed: true }
+    : { status: await currentStatus(env, payment), changed: false };
 }
 
-async function activateSubscription(env: Env, payment: PaymentRow, now: Date) {
-  const ts = nowIso(now);
-  // Extend from the end of any active period on the same plan, otherwise from now.
-  const cur = await env.DB.prepare(
-    "SELECT id, current_period_end FROM subscriptions WHERE user_id = ? AND plan_id = ? AND status = 'active' AND current_period_end > ? ORDER BY current_period_end DESC LIMIT 1",
-  )
-    .bind(payment.user_id, payment.plan_id, ts)
-    .first<{ id: string; current_period_end: string }>();
-  const start = cur ? new Date(cur.current_period_end) : now;
-  const end = new Date(start);
-  end.setUTCMonth(end.getUTCMonth() + 1);
-  await env.DB.prepare(
-    `INSERT INTO subscriptions (id, user_id, plan_id, status, payment_id, current_period_start, current_period_end, created_at, updated_at)
-     VALUES (?, ?, ?, 'active', ?, ?, ?, ?, ?)`,
-  )
-    .bind(
-      newId('sub'),
-      payment.user_id,
-      payment.plan_id,
-      payment.id,
-      start.toISOString(),
-      end.toISOString(),
-      ts,
-      ts,
-    )
-    .run();
-  await env.DB.prepare(
-    `INSERT OR IGNORE INTO notifications (id, user_id, kind, title, body, link, dedupe_key, created_at)
-     VALUES (?, ?, 'system', 'Payment confirmed', 'Your subscription is active until ' || ? || '.', '/app/billing', ?, ?)`,
-  )
-    .bind(newId('ntf'), payment.user_id, end.toISOString().slice(0, 10), `payment:${payment.id}`, ts)
-    .run();
+async function currentStatus(env: Env, payment: PaymentRow) {
+  const row = await env.DB.prepare('SELECT status FROM payments WHERE id = ?')
+    .bind(payment.id)
+    .first<{ status: string }>();
+  return row?.status ?? payment.status;
+}
+
+async function activateSubscription(env: Env, payment: PaymentRow, st: ProviderStatus, ts: string) {
+  const subId = newId('sub');
+  // Compute the renewal start inside the transaction so simultaneous purchases stack.
+  // Clamp the day to the last day of the target month, preserving the UTC time.
+  const [inserted] = await env.DB.batch([
+    env.DB.prepare(
+      `WITH period AS (
+         SELECT p.id, p.user_id, p.plan_id, COALESCE((
+           SELECT MAX(s.current_period_end) FROM subscriptions s
+           WHERE s.user_id = p.user_id AND s.plan_id = p.plan_id AND s.status = 'active'
+             AND s.current_period_end > ?2
+         ), ?2) AS start_at
+         FROM payments p WHERE p.id = ?3 AND p.status NOT IN ('completed', 'refunded')
+       )
+       INSERT INTO subscriptions (id, user_id, plan_id, status, payment_id, current_period_start, current_period_end, created_at, updated_at)
+       SELECT ?1, user_id, plan_id, 'active', id, start_at,
+         MIN(date(start_at, '+1 month'), date(start_at, 'start of month', '+2 months', '-1 day')) || substr(start_at, 11), ?2, ?2
+       FROM period`,
+    ).bind(subId, ts, payment.id),
+    env.DB.prepare(
+      `UPDATE payments SET status = 'completed', status_detail = ?, confirmation_code = ?, payment_method = ?, completed_at = ?, updated_at = ?
+       WHERE id = ? AND EXISTS (SELECT 1 FROM subscriptions WHERE id = ?)`,
+    ).bind(st.description.slice(0, 200), st.confirmationCode, st.paymentMethod, ts, ts, payment.id, subId),
+    env.DB.prepare(
+      `INSERT OR IGNORE INTO notifications (id, user_id, kind, title, body, link, dedupe_key, created_at)
+       SELECT ?, user_id, 'system', 'Payment confirmed', 'Your subscription is active until ' || substr(current_period_end, 1, 10) || '.', '/app/billing', ?, ?
+       FROM subscriptions WHERE id = ?`,
+    ).bind(newId('ntf'), `payment:${payment.id}`, ts, subId),
+  ]);
+  return Boolean(inserted.meta.changes);
 }
 
 export async function verifyAndApply(

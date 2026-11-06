@@ -1,5 +1,5 @@
 import { Printer } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import type { CvTemplate } from '../../../shared/constants';
 import type { CvData } from '../../../shared/cv';
@@ -10,17 +10,33 @@ import { api } from '../../lib/api';
 /** Print-ready A4 page. The browser's "Save as PDF" produces a text-based, ATS-readable PDF. */
 export default function CvPrint() {
   const { id } = useParams();
-  const [cv, setCv] = useState<{ title: string; template: CvTemplate; data: CvData } | null>(null);
+  return <PrintView key={id} id={id!} />;
+}
+
+type PrintableCv = { title: string; template: CvTemplate; data: CvData };
+
+function PrintView({ id }: { id: string }) {
+  const [cv, setCv] = useState<PrintableCv | null>(null);
   const [err, setErr] = useState<unknown>(null);
+  const load = useRef<Promise<{ cv: PrintableCv }>>();
   useEffect(() => {
-    api
-      .get(`/cvs/${id}`)
+    let active = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    load.current ??= api.post<{ cv: PrintableCv }>(`/cvs/${id}/export`, { format: 'pdf' });
+    void load.current
       .then((r) => {
+        if (!active) return;
         setCv(r.cv);
         document.title = `${r.cv.data.personal.fullName || r.cv.title} — CV`;
-        setTimeout(() => window.print(), 700);
+        timer = setTimeout(() => window.print(), 700);
       })
-      .catch(setErr);
+      .catch((error) => {
+        if (active) setErr(error);
+      });
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
   }, [id]);
   if (err)
     return (

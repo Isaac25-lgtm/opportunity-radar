@@ -160,22 +160,26 @@ authRoutes.post('/reset', async (c) => {
   const input = await body(c, z.object({ token: z.string().min(20).max(200), password: passwordSchema }));
   const hash = await sha256Hex(input.token);
   const r = await c.env.DB.prepare(
-    'SELECT user_id, expires_at, used_at FROM password_resets WHERE token_hash = ?',
+    'SELECT user_id FROM password_resets WHERE token_hash = ? AND used_at IS NULL AND expires_at > ?',
   )
-    .bind(hash)
-    .first<any>();
-  if (!r || r.used_at || Date.parse(r.expires_at) < Date.now())
-    throw new HttpError(400, 'invalid_token', 'This reset link is invalid or has expired.');
+    .bind(hash, nowIso())
+    .first<{ user_id: string }>();
+  if (!r) throw new HttpError(400, 'invalid_token', 'This reset link is invalid or has expired.');
+  const passwordHash = await hashPassword(input.password);
   const ts = nowIso();
-  await c.env.DB.batch([
-    c.env.DB.prepare('UPDATE password_resets SET used_at = ? WHERE token_hash = ?').bind(ts, hash),
-    c.env.DB.prepare('UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?').bind(
-      await hashPassword(input.password),
-      ts,
-      r.user_id,
-    ),
-    c.env.DB.prepare('DELETE FROM sessions WHERE user_id = ?').bind(r.user_id),
+  const valid = 'token_hash = ? AND used_at IS NULL AND expires_at > ?';
+  const [, , claimed] = await c.env.DB.batch([
+    c.env.DB.prepare(
+      `UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?
+       AND EXISTS (SELECT 1 FROM password_resets WHERE ${valid})`,
+    ).bind(passwordHash, ts, r.user_id, hash, ts),
+    c.env.DB.prepare(
+      `DELETE FROM sessions WHERE user_id = ? AND EXISTS (SELECT 1 FROM password_resets WHERE ${valid})`,
+    ).bind(r.user_id, hash, ts),
+    c.env.DB.prepare(`UPDATE password_resets SET used_at = ? WHERE ${valid}`).bind(ts, hash, ts),
   ]);
+  if (!claimed.meta.changes)
+    throw new HttpError(400, 'invalid_token', 'This reset link is invalid or has expired.');
   await audit(c.env, r.user_id, 'user.password_reset', 'user', r.user_id);
   return c.json({ ok: true });
 });

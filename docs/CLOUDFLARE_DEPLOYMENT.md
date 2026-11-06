@@ -21,19 +21,18 @@ Plain variables (in `wrangler.jsonc`): `ENVIRONMENT=production`, `APP_NAME`, `AP
 
 Secrets (set with `npx wrangler secret put NAME`; never commit them):
 
-| Secret                                            | Required     | Purpose                                                                        |
-| ------------------------------------------------- | ------------ | ------------------------------------------------------------------------------ |
-| `ADMIN_EMAILS`                                    | **Yes**      | Comma-separated emails that become administrators when they sign up or sign in |
-| `EMAIL_PROVIDER`                                  | for email    | `sendgrid` or `resend`                                                         |
-| `EMAIL_API_KEY`                                   | for email    | Provider API key                                                               |
-| `EMAIL_FROM`                                      | for email    | Verified sender address                                                        |
-| `PAYMENT_PROVIDER`                                | for payments | `pesapal`                                                                      |
-| `PESAPAL_ENV`                                     | for payments | `sandbox` (default) or `live`                                                  |
-| `PESAPAL_CONSUMER_KEY`, `PESAPAL_CONSUMER_SECRET` | for payments | Merchant credentials from Pesapal                                              |
-| `PESAPAL_IPN_ID`                                  | for payments | ID returned when registering the IPN URL                                       |
-| `PESAPAL_IPN_SECRET`                              | for payments | A long random string used in the IPN URL path                                  |
-| `RELIEFWEB_APPNAME`                               | optional     | Approved ReliefWeb API appname                                                 |
-| `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL`           | deferred     | Reserved for the future AI integration                                         |
+| Secret                                            | Required     | Purpose                                       |
+| ------------------------------------------------- | ------------ | --------------------------------------------- |
+| `EMAIL_PROVIDER`                                  | for email    | `sendgrid` or `resend`                        |
+| `EMAIL_API_KEY`                                   | for email    | Provider API key                              |
+| `EMAIL_FROM`                                      | for email    | Verified sender address                       |
+| `PAYMENT_PROVIDER`                                | for payments | `pesapal`                                     |
+| `PESAPAL_ENV`                                     | for payments | `sandbox` (default) or `live`                 |
+| `PESAPAL_CONSUMER_KEY`, `PESAPAL_CONSUMER_SECRET` | for payments | Merchant credentials from Pesapal             |
+| `PESAPAL_IPN_ID`                                  | for payments | ID returned when registering the IPN URL      |
+| `PESAPAL_IPN_SECRET`                              | for payments | A long random string used in the IPN URL path |
+| `RELIEFWEB_APPNAME`                               | optional     | Approved ReliefWeb API appname                |
+| `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL`           | deferred     | Reserved for the future AI integration        |
 
 Admin → Configuration lists each of these by name with present/missing status (values are never displayed).
 
@@ -51,6 +50,19 @@ npx wrangler versions deploy
 
 (`npx wrangler deploy` uploads and promotes in one step; it was used for the first release because a Worker must exist
 before preview versions can be uploaded.)
+
+## Provisioning production administrators
+
+Use Cloudflare's D1 console to provision the role. Confirm control of the account outside the app and obtain its
+specific user ID before changing it. Public registration does not verify ownership of the email address.
+
+```sql
+SELECT id, email, role, status, created_at FROM users WHERE email = 'verified-owner@example.com';
+UPDATE users SET role = 'admin', updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+WHERE id = 'confirmed_user_id' AND status = 'active';
+```
+
+Review existing administrator accounts before promotion of this Worker version. `ADMIN_EMAILS` is for local development.
 
 ## Activating Pesapal (after merchant approval)
 

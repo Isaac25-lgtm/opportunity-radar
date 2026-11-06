@@ -8,7 +8,7 @@ import { requireUser } from '../lib/auth';
 import { badRequest, body, notFound } from '../lib/http';
 import { aiProvider } from '../lib/providers';
 import { rateLimit } from '../lib/security';
-import { incrementUsage, requireFeature, requireWithin, usage, userPlan } from '../lib/store';
+import { incrementUsage, requireFeature, requireWithin, userPlan } from '../lib/store';
 import { newId, nowIso, parseJson } from '../lib/util';
 import { analyzeForOpportunity, draftCoverLetter, tailoredCopy } from '../domain/tailor';
 
@@ -24,20 +24,17 @@ async function ownCv(c: any, id: string) {
 }
 
 async function snapshot(env: any, cvId: string, template: string, data: CvData, note: string) {
-  const last = await env.DB.prepare('SELECT MAX(version) AS v FROM cv_versions WHERE cv_id = ?')
-    .bind(cvId)
-    .first();
-  const v = (last?.v ?? 0) + 1;
-  await env.DB.prepare(
-    'INSERT INTO cv_versions (id, cv_id, version, template, data, note, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
-  )
-    .bind(newId('cvv'), cvId, v, template, JSON.stringify(data), note.slice(0, 200), nowIso())
-    .run();
-  // Keep the 30 most recent versions.
-  await env.DB.prepare('DELETE FROM cv_versions WHERE cv_id = ? AND version <= ?')
-    .bind(cvId, v - 30)
-    .run();
-  return v;
+  const [inserted] = await env.DB.batch([
+    env.DB.prepare(
+      `INSERT INTO cv_versions (id, cv_id, version, template, data, note, created_at)
+       SELECT ?1, ?2, COALESCE(MAX(version), 0) + 1, ?3, ?4, ?5, ?6 FROM cv_versions WHERE cv_id = ?2
+       RETURNING version`,
+    ).bind(newId('cvv'), cvId, template, JSON.stringify(data), note.slice(0, 200), nowIso()),
+    env.DB.prepare(
+      'DELETE FROM cv_versions WHERE cv_id = ?1 AND version <= (SELECT MAX(version) - 30 FROM cv_versions WHERE cv_id = ?1)',
+    ).bind(cvId),
+  ]);
+  return inserted.results[0].version as number;
 }
 
 cvRoutes.get('/', async (c) => {
@@ -203,13 +200,15 @@ cvRoutes.post('/:id/versions/:v/restore', async (c) => {
 
 /** Export gate: checks plan entitlements and counts usage. The file itself is rendered client-side. */
 cvRoutes.post('/:id/export', async (c) => {
-  const { u } = await ownCv(c, c.req.param('id'));
+  const { u, row, data } = await ownCv(c, c.req.param('id'));
   const { format } = await body(c, z.object({ format: z.enum(['pdf', 'docx']) }));
   const plan = await userPlan(c.env, u.id);
   if (format === 'docx') requireFeature(plan, 'docx_export', 'Word (DOCX) export');
-  requireWithin(plan, 'cv_exports_per_month', await usage(c.env, u.id, 'cv_export'), 'CV exports per month');
-  const used = await incrementUsage(c.env, u.id, 'cv_export');
-  return c.json({ ok: true, used, limit: plan.entitlements.cv_exports_per_month });
+  const limit = plan.entitlements.cv_exports_per_month;
+  const used = await incrementUsage(c.env, u.id, 'cv_export', limit);
+  if (used === null) requireWithin(plan, 'cv_exports_per_month', limit, 'CV exports per month');
+  const cv = format === 'pdf' ? { title: row.title, template: row.template, data } : undefined;
+  return c.json({ ok: true, used, limit, cv });
 });
 
 async function loadOpp(env: any, id: string) {

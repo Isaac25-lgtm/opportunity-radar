@@ -18,6 +18,7 @@ describe('URL policy (SSRF)', () => {
     'ftp://example.org/x',
     'https://user:pw@example.org/',
     'https://example.org:8443/',
+    'https://example.org:80/',
     'https://intranet/',
     'https://printer.local/',
     'javascript:alert(1)',
@@ -47,6 +48,35 @@ describe('URL policy (SSRF)', () => {
     await expect(safeFetch('https://example.org/', { fetcher: slow, timeoutMs: 50 })).rejects.toThrow(
       /timed out/,
     );
+  });
+  it('limits streamed bytes and keeps the timeout active while reading the body', async () => {
+    const multibyte: typeof fetch = async () => new Response('ééé');
+    await expect(safeFetch('https://example.org/', { fetcher: multibyte, maxBytes: 5 })).rejects.toThrow(
+      /too large/,
+    );
+    const stalled: typeof fetch = async (_, init) =>
+      new Response(
+        new ReadableStream({
+          start(controller) {
+            init?.signal?.addEventListener('abort', () => controller.error(new Error('aborted')));
+          },
+        }),
+      );
+    await expect(safeFetch('https://example.org/', { fetcher: stalled, timeoutMs: 25 })).rejects.toThrow(
+      /timed out/,
+    );
+  });
+
+  it('refuses to forward request data to another origin', async () => {
+    const requests: string[] = [];
+    const fetcher: typeof fetch = async (url) => {
+      requests.push(String(url));
+      return new Response(null, { status: 307, headers: { location: 'https://other.example/' } });
+    };
+    await expect(
+      safeFetch('https://example.org/', { fetcher, method: 'POST', body: 'private' }),
+    ).rejects.toMatchObject({ retryable: false });
+    expect(requests).toEqual(['https://example.org/']);
   });
   it('classifies retryable vs permanent HTTP failures', async () => {
     const f429 = (async () => new Response('', { status: 429 })) as unknown as typeof fetch;

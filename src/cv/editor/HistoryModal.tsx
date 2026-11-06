@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { CV_TEMPLATE_LABELS, type CvTemplate } from '../../../shared/constants';
-import { Button, Modal, Spinner } from '../../components/ui';
+import { Button, ErrorAlert, Modal, Spinner } from '../../components/ui';
 import { api } from '../../lib/api';
 import { fmtDateTime } from '../../lib/format';
 
@@ -9,38 +9,59 @@ export function HistoryModal({
   cvId,
   onClose,
   onSnapshot,
-  onRestored,
+  onRestore,
 }: {
   cvId: string;
   onClose: () => void;
   onSnapshot: () => Promise<void>;
-  onRestored: () => void;
+  onRestore: (version: number) => Promise<void>;
 }) {
   const [rows, setRows] = useState<any[] | null>(null);
-  const [busy, setBusy] = useState<number | null>(null);
+  const [busy, setBusy] = useState<number | 'snapshot' | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const load = useCallback(() => api.get(`/cvs/${cvId}/versions`).then((r) => setRows(r.versions)), [cvId]);
   useEffect(() => {
-    void load();
+    void load().catch(setError);
   }, [load]);
+  const run = async (action: number | 'snapshot', fn: () => Promise<void>) => {
+    setBusy(action);
+    setError(null);
+    try {
+      await fn();
+    } catch (e) {
+      setError(e);
+    } finally {
+      setBusy(null);
+    }
+  };
   return (
     <Modal
       open
-      onClose={onClose}
+      onClose={() => {
+        if (busy === null) onClose();
+      }}
       title="Version history"
       footer={
         <Button
           variant="secondary"
-          onClick={async () => {
-            await onSnapshot();
-            await load();
-          }}
+          disabled={busy !== null}
+          loading={busy === 'snapshot'}
+          onClick={() =>
+            void run('snapshot', async () => {
+              await onSnapshot();
+              await load();
+            })
+          }
         >
           Save current version
         </Button>
       }
     >
+      {error ? <ErrorAlert error={error} /> : null}
       {!rows ? (
-        <Spinner />
+        error ? null : (
+          <Spinner />
+        )
       ) : (
         <ul className="divide-y divide-ink-100">
           {rows.map((v) => (
@@ -56,11 +77,8 @@ export function HistoryModal({
                 size="sm"
                 variant="outline"
                 loading={busy === v.version}
-                onClick={async () => {
-                  setBusy(v.version);
-                  await api.post(`/cvs/${cvId}/versions/${v.version}/restore`);
-                  onRestored();
-                }}
+                disabled={busy !== null}
+                onClick={() => void run(v.version, () => onRestore(v.version))}
               >
                 Restore
               </Button>

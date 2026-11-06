@@ -1,5 +1,8 @@
 # Release report — Opportunity Radar v1.0 (6 Nov 2026)
 
+The release code is now on [GitHub](https://github.com/Isaac25-lgtm/opportunity-radar/tree/release/v1.0).
+For current production administrator setup, use [Cloudflare deployment](CLOUDFLARE_DEPLOYMENT.md#provisioning-production-administrators).
+
 ## 1. Summary
 
 Opportunity Radar is live on the owner's Cloudflare account at
@@ -48,14 +51,14 @@ home, CV builder, templates, how it works, pricing, sources, help, contact, priv
 
 ## 5. Integrations that need credentials, approval or setup
 
-| Integration                 | What is needed                                                                                                                                                   |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Admin access**            | Run `npx wrangler secret put ADMIN_EMAILS` and enter your email (the automated attempt was blocked by a permission check). Then sign up/sign in with that email. |
-| Email (SendGrid or Resend)  | `EMAIL_PROVIDER`, `EMAIL_API_KEY`, `EMAIL_FROM` secrets. Until then alerts are in-app only and password-reset emails are not sent.                               |
-| Pesapal payments            | Merchant approval and credentials; sandbox verification (steps in CLOUDFLARE_DEPLOYMENT.md). **Payments are not activated.**                                     |
-| ReliefWeb                   | Approved appname → `RELIEFWEB_APPNAME`, then enable the source.                                                                                                  |
-| AI provider                 | Deferred by request.                                                                                                                                             |
-| Scholarships / PPDA tenders | Administrator curation until permitted feeds are confirmed.                                                                                                      |
+| Integration                 | What is needed                                                                                                                     |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **Admin access**            | Provision a verified account by user ID in D1. See the Cloudflare deployment guide.                                                |
+| Email (SendGrid or Resend)  | `EMAIL_PROVIDER`, `EMAIL_API_KEY`, `EMAIL_FROM` secrets. Until then alerts are in-app only and password-reset emails are not sent. |
+| Pesapal payments            | Merchant approval and credentials; sandbox verification (steps in CLOUDFLARE_DEPLOYMENT.md). **Payments are not activated.**       |
+| ReliefWeb                   | Approved appname → `RELIEFWEB_APPNAME`, then enable the source.                                                                    |
+| AI provider                 | Deferred by request.                                                                                                               |
+| Scholarships / PPDA tenders | Administrator curation until permitted feeds are confirmed.                                                                        |
 
 ## 6. Database migrations
 
@@ -118,7 +121,7 @@ Created: D1 `opportunity-radar-db` (`153ae2e2-636c-4d09-a01d-013caa6eb2db`), KV 
 
 ## 15. Environment variables and secrets (names only)
 
-Vars: `ENVIRONMENT`, `APP_NAME`, `APP_URL`. Secrets: `ADMIN_EMAILS` (required, **not yet set**), `EMAIL_PROVIDER`,
+Vars: `ENVIRONMENT`, `APP_NAME`, `APP_URL`. Secrets: `EMAIL_PROVIDER`,
 `EMAIL_API_KEY`, `EMAIL_FROM`, `PAYMENT_PROVIDER`, `PESAPAL_ENV`, `PESAPAL_CONSUMER_KEY`, `PESAPAL_CONSUMER_SECRET`,
 `PESAPAL_IPN_ID`, `PESAPAL_IPN_SECRET`, `RELIEFWEB_APPNAME`, `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL`.
 

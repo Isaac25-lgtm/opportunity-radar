@@ -22,7 +22,7 @@ export function isPublicHttpUrl(raw: string, { allowHttp = false } = {}): boolea
   }
   if (u.protocol !== 'https:' && !(allowHttp && u.protocol === 'http:')) return false;
   if (u.username || u.password) return false;
-  if (u.port && u.port !== '443' && u.port !== '80') return false;
+  if (u.port) return false;
   const host = u.hostname.toLowerCase().replace(/\.$/, '');
   if (!host || host === 'localhost' || !host.includes('.')) return false;
   if (BLOCKED_HOST_SUFFIXES.some((s) => host.endsWith(s))) return false;
@@ -100,13 +100,11 @@ export async function safeFetch(
   const f = opts.fetcher ?? fetch;
   let current = url;
   for (let hop = 0; hop < 4; hop++) {
-    if (!isPublicHttpUrl(current))
-      throw new FetchError(`Blocked URL: ${new URL(current).hostname}`, undefined, false);
+    if (!isPublicHttpUrl(current)) throw new FetchError('Blocked URL', undefined, false);
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), opts.timeoutMs ?? 20000);
-    let res: Response;
     try {
-      res = await f(current, {
+      const res = await f(current, {
         method: opts.method ?? 'GET',
         headers: {
           'User-Agent': 'OpportunityRadarBot/1.0 (+opportunity matching; respects robots and terms)',
@@ -117,27 +115,52 @@ export async function safeFetch(
         redirect: 'manual',
         signal: ctrl.signal,
       });
+      const location = res.headers.get('location');
+      if (res.status >= 300 && res.status < 400 && location) {
+        void res.body?.cancel().catch(() => {});
+        const next = new URL(location, current);
+        if ((opts.body || opts.headers) && next.origin !== new URL(current).origin)
+          throw new FetchError('Blocked cross-origin redirect with request data', undefined, false);
+        current = next.toString();
+        continue;
+      }
+      if (res.status === 429) throw new FetchError('Rate limited by source (429)', 429, true);
+      if (res.status >= 500) throw new FetchError(`Source error ${res.status}`, res.status, true);
+      if (res.status >= 400 && opts.method !== 'HEAD')
+        throw new FetchError(`Source returned ${res.status}`, res.status, false);
+      const max = opts.maxBytes ?? 5_000_000;
+      let text = '';
+      if (opts.method !== 'HEAD' && res.body) {
+        if (Number(res.headers.get('content-length') ?? '0') > max) {
+          void res.body.cancel().catch(() => {});
+          throw new FetchError('Response too large', res.status, false);
+        }
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let bytes = 0;
+        try {
+          for (;;) {
+            const chunk = await reader.read();
+            if (chunk.done) break;
+            bytes += chunk.value.byteLength;
+            if (bytes > max) throw new FetchError('Response too large', res.status, false);
+            text += decoder.decode(chunk.value, { stream: true });
+          }
+          text += decoder.decode();
+        } finally {
+          void reader.cancel().catch(() => {});
+          reader.releaseLock();
+        }
+      }
+      return { status: res.status, text, finalUrl: current };
     } catch (e) {
+      if (e instanceof FetchError) throw e;
       throw new FetchError(
         ctrl.signal.aborted ? 'Request timed out' : `Network error: ${(e as Error).message}`,
       );
     } finally {
       clearTimeout(timer);
     }
-    if (res.status >= 300 && res.status < 400 && res.headers.get('location')) {
-      current = new URL(res.headers.get('location')!, current).toString();
-      continue;
-    }
-    if (res.status === 429) throw new FetchError('Rate limited by source (429)', 429, true);
-    if (res.status >= 500) throw new FetchError(`Source error ${res.status}`, res.status, true);
-    if (res.status >= 400 && opts.method !== 'HEAD')
-      throw new FetchError(`Source returned ${res.status}`, res.status, false);
-    const max = opts.maxBytes ?? 5_000_000;
-    const len = Number(res.headers.get('content-length') ?? '0');
-    if (len > max) throw new FetchError('Response too large', res.status, false);
-    const text = opts.method === 'HEAD' ? '' : await res.text();
-    if (text.length > max) throw new FetchError('Response too large', res.status, false);
-    return { status: res.status, text, finalUrl: current };
   }
   throw new FetchError('Too many redirects', undefined, false);
 }

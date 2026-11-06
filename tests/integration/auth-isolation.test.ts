@@ -80,13 +80,32 @@ describe('authentication', () => {
     expect(unknown.json.message).toBe(r.json.message);
     expect(unknown.json.dev_reset_link).toBeNull();
     const token = new URL(r.json.dev_reset_link).searchParams.get('token');
-    expect((await anon.post('/api/auth/reset', { token, password: 'NewPassword99' })).status).toBe(200);
-    expect((await anon.post('/api/auth/reset', { token, password: 'NewPassword98' })).status).toBe(400);
+    const passwords = ['NewPassword99', 'NewPassword98'];
+    const attempts = await Promise.all(
+      passwords.map((password) => anon.post('/api/auth/reset', { token, password })),
+    );
+    expect(attempts.map(({ status }) => status).sort()).toEqual([200, 400]);
     expect((await c.get('/api/auth/me')).json.user).toBeNull();
     expect(
-      (await anon.post('/api/auth/signin', { email: 'reset@example.test', password: 'NewPassword99' }))
-        .status,
+      (
+        await anon.post('/api/auth/signin', {
+          email: 'reset@example.test',
+          password: passwords[attempts.findIndex(({ status }) => status === 200)],
+        })
+      ).status,
     ).toBe(200);
+  });
+
+  it('requires an explicitly provisioned administrator in production', async () => {
+    const email = 'production-admin@example.test';
+    const production = { ...env, ENVIRONMENT: 'production', ADMIN_EMAILS: email } as TestEnv;
+    const c = await signup(production, email);
+    expect((await c.get('/api/auth/me')).json.user.role).toBe('user');
+    await c.post('/api/auth/signout');
+    expect((await c.post('/api/auth/signin', { email, password: 'Password1234' })).status).toBe(200);
+    expect((await c.get('/api/auth/me')).json.user.role).toBe('user');
+    await env.DB.prepare("UPDATE users SET role = 'admin' WHERE email = ?").bind(email).run();
+    expect((await c.get('/api/auth/me')).json.user.role).toBe('admin');
   });
 
   it('refuses state-changing requests without the CSRF header or from another origin', async () => {

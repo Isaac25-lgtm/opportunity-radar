@@ -34,8 +34,11 @@ describe('payments (mock provider, no real money)', () => {
     expect((await c.get('/api/auth/me')).json.plan.code).toBe('free');
 
     await c.post(`/api/billing/mock/${tracking}`, { outcome: 'completed' });
-    expect((await c.post('/api/billing/verify', { tracking_id: tracking })).json.status).toBe('completed');
-    expect((await c.post('/api/billing/verify', { tracking_id: tracking })).json.status).toBe('completed'); // duplicate callback
+    const confirmations = await Promise.all([
+      c.post('/api/billing/verify', { tracking_id: tracking }),
+      c.post('/api/billing/verify', { tracking_id: tracking }),
+    ]);
+    expect(confirmations.map((r) => r.json.status)).toEqual(['completed', 'completed']);
     expect(await subs(me.id)).toBe(1);
     expect((await c.get('/api/auth/me')).json.plan.code).toBe('basic');
     // Entitlement now enforced server-side: DOCX export allowed.
@@ -67,6 +70,8 @@ describe('payments (mock provider, no real money)', () => {
     await c.post(`/api/billing/mock/${ok}`, { outcome: 'failed' });
     expect((await c.post('/api/billing/verify', { tracking_id: ok })).json.status).toBe('completed');
     await c.post(`/api/billing/mock/${ok}`, { outcome: 'refunded' });
+    expect((await c.post('/api/billing/verify', { tracking_id: ok })).json.status).toBe('refunded');
+    await c.post(`/api/billing/mock/${ok}`, { outcome: 'completed' });
     expect((await c.post('/api/billing/verify', { tracking_id: ok })).json.status).toBe('refunded');
     expect((await c.get('/api/auth/me')).json.plan.code).toBe('free');
     const hist = await c.get('/api/billing');
@@ -114,7 +119,68 @@ describe('payments (mock provider, no real money)', () => {
       'ipn',
     );
     expect(r2.reason).toBe('mismatch');
+    const incomplete = await applyProviderStatus(
+      env,
+      p,
+      {
+        status: 'completed',
+        amount: p.amount,
+        currency: 'UGX',
+        merchantReference: null,
+        confirmationCode: null,
+        paymentMethod: null,
+        description: 'Completed',
+        raw: {},
+      },
+      'ipn',
+    );
+    expect(incomplete.reason).toBe('mismatch');
     expect(await subs(me.id)).toBe(0);
+  });
+
+  it('rolls back a failed activation and lets a callback retry at month-end', async () => {
+    const c = await signup(env, 'pay-retry@example.test');
+    const tracking = (await c.post('/api/billing/checkout', { plan_code: 'basic' })).json.redirect_url
+      .split('/')
+      .pop();
+    const payment = (await env.DB.prepare('SELECT * FROM payments WHERE provider_tracking_id = ?')
+      .bind(tracking)
+      .first<any>())!;
+    const complete = () =>
+      applyProviderStatus(
+        env,
+        payment,
+        {
+          status: 'completed',
+          amount: payment.amount,
+          currency: payment.currency,
+          merchantReference: payment.merchant_reference,
+          confirmationCode: 'confirmation',
+          paymentMethod: 'Mock',
+          description: 'Completed',
+          raw: {},
+        },
+        'callback',
+        new Date('2026-01-31T12:00:00.000Z'),
+      );
+    await env.DB.prepare(
+      `CREATE TRIGGER fail_payment_notification BEFORE INSERT ON notifications
+      WHEN NEW.dedupe_key = 'payment:${payment.id}' BEGIN SELECT RAISE(ABORT, 'test payment rollback'); END`,
+    ).run();
+    try {
+      await expect(complete()).rejects.toThrow(/test payment rollback/);
+      expect(await subs(payment.user_id)).toBe(0);
+      expect(
+        await env.DB.prepare('SELECT status FROM payments WHERE id = ?').bind(payment.id).first('status'),
+      ).toBe('pending');
+    } finally {
+      await env.DB.prepare('DROP TRIGGER fail_payment_notification').run();
+    }
+    await expect(complete()).resolves.toMatchObject({ status: 'completed', changed: true });
+    const end = await env.DB.prepare('SELECT current_period_end FROM subscriptions WHERE payment_id = ?')
+      .bind(payment.id)
+      .first('current_period_end');
+    expect(end).toBe('2026-02-28T12:00:00.000Z');
   });
 
   it('other users cannot verify or drive someone else’s checkout', async () => {

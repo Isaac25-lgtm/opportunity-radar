@@ -58,7 +58,7 @@ export async function userPlan(env: Env, userId: string): Promise<PlanInfo> {
     `SELECT p.code, p.name, p.entitlements, s.current_period_end
      FROM subscriptions s JOIN plans p ON p.id = s.plan_id
      WHERE s.user_id = ? AND s.status = 'active' AND s.current_period_end > ?
-     ORDER BY p.sort DESC LIMIT 1`,
+     ORDER BY p.sort DESC, s.current_period_end DESC LIMIT 1`,
   )
     .bind(userId, nowIso())
     .first<any>();
@@ -90,14 +90,15 @@ export async function usage(env: Env, userId: string, metric: string): Promise<n
   return r?.count ?? 0;
 }
 
-export async function incrementUsage(env: Env, userId: string, metric: string): Promise<number> {
+export async function incrementUsage(env: Env, userId: string, metric: string, limit: number) {
   const r = await env.DB.prepare(
-    `INSERT INTO usage_counters (user_id, metric, period, count) VALUES (?, ?, ?, 1)
-     ON CONFLICT(user_id, metric, period) DO UPDATE SET count = count + 1 RETURNING count`,
+    `INSERT INTO usage_counters (user_id, metric, period, count) SELECT ?1, ?2, ?3, 1 WHERE ?4 != 0
+     ON CONFLICT(user_id, metric, period) DO UPDATE SET count = count + 1
+       WHERE ?4 < 0 OR count < ?4 RETURNING count`,
   )
-    .bind(userId, metric, monthKey())
+    .bind(userId, metric, monthKey(), limit)
     .first<{ count: number }>();
-  return r?.count ?? 1;
+  return r?.count ?? null;
 }
 
 /** Throws 402 with a clear message when an entitlement is not included in the user's plan. */
