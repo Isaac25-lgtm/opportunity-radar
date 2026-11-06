@@ -68,5 +68,6 @@ access and redirect for non-admins.
 | `npm run format:check` | pass |
 | `npm test` (unit + integration) | **133 passed / 0 failed** (9 files) |
 | Coverage (`worker/`, `shared/`) | 82% statements, 67% branches, 90% functions; matching 90%, payments 93% |
-| `npm run test:e2e` | see RELEASE_REPORT.md for the final run |
+| `npm run test:e2e` | **12 passed / 0 failed / 6 skipped** (desktop + mobile; desktop-only flows skipped on mobile) |
+| Production | public e2e suite 5 passed; authenticated smoke script 14/14 |
 | `npm audit --omit=dev` | 0 vulnerabilities |
