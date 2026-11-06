@@ -1,0 +1,41 @@
+# Security and privacy
+
+## Controls
+
+| Area | Control | Where | Tested |
+| --- | --- | --- | --- |
+| Passwords | PBKDF2-SHA256, 100k iterations (Workers maximum), 16-byte salt, constant-time compare; ≥10 chars with a letter and a digit | `worker/lib/crypto.ts` | unit |
+| Sessions | 256-bit random token in an `HttpOnly`, `SameSite=Lax`, `Secure` (production) cookie; only its SHA-256 is stored; 30-day expiry; suspended users lose sessions; password change/reset revokes sessions | `worker/lib/auth.ts` | integration |
+| Account enumeration | Sign-in uses a dummy hash for unknown emails; password reset responds identically | `routes/auth.ts` | integration |
+| CSRF | State-changing API calls require the `X-OR-CSRF` header and a same-host `Origin` when present; no CORS is granted | `lib/security.ts` | integration |
+| Authorization / IDOR | Every user query is scoped by the session user; admin router guarded as a whole; admins cannot demote/suspend themselves | routes | integration (cross-user tests for CVs, documents, applications, payments) |
+| Rate limiting | D1 fixed windows: sign-up, sign-in (per IP and per account), reset, uploads, CV parsing, checkout, contact | `lib/security.ts` | integration (observed in e2e) |
+| Input validation | zod schemas for every body; 1 MB JSON cap before parsing (mitigates oversized-collection DoS) | `shared/schemas.ts`, `lib/http.ts` | integration |
+| SQL injection | Prepared statements only; dynamic `IN (...)` lists use bound placeholders | everywhere | review |
+| XSS | Source HTML reduced to plain text at ingestion and rendered as text by React; CSP `script-src 'self'`; no `dangerouslySetInnerHTML` | `lib/sanitize.ts`, `public/_headers` | unit |
+| SSRF | Outbound fetches only to public https hosts on default ports; IP literals, localhost, private/internal names, credentials in URLs refused; redirects re-validated; timeouts and size caps | `lib/url.ts` | unit |
+| XML | RSS/Atom feeds declaring entities are refused (XXE / entity expansion) | `connectors/generic.ts` | unit |
+| File uploads | Signature sniffing (PDF, DOCX-with-`word/`, PNG, JPEG) must match the extension; macro DOCX, executables, HTML refused; 5 MB cap; random storage keys; filename sanitised | `lib/filetype.ts`, `routes/documents.ts` | unit + integration |
+| Document access | Stored in a KV namespace with no public URL; download only via the owner's authenticated request with `Content-Disposition: attachment`, `nosniff` and a sandbox CSP | `routes/documents.ts` | integration |
+| Open redirect | Post-sign-in `next` must be a same-origin path without backslashes | `src/lib/redirect.ts` | unit |
+| Payments | Subscription activation only after a server-side status call to the provider; amount, currency and reference must match; conditional update guarantees one activation; duplicate events idempotent; late failures cannot downgrade a completed payment; refunds revoke; Pesapal IPN requires a secret path segment and is then re-verified; the mock provider is refused in production | `domain/payments/*`, `routes/billing.ts` | unit + integration |
+| Secrets | Only via `wrangler secret put` / `.dev.vars` (git-ignored); environment check shows names only | `lib/providers.ts` | integration |
+| Errors and logs | Unexpected errors return a reference id only; structured logs never include request bodies, documents, tokens or emails | `worker/index.ts`, `lib/util.ts` | review |
+| Headers | CSP, `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`, HSTS | `public/_headers`, `lib/security.ts` | checked with curl |
+| Audit | Admin changes, payments, sign-ups, password changes and deletions recorded with actor and time | `lib/store.ts` | integration |
+
+## Dependency audit (6 Nov 2026)
+
+`npm audit --omit=dev`: **0 vulnerabilities** after upgrading zod 3 → 4.6.7, React Router 6 → 7.18.5 and
+mammoth → 1.13.0. Dev tooling was upgraded (Vite 6.4.5, Vitest 4.1.12, Playwright 1.65.0, PostCSS 8.5.32).
+Remaining: a moderate `minimatch` advisory inside `typescript-eslint` (lint-time only, not shipped).
+
+## Privacy
+
+- Data collected and why: see the in-app privacy policy (`/privacy`). Nationality and supplier classifications are
+  used only to check published criteria.
+- CV text extraction runs in the browser; only extracted text is sent to the server for sectioning. No AI provider
+  is called today.
+- Users can export all their data (JSON) and permanently delete their account from Settings.
+- The privacy policy is written with Uganda's Data Protection and Privacy Act, 2019 in mind but has **not** had legal
+  review; the product does not claim legal compliance or certification.
