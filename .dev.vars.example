@@ -1,0 +1,22 @@
+# Copy to .dev.vars for local development. Never commit real values.
+ENVIRONMENT=development
+APP_URL=http://localhost:5173
+SESSION_SECRET=replace-with-64-random-hex-chars
+ADMIN_EMAILS=you@example.com
+# Email: none | sendgrid | resend
+EMAIL_PROVIDER=none
+EMAIL_API_KEY=
+EMAIL_FROM=
+# AI: none | openai  (AI integration is deferred; 'none' uses deterministic fallbacks)
+AI_PROVIDER=none
+AI_API_KEY=
+AI_MODEL=
+# Payments: none | mock | pesapal   ('mock' is refused when ENVIRONMENT=production)
+PAYMENT_PROVIDER=mock
+PESAPAL_ENV=sandbox
+PESAPAL_CONSUMER_KEY=
+PESAPAL_CONSUMER_SECRET=
+PESAPAL_IPN_ID=
+PESAPAL_IPN_SECRET=
+# ReliefWeb requires a pre-approved appname
+RELIEFWEB_APPNAME=
