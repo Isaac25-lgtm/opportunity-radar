@@ -4,7 +4,7 @@ const PRIVACY: Array<[string, string[]]> = [
   [
     'Who we are',
     [
-      'Opportunity Radar is an online service that helps people and businesses in Uganda and East Africa find and apply for opportunities. This notice explains what personal data we process and why. It is written with the Uganda Data Protection and Privacy Act, 2019 in mind; it has not yet been reviewed by a lawyer, and we will update it after legal review.',
+      'Opportunity Radar is an online service that helps people and businesses find and apply for opportunities. This notice explains what personal data we process and why. It is written with internationally recognised data-protection principles in mind, including Uganda’s Data Protection and Privacy Act, 2019; it has not yet been reviewed by a lawyer, and we will update it after legal review.',
     ],
   ],
   [

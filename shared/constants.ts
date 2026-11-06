@@ -152,9 +152,9 @@ export const EAST_AFRICA = [
 export const CV_TEMPLATES = ['modern', 'ats', 'academic'] as const;
 export type CvTemplate = (typeof CV_TEMPLATES)[number];
 export const CV_TEMPLATE_LABELS: Record<CvTemplate, { name: string; blurb: string }> = {
-  modern: { name: 'Kampala', blurb: 'Modern two-column layout with a coloured sidebar.' },
+  modern: { name: 'Executive', blurb: 'Modern two-column layout with a coloured sidebar.' },
   ats: { name: 'Clarity', blurb: 'Single-column, ATS-friendly layout that parses cleanly.' },
-  academic: { name: 'Makerere', blurb: 'Academic CV with publications, research and awards first.' },
+  academic: { name: 'Scholar', blurb: 'Academic CV with publications, research and awards first.' },
 };
 
 export const DOCUMENT_KINDS = [

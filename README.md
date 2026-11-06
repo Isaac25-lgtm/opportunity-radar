@@ -1,7 +1,7 @@
 # Opportunity Radar
 
 One profile, every opportunity that fits. Opportunity Radar combines a professional CV builder with explainable
-matching of jobs, scholarships, grants and tenders for Uganda and East Africa.
+matching of jobs, scholarships, grants and tenders, worldwide.
 
 - **Career, academic and business profiles** in one account.
 - **CV Builder**: build from scratch or import a PDF/DOCX CV, live A4 preview, three templates, PDF and DOCX export,

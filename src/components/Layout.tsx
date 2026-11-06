@@ -163,7 +163,7 @@ export function PublicFooter() {
           <Logo light />
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink-300">
             One profile for jobs, scholarships, grants and tenders — matched honestly from official and
-            verified sources in Uganda and East Africa.
+            verified sources around the world.
           </p>
         </div>
         {cols.map(([title, links]) => (
@@ -183,7 +183,7 @@ export function PublicFooter() {
       </div>
       <div className="border-t border-white/10">
         <div className="container-page flex flex-col gap-2 py-6 text-xs text-ink-400 sm:flex-row sm:justify-between">
-          <p>© {new Date().getFullYear()} Opportunity Radar. Made in Kampala.</p>
+          <p>© {new Date().getFullYear()} Opportunity Radar.</p>
           <p>We never guarantee selection. Always confirm requirements on the official notice.</p>
         </div>
       </div>

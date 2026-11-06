@@ -22,7 +22,7 @@ criteria, and the forms say so.
   reviews every field before anything is saved, and can also update the career profile and keep the original file).
 - Editor modelled on resume.io's layout: form on the left, live A4 preview on a dark panel on the right, completeness
   bar with next tip, collapsible entries, reorder and hide sections, autosave.
-- Templates: Kampala (modern two-column), Clarity (single-column ATS), Makerere (academic, serif) with accent colours.
+- Templates: Executive (modern two-column), Clarity (single-column ATS), Scholar (academic, serif) with accent colours.
 - Export: PDF (print-optimised page → "Save as PDF"), DOCX (Basic plan and above). Exports count against plan limits.
 - Version history with restore; duplicate CVs for different roles.
 - Tailoring: shows which CV skills the notice mentions and which keywords are missing; a tailored copy only reorders

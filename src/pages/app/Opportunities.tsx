@@ -15,6 +15,7 @@ import {
   ErrorAlert,
   Pagination,
   SelectInput,
+  TextInput,
   Spinner,
   Tabs,
   cx,
@@ -103,15 +104,18 @@ export default function Opportunities({ publicMode = false }: { publicMode?: boo
         placeholder="All categories"
         options={cats.map((c) => ({ value: c, label: CATEGORY_LABELS[c] }))}
       />
-      <SelectInput
+      <TextInput
+        key={params.country}
         label="Country"
-        value={params.country}
-        onChange={(e) => set('country', e.target.value)}
-        placeholder="Any"
-        options={['Uganda', 'Kenya', 'Tanzania', 'Rwanda', 'Burundi', 'South Sudan'].map((c) => ({
-          value: c,
-          label: c,
-        }))}
+        placeholder="Any country"
+        defaultValue={params.country}
+        onBlur={(e) => e.target.value.trim() !== params.country && set('country', e.target.value.trim())}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            set('country', e.currentTarget.value.trim());
+          }
+        }}
       />
       <SelectInput
         label="Deadline"
@@ -182,9 +186,7 @@ export default function Opportunities({ publicMode = false }: { publicMode?: boo
   return (
     <div className={publicMode ? 'container-page py-10' : ''}>
       <div className="mb-5 flex flex-col gap-1">
-        <h1 className="text-[28px] font-bold">
-          {publicMode ? 'Opportunities in Uganda & East Africa' : 'Opportunities'}
-        </h1>
+        <h1 className="text-[28px] font-bold">{publicMode ? 'Browse opportunities' : 'Opportunities'}</h1>
         <p className="text-ink-500">
           {publicMode ? (
             <>

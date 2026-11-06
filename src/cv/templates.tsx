@@ -205,7 +205,7 @@ function contactItems(d: CvData) {
   return [p.email, p.phone, p.location, p.linkedin, p.website].filter(Boolean);
 }
 
-/* ============================== Modern ("Kampala") ============================== */
+/* ============================== Modern ("Executive") ============================== */
 function Modern({ d }: { d: CvData }) {
   const accent = d.accent;
   const side: CvSectionKey[] = ['skills', 'languages', 'certifications'];
@@ -408,7 +408,7 @@ function Ats({ d }: { d: CvData }) {
   );
 }
 
-/* ============================== Academic ("Makerere") ============================== */
+/* ============================== Academic ("Scholar") ============================== */
 function Academic({ d }: { d: CvData }) {
   const t: Tone = {
     accent: d.accent,

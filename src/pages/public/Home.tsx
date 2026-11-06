@@ -9,7 +9,6 @@ import {
   GraduationCap,
   LayoutTemplate,
   ListChecks,
-  Radar,
   Scale,
   Sparkles,
   Upload,
@@ -39,10 +38,7 @@ export default function Home() {
       <section className="relative overflow-hidden bg-gradient-to-b from-ink-100 to-white">
         <div className="container-page grid items-center gap-12 py-14 lg:grid-cols-[1.05fr_1fr] lg:py-20">
           <div className="min-w-0">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-[13px] font-semibold text-brand-600 shadow-sm">
-              <Radar className="h-4 w-4" /> Built for Uganda &amp; East Africa
-            </span>
-            <h1 className="mt-5 text-[40px] font-extrabold leading-[1.08] text-ink sm:text-[54px]">
+            <h1 className="text-[40px] font-extrabold leading-[1.08] text-ink sm:text-[54px]">
               The professional CV builder that also{' '}
               <span className="text-brand-500">finds your next opportunity</span>
             </h1>
@@ -80,7 +76,7 @@ export default function Home() {
                   87
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-bold">M&amp;E Officer — Gulu</p>
+                  <p className="truncate text-sm font-bold">Chief Operating Officer</p>
                   <p className="text-xs text-ink-500">Eligible based on available profile</p>
                 </div>
               </div>
@@ -89,7 +85,7 @@ export default function Home() {
                 <span className="chip bg-warn-50 text-warn-700">Closes in 6 days</span>
               </div>
             </div>
-            <div className="absolute -left-2 top-10 hidden items-center gap-2 rounded-lg bg-white px-3 py-2 shadow-card md:flex">
+            <div className="absolute -left-3 bottom-20 hidden items-center gap-2 rounded-lg bg-white px-3 py-2 shadow-card md:flex">
               <Bell className="h-4 w-4 text-brand-500" />
               <span className="text-xs font-semibold">3 new matches today</span>
             </div>
