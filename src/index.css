@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-white font-sans text-ink antialiased;
+    font-feature-settings: 'ss01';
+  }
+  :focus-visible {
+    outline: 2px solid #1a91f0;
+    outline-offset: 2px;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply tracking-tight;
+  }
+  /* Grid children may shrink below their content width (prevents mobile overflow). */
+  .grid > * {
+    min-width: 0;
+  }
+  input,
+  select,
+  textarea {
+    min-width: 0;
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-8;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded font-semibold transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn-md {
+    @apply h-11 px-5 text-[15px];
+  }
+  .btn-lg {
+    @apply h-14 px-8 text-[17px];
+  }
+  .btn-sm {
+    @apply h-9 px-3 text-sm;
+  }
+  .btn-primary {
+    @apply bg-brand-500 text-white hover:bg-brand-600 active:bg-brand-700;
+  }
+  .btn-secondary {
+    @apply bg-brand-50 text-brand-600 hover:bg-brand-100;
+  }
+  .btn-ghost {
+    @apply text-ink-600 hover:bg-ink-100 hover:text-ink;
+  }
+  .btn-outline {
+    @apply border border-ink-200 bg-white text-ink hover:border-brand-500 hover:text-brand-600;
+  }
+  .btn-danger {
+    @apply bg-bad-50 text-bad-700 hover:bg-bad-500 hover:text-white;
+  }
+  .field-label {
+    @apply mb-1.5 block text-[13px] font-medium text-ink-500;
+  }
+  .input {
+    @apply block w-full rounded border-0 border-b-2 border-transparent bg-ink-100 px-4 py-3 text-[15px] text-ink placeholder:text-ink-400 transition-colors focus:border-brand-500 focus:bg-ink-100 focus:outline-none focus:ring-0;
+  }
+  .input-error {
+    @apply border-bad-500;
+  }
+  .card {
+    @apply rounded-lg bg-white shadow-card;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold;
+  }
+  .link {
+    @apply font-semibold text-brand-600 hover:text-brand-700 hover:underline;
+  }
+  .prose-plain {
+    @apply whitespace-pre-line break-words text-[15px] leading-relaxed text-ink-700;
+  }
+}
+
+/* A4 CV paper */
+.cv-paper {
+  width: 794px;
+  min-height: 1123px;
+  background: #fff;
+  color: #1e2532;
+}
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  html,
+  body {
+    background: #fff !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .cv-paper {
+    box-shadow: none !important;
+    min-height: auto;
+  }
+  .cv-avoid-break {
+    break-inside: avoid;
+  }
+}
