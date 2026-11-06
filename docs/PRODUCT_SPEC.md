@@ -7,10 +7,10 @@ requirements and status, explains how well they match, and alerts the user when 
 
 ## Profiles (one of each per account; number of active profiles depends on plan)
 
-| Profile | Captures | Matched against |
-| --- | --- | --- |
-| Career | Headline, summary, nationality, location, target roles, industries, seniority, employment types, work modes, preferred/excluded locations, salary expectation, skills, languages, work history, education, certifications, projects, memberships | Jobs, internships, graduate programmes, individual consultancies, fellowships, training |
-| Academic | Current level, qualifications with GPA/scale and classification, field, research interests, proposed research, target levels/fields/programmes, preferred countries/institutions, nationality, residence, language tests, funding need, publications, awards | Scholarships, fellowships, research grants, training |
+| Profile  | Captures                                                                                                                                                                                                                                                                                                                                                | Matched against                                                                         |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Career   | Headline, summary, nationality, location, target roles, industries, seniority, employment types, work modes, preferred/excluded locations, salary expectation, skills, languages, work history, education, certifications, projects, memberships                                                                                                        | Jobs, internships, graduate programmes, individual consultancies, fellowships, training |
+| Academic | Current level, qualifications with GPA/scale and classification, field, research interests, proposed research, target levels/fields/programmes, preferred countries/institutions, nationality, residence, language tests, funding need, publications, awards                                                                                            | Scholarships, fellowships, research grants, training                                    |
 | Business | Registered/trading name, registration status and country, operating locations, description, procurement categories, service lines, products, sectors, year established, past contracts, turnover band, staff, certifications, licences, tax clearance status, supplier classifications, contract-size and geography preferences, consortium willingness | Tenders, RFPs, RFQs, EOIs, supplier registration, framework agreements, business grants |
 
 Profiles can be skipped and added later. Nationality and supplier classifications are only used to check published
@@ -58,12 +58,12 @@ user once; expired listings never alert; status changes notify users who saved t
 
 ## Plans (initial configuration, editable by admins)
 
-| Plan | UGX / month | Highlights |
-| --- | --- | --- |
-| Free | 0 | 1 profile, 1 CV, 5 PDF exports/month, weekly alerts, 3 documents, 10 tracked items |
-| Basic | 10,000 | 2 profiles, 3 CVs, DOCX, tailoring, daily alerts, business tender matching |
-| Pro | 20,000 | 3 profiles, 10 CVs, unlimited exports, cover letters, instant alerts |
-| Elite | 30,000 | Everything in Pro, unlimited CVs, 100 documents |
+| Plan  | UGX / month | Highlights                                                                         |
+| ----- | ----------- | ---------------------------------------------------------------------------------- |
+| Free  | 0           | 1 profile, 1 CV, 5 PDF exports/month, weekly alerts, 3 documents, 10 tracked items |
+| Basic | 10,000      | 2 profiles, 3 CVs, DOCX, tailoring, daily alerts, business tender matching         |
+| Pro   | 20,000      | 3 profiles, 10 CVs, unlimited exports, cover letters, instant alerts               |
+| Elite | 30,000      | Everything in Pro, unlimited CVs, 100 documents                                    |
 
 Browsing every verified opportunity is free on all plans. Plans last one month from confirmed payment and do not
 renew automatically.

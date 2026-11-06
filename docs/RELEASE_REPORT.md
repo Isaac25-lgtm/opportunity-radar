@@ -18,13 +18,13 @@ machine). As instructed by the owner ("build the fully functional site"), the ap
 Cloudflare Workers (Hono API + static assets) · D1 · Workers KV for private documents · one Cron Trigger. See
 ARCHITECTURE.md. Deviations from the brief, with reasons:
 
-| Brief | Built | Why |
-| --- | --- | --- |
-| Preserve the existing Next.js/Prisma/PostgreSQL stack | Workers + Hono + D1 | Existing code was inaccessible; D1 needs no external credentials and is native to the account. |
-| R2 for documents | Workers KV (private binding) behind a storage interface | The Cloudflare login lacks R2 permission. |
-| Cloudflare Queues | D1 task table with leases, backoff and dead-letter state | Works on any plan and is fully testable; Queues can replace it later. |
-| AI-assisted parsing and writing | Deterministic, non-generative implementations with an AI provider interface | Owner asked for AI integration later. |
-| Copy resume.io's look | Same layout conventions (split editor, dark preview pane, blue CTAs, template gallery) with Opportunity Radar's own name, logo, copy and templates | Copying another company's brand, logo or text would misrepresent the product. |
+| Brief                                                 | Built                                                                                                                                              | Why                                                                                            |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Preserve the existing Next.js/Prisma/PostgreSQL stack | Workers + Hono + D1                                                                                                                                | Existing code was inaccessible; D1 needs no external credentials and is native to the account. |
+| R2 for documents                                      | Workers KV (private binding) behind a storage interface                                                                                            | The Cloudflare login lacks R2 permission.                                                      |
+| Cloudflare Queues                                     | D1 task table with leases, backoff and dead-letter state                                                                                           | Works on any plan and is fully testable; Queues can replace it later.                          |
+| AI-assisted parsing and writing                       | Deterministic, non-generative implementations with an AI provider interface                                                                        | Owner asked for AI integration later.                                                          |
+| Copy resume.io's look                                 | Same layout conventions (split editor, dark preview pane, blue CTAs, template gallery) with Opportunity Radar's own name, logo, copy and templates | Copying another company's brand, logo or text would misrepresent the product.                  |
 
 ## 3. Completed features
 
@@ -39,23 +39,23 @@ home, CV builder, templates, how it works, pricing, sources, help, contact, priv
 
 ## 4. Integrations that are live
 
-| Integration | Evidence |
-| --- | --- |
-| World Bank procurement API | Production run 13:15 UTC: 47 new notices |
-| Grants.gov search API | 26 new opportunities |
-| Remotive API (aggregator, attributed) | 9 new jobs |
-| Cloudflare D1, KV, Cron Trigger, Workers Logs | In use in production |
+| Integration                                   | Evidence                                 |
+| --------------------------------------------- | ---------------------------------------- |
+| World Bank procurement API                    | Production run 13:15 UTC: 47 new notices |
+| Grants.gov search API                         | 26 new opportunities                     |
+| Remotive API (aggregator, attributed)         | 9 new jobs                               |
+| Cloudflare D1, KV, Cron Trigger, Workers Logs | In use in production                     |
 
 ## 5. Integrations that need credentials, approval or setup
 
-| Integration | What is needed |
-| --- | --- |
-| **Admin access** | Run `npx wrangler secret put ADMIN_EMAILS` and enter your email (the automated attempt was blocked by a permission check). Then sign up/sign in with that email. |
-| Email (SendGrid or Resend) | `EMAIL_PROVIDER`, `EMAIL_API_KEY`, `EMAIL_FROM` secrets. Until then alerts are in-app only and password-reset emails are not sent. |
-| Pesapal payments | Merchant approval and credentials; sandbox verification (steps in CLOUDFLARE_DEPLOYMENT.md). **Payments are not activated.** |
-| ReliefWeb | Approved appname → `RELIEFWEB_APPNAME`, then enable the source. |
-| AI provider | Deferred by request. |
-| Scholarships / PPDA tenders | Administrator curation until permitted feeds are confirmed. |
+| Integration                 | What is needed                                                                                                                                                   |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Admin access**            | Run `npx wrangler secret put ADMIN_EMAILS` and enter your email (the automated attempt was blocked by a permission check). Then sign up/sign in with that email. |
+| Email (SendGrid or Resend)  | `EMAIL_PROVIDER`, `EMAIL_API_KEY`, `EMAIL_FROM` secrets. Until then alerts are in-app only and password-reset emails are not sent.                               |
+| Pesapal payments            | Merchant approval and credentials; sandbox verification (steps in CLOUDFLARE_DEPLOYMENT.md). **Payments are not activated.**                                     |
+| ReliefWeb                   | Approved appname → `RELIEFWEB_APPNAME`, then enable the source.                                                                                                  |
+| AI provider                 | Deferred by request.                                                                                                                                             |
+| Scholarships / PPDA tenders | Administrator curation until permitted feeds are confirmed.                                                                                                      |
 
 ## 6. Database migrations
 
@@ -64,13 +64,13 @@ home, CV builder, templates, how it works, pricing, sources, help, contact, priv
 
 ## 7. Tests executed (actual results)
 
-| Command | Result |
-| --- | --- |
-| `npx vitest run` (unit + integration) | **133 passed, 0 failed** (9 files) |
-| `npx playwright test` (local, desktop + mobile) | **12 passed, 0 failed, 6 skipped** (desktop-only flows skipped on mobile) |
-| Playwright public-site suite against production and the staged preview version | 5 passed, 1 skipped |
-| Authenticated production smoke script (creates and deletes its own account) | 14/14 checks passed |
-| Coverage (`worker/`, `shared/`) | 82% statements, 67% branches, 90% functions (matching 90%, payments 93%) |
+| Command                                                                        | Result                                                                    |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| `npx vitest run` (unit + integration)                                          | **133 passed, 0 failed** (9 files)                                        |
+| `npx playwright test` (local, desktop + mobile)                                | **12 passed, 0 failed, 6 skipped** (desktop-only flows skipped on mobile) |
+| Playwright public-site suite against production and the staged preview version | 5 passed, 1 skipped                                                       |
+| Authenticated production smoke script (creates and deletes its own account)    | 14/14 checks passed                                                       |
+| Coverage (`worker/`, `shared/`)                                                | 82% statements, 67% branches, 90% functions (matching 90%, payments 93%)  |
 
 ## 8. Type-check, lint, build
 
@@ -79,14 +79,14 @@ home, CV builder, templates, how it works, pricing, sources, help, contact, priv
 
 ## 9. Security findings and resolution
 
-| Finding | Resolution |
-| --- | --- |
-| zod < 4.6.6 memory exhaustion on oversized collections (high) | Upgraded to zod 4.6.7; added a 1 MB JSON body cap |
-| React Router open redirect via backslash (high/moderate) | Upgraded to React Router 7.18.5; redirect guard rejects backslashes (unit-tested) |
-| mammoth (moderate) | Upgraded to 1.13.0 |
-| Vite, Vitest/tinypool, Playwright, PostCSS (dev tooling) | Upgraded |
-| `window.scrollTo()` returns a Promise in current Chromium → React effect-cleanup crash on navigation | Fixed; lint rule now forbids expression-bodied effects |
-| minimatch via typescript-eslint (moderate, dev only) | Accepted; not shipped |
+| Finding                                                                                              | Resolution                                                                        |
+| ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| zod < 4.6.6 memory exhaustion on oversized collections (high)                                        | Upgraded to zod 4.6.7; added a 1 MB JSON body cap                                 |
+| React Router open redirect via backslash (high/moderate)                                             | Upgraded to React Router 7.18.5; redirect guard rejects backslashes (unit-tested) |
+| mammoth (moderate)                                                                                   | Upgraded to 1.13.0                                                                |
+| Vite, Vitest/tinypool, Playwright, PostCSS (dev tooling)                                             | Upgraded                                                                          |
+| `window.scrollTo()` returns a Promise in current Chromium → React effect-cleanup crash on navigation | Fixed; lint rule now forbids expression-bodied effects                            |
+| minimatch via typescript-eslint (moderate, dev only)                                                 | Accepted; not shipped                                                             |
 
 `npm audit --omit=dev`: 0 vulnerabilities. Full control list in SECURITY_AND_PRIVACY.md.
 

@@ -8,7 +8,7 @@ matching of jobs, scholarships, grants and tenders for Uganda and East Africa.
   version history, job-specific tailoring and cover-letter drafts. It never invents facts.
 - **Opportunity discovery** from official and permitted sources on a configurable schedule (default every six hours),
   with deduplication, verification labels and status tracking.
-- **Explainable matching** that keeps *eligibility* separate from *relevance*, per profile type.
+- **Explainable matching** that keeps _eligibility_ separate from _relevance_, per profile type.
 - **Alerts, saved opportunities and an application/bid tracker.**
 - **Plans and payments** (Pesapal adapter, server-side verification) and a full **admin console**.
 
@@ -39,14 +39,14 @@ curl "http://127.0.0.1:8787/__scheduled?cron=*/15+*+*+*+*"
 
 ## Tests and checks
 
-| Command | What it runs |
-| --- | --- |
-| `npm run typecheck` | TypeScript for client and Worker |
-| `npm run lint` / `npm run format:check` | ESLint / Prettier |
-| `npm test` | Unit + integration tests (Vitest; integration tests use a real local D1/KV via Wrangler) |
-| `npm run test:coverage` | Same, with coverage |
-| `npm run test:e2e` | Playwright browser tests (desktop + mobile) against a running `wrangler dev` |
-| `node scripts/make-fixtures.mjs` | Regenerates the sample CV fixtures used by e2e tests |
+| Command                                 | What it runs                                                                             |
+| --------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `npm run typecheck`                     | TypeScript for client and Worker                                                         |
+| `npm run lint` / `npm run format:check` | ESLint / Prettier                                                                        |
+| `npm test`                              | Unit + integration tests (Vitest; integration tests use a real local D1/KV via Wrangler) |
+| `npm run test:coverage`                 | Same, with coverage                                                                      |
+| `npm run test:e2e`                      | Playwright browser tests (desktop + mobile) against a running `wrangler dev`             |
+| `node scripts/make-fixtures.mjs`        | Regenerates the sample CV fixtures used by e2e tests                                     |
 
 See [docs/TEST_PLAN.md](docs/TEST_PLAN.md) for scenarios and current results.
 

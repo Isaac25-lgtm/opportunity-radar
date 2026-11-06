@@ -21,16 +21,16 @@ Bindings: DB (D1), DOCS (Workers KV, private documents)
 The original repository could not be accessed (see the release report), so the application was built new for the
 user's Cloudflare account. Choices:
 
-| Concern | Choice | Reason |
-| --- | --- | --- |
-| Runtime | Cloudflare Workers + static assets | Single deployable unit; no servers to manage. |
-| API | Hono | Small, Workers-native, typed middleware. |
-| Database | D1 (SQLite) | Available on the account without external credentials; relational with FKs and indexes. |
-| Documents | Workers KV (private binding) | The Cloudflare login has no R2 permission; KV has no public URL. Behind a `DocumentStore` interface so R2 can replace it. |
-| Queue | D1 task table with leases | Works on any plan; gives idempotency, retries with backoff and a dead-letter state that is easy to inspect and test. |
-| Scheduler | One Cron Trigger (`*/15 * * * *`) | The interval itself lives in `system_config` so admins can change it without a deploy. |
-| Client | React 18 + React Router 7 + Tailwind | Fast to iterate, good mobile performance, code-split per page. |
-| Validation | zod 4 schemas in `shared/` | One schema for client forms and server validation. |
+| Concern    | Choice                               | Reason                                                                                                                    |
+| ---------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| Runtime    | Cloudflare Workers + static assets   | Single deployable unit; no servers to manage.                                                                             |
+| API        | Hono                                 | Small, Workers-native, typed middleware.                                                                                  |
+| Database   | D1 (SQLite)                          | Available on the account without external credentials; relational with FKs and indexes.                                   |
+| Documents  | Workers KV (private binding)         | The Cloudflare login has no R2 permission; KV has no public URL. Behind a `DocumentStore` interface so R2 can replace it. |
+| Queue      | D1 task table with leases            | Works on any plan; gives idempotency, retries with backoff and a dead-letter state that is easy to inspect and test.      |
+| Scheduler  | One Cron Trigger (`*/15 * * * *`)    | The interval itself lives in `system_config` so admins can change it without a deploy.                                    |
+| Client     | React 18 + React Router 7 + Tailwind | Fast to iterate, good mobile performance, code-split per page.                                                            |
+| Validation | zod 4 schemas in `shared/`           | One schema for client forms and server validation.                                                                        |
 
 ## Layering (Worker)
 
@@ -61,7 +61,7 @@ Rules followed:
    are updated with events (`deadline_changed`, `url_changed`, `status_changed`, `amended`), new items are matched to an
    existing canonical opportunity (reference number → URL → organisation/title/country/deadline signature) or inserted.
    Verification only ever upgrades, and aggregator URLs never replace official ones.
-4. When a source returns its *complete* listing, records not seen for N runs (default 3) become `status_uncertain`;
+4. When a source returns its _complete_ listing, records not seen for N runs (default 3) become `status_uncertain`;
    a single failed fetch never closes anything. Past published deadlines become `expired`.
 5. The run is finalised (`completed`, `completed_with_errors`, `failed`) and the lock released.
 

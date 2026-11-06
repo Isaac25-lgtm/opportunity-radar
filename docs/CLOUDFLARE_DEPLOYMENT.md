@@ -2,15 +2,15 @@
 
 ## Target (as deployed on 6 Nov 2026)
 
-| Item | Value |
-| --- | --- |
-| Account | Omodingisaac123@gmail.com's Account (`84426f09872bd9b45fe44cf292757220`) |
-| Worker | `opportunity-radar` |
-| URL | https://opportunity-radar.omodingisaac123.workers.dev (no custom domain, no DNS changes) |
-| D1 database | `opportunity-radar-db` (`153ae2e2-636c-4d09-a01d-013caa6eb2db`) — created for this app |
-| KV namespace | `opportunity-radar-docs` (`9d0fbd6b65a7421c9e7484151f300486`) — created for this app |
-| Cron Trigger | `*/15 * * * *` (scheduler tick; discovery runs every `ingestion.interval_hours`, default 6) |
-| Observability | Workers Logs enabled |
+| Item          | Value                                                                                       |
+| ------------- | ------------------------------------------------------------------------------------------- |
+| Account       | Omodingisaac123@gmail.com's Account (`84426f09872bd9b45fe44cf292757220`)                    |
+| Worker        | `opportunity-radar`                                                                         |
+| URL           | https://opportunity-radar.omodingisaac123.workers.dev (no custom domain, no DNS changes)    |
+| D1 database   | `opportunity-radar-db` (`153ae2e2-636c-4d09-a01d-013caa6eb2db`) — created for this app      |
+| KV namespace  | `opportunity-radar-docs` (`9d0fbd6b65a7421c9e7484151f300486`) — created for this app        |
+| Cron Trigger  | `*/15 * * * *` (scheduler tick; discovery runs every `ingestion.interval_hours`, default 6) |
+| Observability | Workers Logs enabled                                                                        |
 
 Existing account resources (`fip-prod`, `jerseyville-db` D1 databases and the `link-publishers-orders` KV namespace)
 were not touched. No R2, Queues, Hyperdrive or paid add-ons are used.
@@ -21,19 +21,19 @@ Plain variables (in `wrangler.jsonc`): `ENVIRONMENT=production`, `APP_NAME`, `AP
 
 Secrets (set with `npx wrangler secret put NAME`; never commit them):
 
-| Secret | Required | Purpose |
-| --- | --- | --- |
-| `ADMIN_EMAILS` | **Yes** | Comma-separated emails that become administrators when they sign up or sign in |
-| `EMAIL_PROVIDER` | for email | `sendgrid` or `resend` |
-| `EMAIL_API_KEY` | for email | Provider API key |
-| `EMAIL_FROM` | for email | Verified sender address |
-| `PAYMENT_PROVIDER` | for payments | `pesapal` |
-| `PESAPAL_ENV` | for payments | `sandbox` (default) or `live` |
-| `PESAPAL_CONSUMER_KEY`, `PESAPAL_CONSUMER_SECRET` | for payments | Merchant credentials from Pesapal |
-| `PESAPAL_IPN_ID` | for payments | ID returned when registering the IPN URL |
-| `PESAPAL_IPN_SECRET` | for payments | A long random string used in the IPN URL path |
-| `RELIEFWEB_APPNAME` | optional | Approved ReliefWeb API appname |
-| `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL` | deferred | Reserved for the future AI integration |
+| Secret                                            | Required     | Purpose                                                                        |
+| ------------------------------------------------- | ------------ | ------------------------------------------------------------------------------ |
+| `ADMIN_EMAILS`                                    | **Yes**      | Comma-separated emails that become administrators when they sign up or sign in |
+| `EMAIL_PROVIDER`                                  | for email    | `sendgrid` or `resend`                                                         |
+| `EMAIL_API_KEY`                                   | for email    | Provider API key                                                               |
+| `EMAIL_FROM`                                      | for email    | Verified sender address                                                        |
+| `PAYMENT_PROVIDER`                                | for payments | `pesapal`                                                                      |
+| `PESAPAL_ENV`                                     | for payments | `sandbox` (default) or `live`                                                  |
+| `PESAPAL_CONSUMER_KEY`, `PESAPAL_CONSUMER_SECRET` | for payments | Merchant credentials from Pesapal                                              |
+| `PESAPAL_IPN_ID`                                  | for payments | ID returned when registering the IPN URL                                       |
+| `PESAPAL_IPN_SECRET`                              | for payments | A long random string used in the IPN URL path                                  |
+| `RELIEFWEB_APPNAME`                               | optional     | Approved ReliefWeb API appname                                                 |
+| `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL`           | deferred     | Reserved for the future AI integration                                         |
 
 Admin → Configuration lists each of these by name with present/missing status (values are never displayed).
 
