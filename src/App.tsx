@@ -1,10 +1,12 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { Suspense, useEffect, type ComponentType } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import { AppLayout, PublicLayout, RequireAuth } from './components/Layout';
 import { Spinner } from './components/ui';
 import Home from './pages/public/Home';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { lazyPage } from './lib/lazyPage';
 
-const p = <T,>(f: () => Promise<{ default: T }>) => lazy(f as any);
+const p = <T extends ComponentType<any>>(f: () => Promise<{ default: T }>) => lazyPage(f);
 const CvBuilderLanding = p(() => import('./pages/public/CvBuilderLanding'));
 const Templates = p(() => import('./pages/public/Templates'));
 const HowItWorks = p(() => import('./pages/public/HowItWorks'));
@@ -63,91 +65,93 @@ export default function App() {
   return (
     <>
       <ScrollTop />
-      <Suspense fallback={<Spinner className="min-h-[60vh]" />}>
-        <Routes>
-          <Route element={<PublicLayout />}>
-            <Route index element={<Home />} />
-            <Route path="cv-builder" element={<CvBuilderLanding />} />
-            <Route path="templates" element={<Templates />} />
-            <Route path="how-it-works" element={<HowItWorks />} />
-            <Route path="pricing" element={<Pricing />} />
-            <Route path="help" element={<Help />} />
-            <Route path="contact" element={<Contact />} />
-            <Route path="privacy" element={<Legal kind="privacy" />} />
-            <Route path="terms" element={<Legal kind="terms" />} />
-            <Route path="sources" element={<Sources />} />
-            <Route path="opportunities" element={<Opportunities publicMode />} />
-            <Route path="opportunities/:id" element={<OpportunityDetail publicMode />} />
-            <Route path="signin" element={<SignIn />} />
-            <Route path="signup" element={<SignUp />} />
-            <Route path="forgot-password" element={<Forgot />} />
-            <Route path="reset-password" element={<Reset />} />
+      <ErrorBoundary>
+        <Suspense fallback={<Spinner className="min-h-[60vh]" />}>
+          <Routes>
+            <Route element={<PublicLayout />}>
+              <Route index element={<Home />} />
+              <Route path="cv-builder" element={<CvBuilderLanding />} />
+              <Route path="templates" element={<Templates />} />
+              <Route path="how-it-works" element={<HowItWorks />} />
+              <Route path="pricing" element={<Pricing />} />
+              <Route path="help" element={<Help />} />
+              <Route path="contact" element={<Contact />} />
+              <Route path="privacy" element={<Legal kind="privacy" />} />
+              <Route path="terms" element={<Legal kind="terms" />} />
+              <Route path="sources" element={<Sources />} />
+              <Route path="opportunities" element={<Opportunities publicMode />} />
+              <Route path="opportunities/:id" element={<OpportunityDetail publicMode />} />
+              <Route path="signin" element={<SignIn />} />
+              <Route path="signup" element={<SignUp />} />
+              <Route path="forgot-password" element={<Forgot />} />
+              <Route path="reset-password" element={<Reset />} />
+              <Route
+                path="mock-checkout/:tracking"
+                element={
+                  <RequireAuth>
+                    <MockCheckout />
+                  </RequireAuth>
+                }
+              />
+              <Route path="*" element={<NotFound />} />
+            </Route>
             <Route
-              path="mock-checkout/:tracking"
+              path="app/cvs/:id/edit"
               element={
                 <RequireAuth>
-                  <MockCheckout />
+                  <CvEditor />
                 </RequireAuth>
               }
             />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-          <Route
-            path="app/cvs/:id/edit"
-            element={
-              <RequireAuth>
-                <CvEditor />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="app/cvs/:id/print"
-            element={
-              <RequireAuth>
-                <CvPrint />
-              </RequireAuth>
-            }
-          />
-          <Route path="app" element={<AppLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="onboarding" element={<Onboarding />} />
-            <Route path="profiles" element={<Profiles />} />
-            <Route path="profiles/:type" element={<ProfileEditor />} />
-            <Route path="opportunities" element={<Opportunities />} />
-            <Route path="opportunities/:id" element={<OpportunityDetail />} />
-            <Route path="saved" element={<Saved />} />
-            <Route path="tracker" element={<Tracker />} />
-            <Route path="cvs" element={<CvList />} />
-            <Route path="cvs/import" element={<CvImport />} />
-            <Route path="cover-letters/:id" element={<CoverLetter />} />
-            <Route path="documents" element={<Documents />} />
-            <Route path="notifications" element={<Notifications />} />
-            <Route path="settings" element={<Settings />} />
-            <Route path="billing" element={<Billing />} />
-            <Route path="billing/return" element={<BillingReturn />} />
-          </Route>
-          <Route
-            path="admin"
-            element={
-              <RequireAuth admin>
-                <AdminLayout />
-              </RequireAuth>
-            }
-          >
-            <Route index element={<AdminOverview />} />
-            <Route path="users" element={<AdminUsers />} />
-            <Route path="sources" element={<AdminSources />} />
-            <Route path="runs" element={<AdminRuns />} />
-            <Route path="opportunities" element={<AdminOpportunities />} />
-            <Route path="opportunities/new" element={<AdminOpportunityEdit />} />
-            <Route path="opportunities/:id" element={<AdminOpportunityEdit />} />
-            <Route path="plans" element={<AdminPlans />} />
-            <Route path="payments" element={<AdminPayments />} />
-            <Route path="audit" element={<AdminAudit />} />
-            <Route path="config" element={<AdminConfig />} />
-          </Route>
-        </Routes>
-      </Suspense>
+            <Route
+              path="app/cvs/:id/print"
+              element={
+                <RequireAuth>
+                  <CvPrint />
+                </RequireAuth>
+              }
+            />
+            <Route path="app" element={<AppLayout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="onboarding" element={<Onboarding />} />
+              <Route path="profiles" element={<Profiles />} />
+              <Route path="profiles/:type" element={<ProfileEditor />} />
+              <Route path="opportunities" element={<Opportunities />} />
+              <Route path="opportunities/:id" element={<OpportunityDetail />} />
+              <Route path="saved" element={<Saved />} />
+              <Route path="tracker" element={<Tracker />} />
+              <Route path="cvs" element={<CvList />} />
+              <Route path="cvs/import" element={<CvImport />} />
+              <Route path="cover-letters/:id" element={<CoverLetter />} />
+              <Route path="documents" element={<Documents />} />
+              <Route path="notifications" element={<Notifications />} />
+              <Route path="settings" element={<Settings />} />
+              <Route path="billing" element={<Billing />} />
+              <Route path="billing/return" element={<BillingReturn />} />
+            </Route>
+            <Route
+              path="admin"
+              element={
+                <RequireAuth admin>
+                  <AdminLayout />
+                </RequireAuth>
+              }
+            >
+              <Route index element={<AdminOverview />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="sources" element={<AdminSources />} />
+              <Route path="runs" element={<AdminRuns />} />
+              <Route path="opportunities" element={<AdminOpportunities />} />
+              <Route path="opportunities/new" element={<AdminOpportunityEdit />} />
+              <Route path="opportunities/:id" element={<AdminOpportunityEdit />} />
+              <Route path="plans" element={<AdminPlans />} />
+              <Route path="payments" element={<AdminPayments />} />
+              <Route path="audit" element={<AdminAudit />} />
+              <Route path="config" element={<AdminConfig />} />
+            </Route>
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
     </>
   );
 }

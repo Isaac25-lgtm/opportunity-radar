@@ -17,14 +17,15 @@
     {
       "binding": "DB",
       "database_name": "opportunity-radar-db",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "153ae2e2-636c-4d09-a01d-013caa6eb2db",
       "migrations_dir": "migrations",
     },
   ],
-  "kv_namespaces": [{ "binding": "DOCS", "id": "00000000000000000000000000000000" }],
+  "kv_namespaces": [{ "binding": "DOCS", "id": "9d0fbd6b65a7421c9e7484151f300486" }],
   "vars": {
-    "ENVIRONMENT": "development",
+    "ENVIRONMENT": "production",
     "APP_NAME": "Opportunity Radar",
+    "APP_URL": "https://opportunity-radar.omodingisaac123.workers.dev",
   },
-  "triggers": { "crons": [] },
+  "triggers": { "crons": ["*/15 * * * *"] },
 }

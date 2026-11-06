@@ -5,7 +5,6 @@ export interface Env {
   ENVIRONMENT: string;
   APP_NAME?: string;
   APP_URL?: string;
-  SESSION_SECRET?: string;
   ADMIN_EMAILS?: string;
   EMAIL_PROVIDER?: string;
   EMAIL_API_KEY?: string;

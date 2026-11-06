@@ -1,7 +1,6 @@
 # Copy to .dev.vars for local development. Never commit real values.
 ENVIRONMENT=development
 APP_URL=http://localhost:5173
-SESSION_SECRET=replace-with-64-random-hex-chars
 ADMIN_EMAILS=you@example.com
 # Email: none | sendgrid | resend
 EMAIL_PROVIDER=none
