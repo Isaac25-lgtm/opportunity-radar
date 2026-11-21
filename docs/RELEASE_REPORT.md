@@ -105,9 +105,18 @@ https://opportunity-radar.omodingisaac123.workers.dev
 
 ## 12. Deployed version
 
-Worker version `6757f62d-945a-4f63-8969-3320705e07c9` with the audit hardening (uploaded as a preview, smoke-tested at its preview URL,
-then promoted to 100%). Previous version `43a679b9-aafd-4108-9c4d-bab478754803` is available for rollback. The audit patch was verified natively on Windows with Wrangler: 139 Vitest tests against local D1/KV and 15 Playwright tests (3 intentional skips) against `wrangler dev`, plus a 14-step authenticated smoke test of the preview.
-Git branch `release/v1.0` (local), commit recorded in the final hand-over message.
+Worker version `89bdb22a-5373-40d9-b8db-fa90406df00d` — professional visual refresh (commit `21a3270` on branch
+`design/professional-refresh`). Uploaded as a preview, smoke-tested at its preview URL (health, public Playwright suite
+5 passed / 1 skipped, 9-step signed-in smoke that creates and deletes its own account), then promoted to 100%.
+The public suite was re-run against production afterwards: 5 passed, 1 skipped.
+
+Rollback: `npx wrangler versions deploy 6757f62d-945a-4f63-8969-3320705e07c9@100% --yes` (the audit-hardening version).
+No database migrations in this release.
+
+Local verification for this release: Vitest 142 passed (9 files); Playwright 15 passed, 3 intentional mobile skips;
+a 47-route sweep (visitor, user and admin, desktop 1366 px and phone 390 px) with no page errors, failed requests or
+horizontal overflow; manual Chrome walk-through of save, dismiss, tracker, tailoring, cover letter, templates,
+version history, settings, the payment simulator's failure path and an admin source run.
 
 ## 13. Cron schedule
 
