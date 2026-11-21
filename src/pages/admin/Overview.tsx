@@ -59,7 +59,7 @@ export default function Overview() {
           const inner = (
             <>
               <p className="text-xs font-semibold uppercase text-ink-500">{l}</p>
-              <p className="mt-1 text-2xl font-bold">{Number(n).toLocaleString()}</p>
+              <p className="mt-1 text-2xl font-semibold">{Number(n).toLocaleString()}</p>
             </>
           );
           return to ? (
@@ -75,7 +75,7 @@ export default function Overview() {
       </div>
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <section className="card p-5">
-          <h2 className="font-bold">Open opportunities by category</h2>
+          <h2 className="font-semibold">Open opportunities by category</h2>
           <ul className="mt-3 space-y-1.5 text-sm">
             {data.by_category.map((c: any) => (
               <li key={c.category} className="flex justify-between">
@@ -85,7 +85,7 @@ export default function Overview() {
             ))}
             {!data.by_category.length && <li className="text-ink-500">None yet — run discovery.</li>}
           </ul>
-          <h2 className="mt-5 font-bold">By verification</h2>
+          <h2 className="mt-5 font-semibold">By verification</h2>
           <ul className="mt-2 space-y-1.5 text-sm">
             {data.by_verification.map((c: any) => (
               <li key={c.verification} className="flex justify-between">
@@ -97,7 +97,7 @@ export default function Overview() {
         </section>
         <section className="card p-5">
           <div className="flex items-center justify-between">
-            <h2 className="font-bold">Recent ingestion runs</h2>
+            <h2 className="font-semibold">Recent ingestion runs</h2>
             <Link to="/admin/runs" className="text-sm font-semibold text-brand-600">
               All runs
             </Link>
@@ -120,7 +120,7 @@ export default function Overview() {
         </section>
       </div>
       <section className="card mt-6 p-5">
-        <h2 className="font-bold">Contact messages</h2>
+        <h2 className="font-semibold">Contact messages</h2>
         <ul className="mt-3 divide-y divide-ink-100 text-sm">
           {(msgs.data?.messages ?? []).map((m: any) => (
             <li key={m.id} className="py-3">

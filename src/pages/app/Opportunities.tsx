@@ -5,6 +5,7 @@ import {
   CATEGORIES_BY_PROFILE,
   CATEGORY_LABELS,
   OPPORTUNITY_CATEGORIES,
+  PROFILE_TYPES,
   type ProfileType,
 } from '../../../shared/constants';
 import { OpportunityCard, type OppSummary } from '../../components/opportunity';
@@ -40,9 +41,11 @@ export default function Opportunities({ publicMode = false }: { publicMode?: boo
   const { me } = useAuth();
   const toast = useToast();
   const [sp, setSp] = useSearchParams();
-  const view = (publicMode ? 'all' : (sp.get('view') ?? me.profiles?.[0]?.type ?? 'all')) as
-    | ProfileType
-    | 'all';
+  const requested = publicMode ? 'all' : (sp.get('view') ?? me.profiles?.[0]?.type ?? 'all');
+  // Unknown or empty ?view= values (e.g. a hand-edited URL) fall back to all categories.
+  const view: ProfileType | 'all' = (PROFILE_TYPES as readonly string[]).includes(requested)
+    ? (requested as ProfileType)
+    : 'all';
   const params = {
     view,
     q: sp.get('q') ?? '',
@@ -186,7 +189,7 @@ export default function Opportunities({ publicMode = false }: { publicMode?: boo
   return (
     <div className={publicMode ? 'container-page py-10' : ''}>
       <div className="mb-5 flex flex-col gap-1">
-        <h1 className="text-[28px] font-bold">{publicMode ? 'Browse opportunities' : 'Opportunities'}</h1>
+        <h1 className="text-[28px] font-semibold">{publicMode ? 'Browse opportunities' : 'Opportunities'}</h1>
         <p className="text-ink-500">
           {publicMode ? (
             <>
@@ -257,7 +260,7 @@ export default function Opportunities({ publicMode = false }: { publicMode?: boo
               onClick={(e) => e.stopPropagation()}
             >
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="font-bold">Filters</h2>
+                <h2 className="font-semibold">Filters</h2>
                 <button onClick={() => setShowFilters(false)} aria-label="Close filters">
                   <X className="h-5 w-5" />
                 </button>

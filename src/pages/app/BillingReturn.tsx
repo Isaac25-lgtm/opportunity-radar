@@ -29,7 +29,7 @@ export default function BillingReturn() {
   return (
     <div className="mx-auto max-w-lg py-10">
       <div className="card p-6 text-center">
-        <h1 className="text-xl font-bold">Payment status</h1>
+        <h1 className="text-xl font-semibold">Payment status</h1>
         <ErrorAlert error={err} className="mt-4" />
         {!status && !err && <Spinner label="Confirming with the payment provider…" />}
         {status === 'completed' && (

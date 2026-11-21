@@ -41,7 +41,7 @@ export default function Config() {
           ))}
         </section>
         <section className="card p-5">
-          <h2 className="font-bold">Environment &amp; integrations</h2>
+          <h2 className="font-semibold">Environment &amp; integrations</h2>
           <p className="mt-1 text-xs text-ink-500">Names only — values are never shown.</p>
           <ul className="mt-3 divide-y divide-ink-100 text-sm">
             {data.environment.map((e: any) => (

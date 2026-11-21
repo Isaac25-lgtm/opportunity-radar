@@ -180,7 +180,7 @@ export function FieldControl({
         <label className="flex items-center gap-2 pt-7 text-[15px] text-ink-700">
           <input
             type="checkbox"
-            className="h-4 w-4 rounded border-ink-300 text-brand-500"
+            className="h-4 w-4 rounded border-ink-300 text-ink-700"
             checked={!!value}
             onChange={(e) => onChange(e.target.checked)}
           />
@@ -301,7 +301,7 @@ export function FormSections({
     <div className="space-y-6">
       {sections.map((s) => (
         <section key={s.title} className="card p-5 sm:p-6">
-          <h2 className="text-lg font-bold">{s.title}</h2>
+          <h2 className="text-lg font-semibold">{s.title}</h2>
           {s.description && <p className="mt-1 text-sm text-ink-500">{s.description}</p>}
           <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
             {s.fields.map((f) => (

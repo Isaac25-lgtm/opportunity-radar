@@ -155,7 +155,7 @@ export function ScoreRing({ score, size = 52 }: { score: number | null; size?: n
           strokeLinecap="round"
         />
       </svg>
-      <span className="absolute inset-0 flex items-center justify-center text-[13px] font-bold text-ink">
+      <span className="absolute inset-0 flex items-center justify-center text-[13px] font-semibold text-ink">
         {score === null ? '—' : `${score}`}
       </span>
     </div>
@@ -195,7 +195,7 @@ export function OpportunityCard({
           {o.match && <EligibilityBadge value={o.match.eligibility} />}
           {o.is_demo && <span className="chip bg-warn-500 text-white">DEMO DATA</span>}
         </div>
-        <h3 className="text-[17px] font-bold leading-snug text-ink">
+        <h3 className="text-[17px] font-semibold leading-snug text-ink">
           <Link
             to={`${linkBase}/${o.id}`}
             className="break-words after:absolute after:inset-0 hover:text-brand-600"
@@ -285,7 +285,7 @@ export function MatchPanel({ m }: { m: MatchResult }) {
   if (m.gated)
     return (
       <div className="card p-5">
-        <h3 className="font-bold">{label}</h3>
+        <h3 className="font-semibold">{label}</h3>
         <p className="mt-2 text-sm text-ink-600">
           Business tender matching is included from the Basic plan.{' '}
           <Link to="/pricing" className="link">
@@ -298,9 +298,7 @@ export function MatchPanel({ m }: { m: MatchResult }) {
     <div className="card p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-ink-400">
-            Your {label.toLowerCase()}
-          </p>
+          <p className="text-[13px] font-medium text-ink-500">Your {label.toLowerCase()}</p>
           <div className="mt-2">
             <EligibilityBadge value={m.eligibility} long />
           </div>
@@ -374,7 +372,7 @@ function Section({
   const color = { ok: 'text-ok-700', warn: 'text-warn-700', bad: 'text-bad-700' }[tone];
   return (
     <div className="mt-4">
-      <h4 className={cx('text-sm font-bold', color)}>{title}</h4>
+      <h4 className={cx('text-sm font-semibold', color)}>{title}</h4>
       <ul className="mt-1.5 list-disc space-y-1 pl-5 text-sm text-ink-700">{children}</ul>
     </div>
   );

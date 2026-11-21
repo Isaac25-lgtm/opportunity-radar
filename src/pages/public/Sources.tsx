@@ -16,7 +16,7 @@ export default function Sources() {
   return (
     <section className="py-14">
       <div className="container-page max-w-4xl">
-        <h1 className="text-[34px] font-extrabold sm:text-[42px]">Our opportunity sources</h1>
+        <h1 className="text-[34px] font-semibold sm:text-[42px]">Our opportunity sources</h1>
         <p className="mt-3 text-lg text-ink-600">
           We only use official portals, documented public APIs and feeds, and listings our administrators
           verify. We do not scrape sites that forbid it, bypass logins or CAPTCHAs.
@@ -29,7 +29,7 @@ export default function Sources() {
               <div key={s.name} className={cx('card p-5', !s.enabled && 'opacity-60')}>
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
-                    <h2 className="font-bold">{s.name}</h2>
+                    <h2 className="font-semibold">{s.name}</h2>
                     <p className="text-sm text-ink-500">{s.owner}</p>
                   </div>
                   <div className="flex flex-wrap gap-1.5">

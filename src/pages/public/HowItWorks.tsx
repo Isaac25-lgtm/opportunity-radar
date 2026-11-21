@@ -71,7 +71,7 @@ export default function HowItWorks() {
     <>
       <section className="bg-ink-100 py-16">
         <div className="container-page max-w-3xl text-center">
-          <h1 className="text-[36px] font-extrabold sm:text-[46px]">How Opportunity Radar works</h1>
+          <h1 className="text-[36px] font-semibold sm:text-[46px]">How Opportunity Radar works</h1>
           <p className="mt-4 text-lg text-ink-600">
             We separate two questions: <strong>Can you apply?</strong> (eligibility) and{' '}
             <strong>Is it a good fit?</strong> (relevance). A great fit never hides a failed requirement.
@@ -83,15 +83,15 @@ export default function HowItWorks() {
           {PROFILES.map((p) => (
             <article key={p.id} id={p.id} className="card scroll-mt-24 p-6 sm:p-8">
               <div className="flex items-center gap-3">
-                <p.icon className="h-7 w-7 text-brand-500" />
-                <h2 className="text-2xl font-bold">{p.title}</h2>
+                <p.icon className="h-7 w-7 text-ink-700" />
+                <h2 className="text-2xl font-semibold">{p.title}</h2>
               </div>
               <p className="mt-3 text-sm text-ink-500">
                 Matched against: {CATEGORIES_BY_PROFILE[p.id].map((c) => CATEGORY_LABELS[c]).join(', ')}.
               </p>
               <div className="mt-6 grid gap-6 md:grid-cols-2">
                 <div>
-                  <h3 className="font-bold">1. Eligibility checks</h3>
+                  <h3 className="font-semibold">1. Eligibility checks</h3>
                   <ul className="mt-2 list-disc space-y-1 pl-5 text-[15px] text-ink-700">
                     {p.checks.map((c) => (
                       <li key={c}>{c}</li>
@@ -99,7 +99,7 @@ export default function HowItWorks() {
                   </ul>
                 </div>
                 <div>
-                  <h3 className="font-bold">2. Relevance score (default weights)</h3>
+                  <h3 className="font-semibold">2. Relevance score (default weights)</h3>
                   <ul className="mt-2 list-disc space-y-1 pl-5 text-[15px] text-ink-700">
                     {p.scores.map((c) => (
                       <li key={c}>{c}</li>
@@ -118,7 +118,7 @@ export default function HowItWorks() {
       <section className="bg-ink-50 py-16">
         <div className="container-page grid gap-10 md:grid-cols-2">
           <div>
-            <h2 className="text-2xl font-bold">Eligibility statuses</h2>
+            <h2 className="text-2xl font-semibold">Eligibility statuses</h2>
             <ul className="mt-4 space-y-3">
               {(Object.keys(ELIGIBILITY_LABELS) as Array<keyof typeof ELIGIBILITY_LABELS>).map((k) => (
                 <li key={k} className="flex flex-col gap-1">
@@ -128,7 +128,7 @@ export default function HowItWorks() {
             </ul>
           </div>
           <div>
-            <h2 className="text-2xl font-bold">Verification labels</h2>
+            <h2 className="text-2xl font-semibold">Verification labels</h2>
             <ul className="mt-4 space-y-3">
               {(
                 [
@@ -151,7 +151,7 @@ export default function HowItWorks() {
         </div>
       </section>
       <section className="py-16 text-center">
-        <h2 className="text-2xl font-bold">What we cannot promise</h2>
+        <h2 className="text-2xl font-semibold">What we cannot promise</h2>
         <p className="mx-auto mt-3 max-w-2xl text-ink-600">
           We cannot guarantee that an opportunity is still open, that you will be selected, or that a source
           has not changed its terms. Always read the official notice before applying, and never pay anyone to

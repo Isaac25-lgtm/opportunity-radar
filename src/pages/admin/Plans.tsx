@@ -47,7 +47,7 @@ function PlanCard({ p, onSaved }: { p: any; onSaved: () => void }) {
   return (
     <section className="card space-y-4 p-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold">{p.code}</h2>
+        <h2 className="text-lg font-semibold">{p.code}</h2>
         <Toggle label="Active" checked={f.active} onChange={(v) => setF({ ...f, active: v })} />
       </div>
       <ErrorAlert error={err} />

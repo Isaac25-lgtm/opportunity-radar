@@ -18,7 +18,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
     if (!this.state.error) return this.props.children;
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center" role="alert">
-        <h1 className="text-2xl font-bold">Something went wrong</h1>
+        <h1 className="text-2xl font-semibold">Something went wrong</h1>
         <p className="mt-2 max-w-md text-ink-500">
           This page could not be loaded. Check your connection and reload. Your saved work is not affected.
         </p>

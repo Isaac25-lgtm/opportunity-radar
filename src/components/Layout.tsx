@@ -21,14 +21,54 @@ import { useAuth } from '../lib/auth';
 import { initials } from '../lib/format';
 import { ButtonLink, Spinner, cx } from './ui';
 
-export function Logo({ className, light }: { className?: string; light?: boolean }) {
+/** Radar mark: two arcs and a sweep on a near-black tile, with one blue point. */
+export function LogoMark({ className }: { className?: string }) {
   return (
-    <Link to="/" className={cx('flex items-center gap-2', className)} aria-label="Opportunity Radar home">
-      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500 text-white">
-        <Radar className="h-5 w-5" aria-hidden />
-      </span>
-      <span className={cx('text-[19px] font-extrabold tracking-tight', light ? 'text-white' : 'text-ink')}>
-        Opportunity<span className="text-brand-500">Radar</span>
+    <svg viewBox="0 0 32 32" className={cx('h-8 w-8 flex-none', className)} aria-hidden>
+      <rect width="32" height="32" rx="9" fill="#171717" />
+      <path
+        d="M9 23a9.9 9.9 0 0 1 0-14"
+        stroke="#fff"
+        strokeWidth="2.2"
+        fill="none"
+        strokeLinecap="round"
+        opacity=".5"
+      />
+      <path
+        d="M13 19.5a4.9 4.9 0 0 1 0-7"
+        stroke="#fff"
+        strokeWidth="2.2"
+        fill="none"
+        strokeLinecap="round"
+      />
+      <path d="M16 16l8.5-6.5" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" />
+      <circle cx="16" cy="16" r="2.4" fill="#fff" />
+      <circle cx="24.5" cy="9.5" r="2.6" fill="#3b82f6" />
+    </svg>
+  );
+}
+
+export function Logo({
+  className,
+  light,
+  compact,
+}: {
+  className?: string;
+  light?: boolean;
+  /** Show only the mark on phone widths (used where the header row is crowded). */
+  compact?: boolean;
+}) {
+  return (
+    <Link to="/" className={cx('flex items-center gap-2.5', className)} aria-label="Opportunity Radar home">
+      <LogoMark />
+      <span
+        className={cx(
+          'whitespace-nowrap font-display text-[18px] font-semibold tracking-[-0.02em]',
+          compact && 'hidden sm:inline',
+          light ? 'text-white' : 'text-ink',
+        )}
+      >
+        Opportunity Radar
       </span>
     </Link>
   );
@@ -50,8 +90,8 @@ export function PublicHeader() {
     setOpen(false);
   }, [loc.pathname]);
   return (
-    <header className="sticky top-0 z-40 border-b border-ink-100 bg-white/95 backdrop-blur">
-      <div className="container-page flex h-[72px] items-center justify-between gap-4">
+    <header className="sticky top-0 z-40 border-b border-line bg-white/90 backdrop-blur-md">
+      <div className="container-page flex h-16 items-center justify-between gap-4">
         <Logo />
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Main">
           {PUBLIC_NAV.map((n) => (
@@ -60,8 +100,8 @@ export function PublicHeader() {
               to={n.to}
               className={({ isActive }) =>
                 cx(
-                  'rounded px-3 py-2 text-[15px] font-medium hover:text-brand-600',
-                  isActive ? 'text-brand-600' : 'text-ink-700',
+                  'rounded-[9px] px-3 py-1.5 text-[14.5px] transition-colors hover:text-ink',
+                  isActive ? 'text-ink' : 'text-ink-700',
                 )
               }
             >
@@ -71,16 +111,20 @@ export function PublicHeader() {
         </nav>
         <div className="hidden items-center gap-2 lg:flex">
           {me.user ? (
-            <ButtonLink to="/app">My dashboard</ButtonLink>
+            <ButtonLink to="/app" size="sm" className="h-9 px-3.5">
+              My dashboard
+            </ButtonLink>
           ) : (
             <>
               <Link
                 to="/signin"
-                className="rounded px-3 py-2 text-[15px] font-semibold text-ink-700 hover:text-brand-600"
+                className="rounded-[9px] px-3 py-1.5 text-[14.5px] text-ink-700 hover:text-ink"
               >
                 Sign in
               </Link>
-              <ButtonLink to="/signup">Get started</ButtonLink>
+              <ButtonLink to="/signup" size="sm" className="h-9 px-3.5">
+                Get started
+              </ButtonLink>
             </>
           )}
         </div>
@@ -94,13 +138,13 @@ export function PublicHeader() {
         </button>
       </div>
       {open && (
-        <div className="border-t border-ink-100 bg-white lg:hidden">
+        <div className="border-t border-line bg-white lg:hidden">
           <nav className="container-page flex flex-col py-3" aria-label="Mobile">
             {PUBLIC_NAV.map((n) => (
               <Link
                 key={n.to}
                 to={n.to}
-                className="rounded px-2 py-3 text-base font-medium text-ink-700 hover:bg-ink-50"
+                className="rounded-[9px] px-2 py-3 text-base text-ink-700 hover:bg-ink-50"
               >
                 {n.label}
               </Link>
@@ -157,22 +201,22 @@ export function PublicFooter() {
     ],
   ];
   return (
-    <footer className="bg-ink text-ink-300">
-      <div className="container-page grid gap-10 py-14 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+    <footer className="border-t border-line bg-ink-50">
+      <div className="container-page grid gap-10 py-14 md:grid-cols-[1.5fr_repeat(3,1fr)]">
         <div>
-          <Logo light />
-          <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink-300">
-            One profile for jobs, scholarships, grants and tenders — matched honestly from official and
+          <Logo />
+          <p className="mt-4 max-w-sm text-[14.5px] leading-relaxed text-ink-600">
+            One profile for jobs, scholarships, grants and tenders, matched honestly from official and
             verified sources around the world.
           </p>
         </div>
         {cols.map(([title, links]) => (
           <div key={title}>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-white">{title}</h3>
-            <ul className="mt-4 space-y-2.5">
+            <h3 className="font-sans text-[13px] font-medium tracking-normal text-brand-600">{title}</h3>
+            <ul className="mt-3 space-y-2">
               {links.map(([l, to]) => (
                 <li key={to}>
-                  <Link to={to} className="text-sm hover:text-white">
+                  <Link to={to} className="text-[15px] text-ink-700 hover:text-ink">
                     {l}
                   </Link>
                 </li>
@@ -181,9 +225,9 @@ export function PublicFooter() {
           </div>
         ))}
       </div>
-      <div className="border-t border-white/10">
-        <div className="container-page flex flex-col gap-2 py-6 text-xs text-ink-400 sm:flex-row sm:justify-between">
-          <p>© {new Date().getFullYear()} Opportunity Radar.</p>
+      <div className="container-page">
+        <div className="flex flex-col gap-2 border-t border-ink-200 py-6 text-[13px] text-ink-500 sm:flex-row sm:justify-between">
+          <p>&copy; {new Date().getFullYear()} Opportunity Radar. All rights reserved.</p>
           <p>We never guarantee selection. Always confirm requirements on the official notice.</p>
         </div>
       </div>
@@ -244,7 +288,7 @@ function UserMenu() {
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-500 text-sm font-bold text-white">
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-[13px] font-semibold text-white">
           {initials(me.user.name)}
         </span>
         <ChevronDown className="h-4 w-4 text-ink-500" />
@@ -252,12 +296,12 @@ function UserMenu() {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 mt-2 w-60 overflow-hidden rounded-lg bg-white py-1 shadow-paper ring-1 ring-ink-100"
+          className="absolute right-0 mt-2 w-60 overflow-hidden rounded-xl border border-line bg-white py-1 shadow-card"
         >
           <div className="border-b border-ink-100 px-4 py-3">
             <p className="truncate text-sm font-semibold">{me.user.name}</p>
             <p className="truncate text-xs text-ink-500">{me.user.email}</p>
-            <p className="mt-1 text-xs font-semibold text-brand-600">{me.plan?.name ?? 'Free'} plan</p>
+            <p className="mt-1 text-xs text-ink-500">{me.plan?.name ?? 'Free'} plan</p>
           </div>
           {items.map(([l, to, Icon]) => (
             <Link
@@ -294,10 +338,10 @@ export function AppHeader() {
     setOpen(false);
   }, [loc.pathname]);
   return (
-    <header className="no-print sticky top-0 z-40 border-b border-ink-100 bg-white">
+    <header className="no-print sticky top-0 z-40 border-b border-line bg-white">
       <div className="container-page flex h-16 items-center justify-between gap-3">
         <div className="flex items-center gap-6">
-          <Logo />
+          <Logo compact />
           <nav className="hidden items-center gap-1 md:flex" aria-label="App">
             {APP_NAV.map((n) => (
               <NavLink
@@ -306,8 +350,8 @@ export function AppHeader() {
                 end={n.end}
                 className={({ isActive }) =>
                   cx(
-                    'rounded px-3 py-2 text-[15px] font-medium',
-                    isActive ? 'bg-brand-50 text-brand-600' : 'text-ink-600 hover:text-ink',
+                    'rounded-[9px] px-3 py-1.5 text-[14.5px]',
+                    isActive ? 'bg-ink-100 font-medium text-ink' : 'text-ink-600 hover:text-ink',
                   )
                 }
               >
@@ -324,7 +368,7 @@ export function AppHeader() {
           >
             <Bell className="h-5 w-5" />
             {!!me.unread && (
-              <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-bad-500 px-1 text-[10px] font-bold text-white">
+              <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-bad-500 px-1 text-[10px] font-semibold text-white">
                 {me.unread > 9 ? '9+' : me.unread}
               </span>
             )}
@@ -350,8 +394,8 @@ export function AppHeader() {
                 end={n.end}
                 className={({ isActive }) =>
                   cx(
-                    'flex items-center gap-2 rounded px-3 py-3 text-[15px] font-medium',
-                    isActive ? 'bg-brand-50 text-brand-600' : 'text-ink-700',
+                    'flex items-center gap-2 rounded-[9px] px-3 py-3 text-[15px]',
+                    isActive ? 'bg-ink-100 font-medium text-ink' : 'text-ink-700',
                   )
                 }
               >

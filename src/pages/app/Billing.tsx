@@ -24,7 +24,7 @@ export default function Billing() {
       <Progress
         value={limit < 0 ? 10 : (used / Math.max(1, limit)) * 100}
         className="mt-1"
-        tone={limit >= 0 && used >= limit ? 'bg-bad-500' : 'bg-brand-500'}
+        tone={limit >= 0 && used >= limit ? 'bg-bad-500' : 'bg-ink'}
       />
     </div>
   );
@@ -67,7 +67,7 @@ export default function Billing() {
       <div className="grid gap-6 md:grid-cols-2">
         <section className="card p-6">
           <p className="text-sm text-ink-500">Current plan</p>
-          <p className="text-2xl font-bold">{plan.name}</p>
+          <p className="text-2xl font-semibold">{plan.name}</p>
           {plan.period_end ? (
             <p className="text-sm text-ink-500">Active until {fmtDate(plan.period_end)}</p>
           ) : (
@@ -89,11 +89,11 @@ export default function Billing() {
                 key={p.code}
                 className={cx(
                   'card flex items-center justify-between gap-3 p-5',
-                  p.code === plan.code && 'ring-2 ring-brand-500',
+                  p.code === plan.code && 'ring-2 ring-ink',
                 )}
               >
                 <div>
-                  <p className="font-bold">{p.name}</p>
+                  <p className="font-semibold">{p.name}</p>
                   <p className="text-sm text-ink-500">{ugx(p.price_ugx)} / month</p>
                 </div>
                 <Button
@@ -113,7 +113,7 @@ export default function Billing() {
         </section>
       </div>
       <section className="card mt-6 overflow-x-auto p-6">
-        <h2 className="text-lg font-bold">Payment history</h2>
+        <h2 className="text-lg font-semibold">Payment history</h2>
         {payments.length ? (
           <table className="mt-3 w-full min-w-[560px] text-sm">
             <thead>

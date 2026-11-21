@@ -4,6 +4,7 @@ import {
   BookmarkCheck,
   Building2,
   CalendarClock,
+  ChevronRight,
   EyeOff,
   FileText,
   ListPlus,
@@ -179,7 +180,9 @@ export default function OpportunityDetail({ publicMode = false }: { publicMode?:
               <VerificationBadge state={o.display_state} />
               {o.is_demo && <span className="chip bg-warn-500 text-white">DEMO DATA</span>}
             </div>
-            <h1 className="mt-3 break-words text-2xl font-bold sm:text-[28px]">{o.title}</h1>
+            <h1 className="mt-3 break-words text-[21px] font-semibold leading-snug sm:text-[24px]">
+              {o.title}
+            </h1>
             <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-[15px] text-ink-600">
               <span className="flex items-center gap-1.5">
                 <Building2 className="h-4 w-4" /> {o.organization}
@@ -267,7 +270,7 @@ export default function OpportunityDetail({ publicMode = false }: { publicMode?:
           </div>
 
           <section className="card p-5 sm:p-7">
-            <h2 className="text-lg font-bold">Requirements</h2>
+            <h2 className="text-lg font-semibold">Requirements</h2>
             {o.requirements_source === 'heuristic' && (
               <p className="mb-3 mt-1 text-xs text-ink-500">
                 Extracted automatically from the notice text — confirm on the official page.
@@ -285,14 +288,14 @@ export default function OpportunityDetail({ publicMode = false }: { publicMode?:
 
           {o.description && (
             <section className="card p-5 sm:p-7">
-              <h2 className="text-lg font-bold">Description</h2>
+              <h2 className="text-lg font-semibold">Description</h2>
               <div className="prose-plain mt-3 max-h-[640px] overflow-y-auto">{o.description}</div>
             </section>
           )}
 
           {Object.keys(o.meta ?? {}).length > 0 && (
             <section className="card p-5 sm:p-7">
-              <h2 className="text-lg font-bold">Details</h2>
+              <h2 className="text-lg font-semibold">Details</h2>
               <dl className="mt-3 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-[180px_1fr]">
                 {Object.entries(o.meta)
                   .filter(
@@ -329,7 +332,7 @@ export default function OpportunityDetail({ publicMode = false }: { publicMode?:
             </div>
           )}
           <div className="card p-5">
-            <h2 className="font-bold">Source &amp; verification</h2>
+            <h2 className="font-semibold">Source &amp; verification</h2>
             <p className="mt-2 text-sm text-ink-600">{STATE_HELP[o.display_state]}</p>
             <dl className="mt-3 space-y-1.5 text-sm">
               <div className="flex justify-between gap-3">
@@ -379,7 +382,7 @@ export default function OpportunityDetail({ publicMode = false }: { publicMode?:
           </div>
           {data.events.length > 0 && (
             <div className="card p-5">
-              <h2 className="font-bold">History</h2>
+              <h2 className="font-semibold">History</h2>
               <ol className="mt-3 space-y-2 border-l-2 border-ink-100 pl-4 text-sm">
                 {data.events.map((e, i) => (
                   <li key={i}>
@@ -483,18 +486,22 @@ function TailorModal({ oppId, onClose }: { oppId: string; onClose: () => void })
       {loading ? (
         <Spinner />
       ) : data?.cvs.length ? (
-        <ul className="divide-y divide-ink-100">
-          {data.cvs.map((c) => (
-            <li key={c.id}>
-              <button
-                className="w-full py-3 text-left font-semibold hover:text-brand-600"
-                onClick={() => nav(`/app/cvs/${c.id}/edit?tailor=${oppId}`)}
-              >
-                {c.title}
-              </button>
-            </li>
-          ))}
-        </ul>
+        <>
+          <p className="text-[14.5px] text-ink-500">Choose the CV to compare with this opportunity.</p>
+          <ul className="mt-3 space-y-2">
+            {data.cvs.map((c) => (
+              <li key={c.id}>
+                <button
+                  className="flex w-full items-center justify-between gap-3 rounded-xl border border-line px-4 py-3 text-left font-medium transition-colors hover:border-ink-300 hover:bg-ink-50"
+                  onClick={() => nav(`/app/cvs/${c.id}/edit?tailor=${oppId}`)}
+                >
+                  {c.title}
+                  <ChevronRight className="h-4 w-4 flex-none text-ink-400" aria-hidden />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
       ) : (
         <p className="text-sm text-ink-600">
           You have no CVs yet.{' '}

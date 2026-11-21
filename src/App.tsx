@@ -1,5 +1,5 @@
 import { Suspense, useEffect, type ComponentType } from 'react';
-import { Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AppLayout, PublicLayout, RequireAuth } from './components/Layout';
 import { Spinner } from './components/ui';
 import Home from './pages/public/Home';
@@ -82,6 +82,7 @@ export default function App() {
               <Route path="opportunities" element={<Opportunities publicMode />} />
               <Route path="opportunities/:id" element={<OpportunityDetail publicMode />} />
               <Route path="signin" element={<SignIn />} />
+              <Route path="login" element={<Navigate to="/signin" replace />} />
               <Route path="signup" element={<SignUp />} />
               <Route path="forgot-password" element={<Forgot />} />
               <Route path="reset-password" element={<Reset />} />

@@ -32,8 +32,8 @@ export default function MockCheckout() {
           <ErrorAlert error={error || err} className="mt-4" />
           {data && (
             <>
-              <h1 className="mt-5 text-xl font-bold">{data.payment.plan_name} plan</h1>
-              <p className="text-2xl font-extrabold">{ugx(data.payment.amount)}</p>
+              <h1 className="mt-5 text-xl font-semibold">{data.payment.plan_name} plan</h1>
+              <p className="text-2xl font-semibold">{ugx(data.payment.amount)}</p>
               <div className="mt-6 grid gap-2">
                 <Button loading={busy} onClick={() => act('completed')}>
                   Simulate successful payment

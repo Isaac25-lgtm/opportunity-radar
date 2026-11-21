@@ -20,8 +20,8 @@ export function TemplatePanel({
   onAcademicOrder: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-ink-600 lg:flex-row">
-      <div className="flex max-h-[45vh] flex-col bg-ink lg:max-h-none lg:w-[420px]">
+    <div className="fixed inset-0 z-50 flex flex-col bg-night-700 lg:flex-row">
+      <div className="flex max-h-[45vh] flex-col bg-night lg:max-h-none lg:w-[420px]">
         <div className="flex items-center justify-between px-6 py-4 text-white">
           <h2 className="text-lg font-bold">Templates</h2>
           <button
@@ -37,7 +37,7 @@ export function TemplatePanel({
               key={a}
               onClick={() => onAccent(a)}
               className={cx(
-                'h-7 w-7 rounded-full ring-offset-2 ring-offset-ink',
+                'h-7 w-7 rounded-full ring-offset-2 ring-offset-night',
                 cv.data.accent === a && 'ring-2 ring-white',
               )}
               style={{ background: a }}
@@ -51,8 +51,8 @@ export function TemplatePanel({
             <button key={t} onClick={() => onPick(t)} className="text-left">
               <div
                 className={cx(
-                  'overflow-hidden rounded ring-4 transition',
-                  cv.template === t ? 'ring-brand-500' : 'ring-transparent hover:ring-brand-300',
+                  'overflow-hidden rounded ring-2 ring-offset-2 ring-offset-night-700 transition',
+                  cv.template === t ? 'ring-white' : 'ring-transparent hover:ring-white/30',
                 )}
               >
                 <CvThumb data={cv.data} template={t} />

@@ -55,7 +55,7 @@ export function ButtonLink({
 export function Spinner({ label = 'Loading…', className }: { label?: string; className?: string }) {
   return (
     <div className={cx('flex items-center justify-center gap-2 py-10 text-ink-500', className)} role="status">
-      <Loader2 className="h-5 w-5 animate-spin text-brand-500" aria-hidden />
+      <Loader2 className="h-5 w-5 animate-spin text-ink-400" aria-hidden />
       <span className="text-sm">{label}</span>
     </div>
   );
@@ -251,7 +251,7 @@ export function TagInput({
               key={s}
               type="button"
               onClick={() => add(s)}
-              className="chip border border-ink-200 bg-white text-ink-600 hover:border-brand-500 hover:text-brand-600"
+              className="chip border border-ink-200 bg-white text-ink-600 hover:border-ink-400 hover:text-ink"
             >
               + {s}
             </button>
@@ -289,8 +289,8 @@ export function ChipSelect<T extends string>({
               className={cx(
                 'rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors',
                 on
-                  ? 'border-brand-500 bg-brand-50 text-brand-700'
-                  : 'border-ink-200 bg-white text-ink-600 hover:border-brand-300',
+                  ? 'border-ink bg-ink text-white'
+                  : 'border-ink-200 bg-white text-ink-600 hover:border-ink-400',
               )}
             >
               {o.label}
@@ -373,12 +373,12 @@ export function Toggle({
         onClick={() => onChange(!checked)}
         className={cx(
           'relative h-6 w-11 flex-none rounded-full transition-colors',
-          checked ? 'bg-brand-500' : 'bg-ink-300',
+          checked ? 'bg-ink' : 'bg-ink-300',
         )}
       >
         <span
           className={cx(
-            'absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform',
+            'absolute left-0 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform',
             checked ? 'translate-x-[22px]' : 'translate-x-0.5',
           )}
         />
@@ -407,7 +407,7 @@ export function Alert({
   const [cls, Icon] = map[tone];
   return (
     <div
-      className={cx('flex gap-3 rounded-lg px-4 py-3 text-sm', cls, className)}
+      className={cx('flex gap-3 rounded-xl px-4 py-3 text-sm', cls, className)}
       role={tone === 'bad' ? 'alert' : 'status'}
     >
       <Icon className="mt-0.5 h-4 w-4 flex-none" aria-hidden />
@@ -452,7 +452,7 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center rounded-lg border-2 border-dashed border-ink-200 px-6 py-12 text-center">
+    <div className="flex flex-col items-center rounded-2xl border border-dashed border-ink-300 bg-white px-6 py-14 text-center">
       {icon && <div className="mb-3 text-ink-300">{icon}</div>}
       <h3 className="text-lg font-semibold text-ink">{title}</h3>
       {children && <div className="mt-1 max-w-md text-sm text-ink-500">{children}</div>}
@@ -463,8 +463,7 @@ export function EmptyState({
 
 export function Progress({ value, className, tone }: { value: number; className?: string; tone?: string }) {
   const v = Math.max(0, Math.min(100, value));
-  const color =
-    tone ?? (v >= 80 ? 'bg-ok-500' : v >= 50 ? 'bg-brand-500' : v >= 25 ? 'bg-warn-500' : 'bg-bad-500');
+  const color = tone ?? (v >= 80 ? 'bg-ok-500' : v >= 50 ? 'bg-ink' : v >= 25 ? 'bg-warn-500' : 'bg-bad-500');
   return (
     <div
       className={cx('h-1.5 w-full overflow-hidden rounded-full bg-ink-200', className)}
@@ -493,7 +492,7 @@ export function PageHeader({
   return (
     <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
-        <h1 className="text-2xl font-bold text-ink sm:text-[28px]">{title}</h1>
+        <h1 className="text-[26px] font-semibold text-ink sm:text-[30px]">{title}</h1>
         {subtitle && <p className="mt-1 text-[15px] text-ink-500">{subtitle}</p>}
       </div>
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
@@ -513,7 +512,11 @@ export function Tabs<T extends string>({
   className?: string;
 }) {
   return (
-    <div className={cx('flex gap-1 overflow-x-auto border-b border-ink-200', className)} role="tablist">
+    // The baseline is an inset shadow (not a border + negative margin) so the scroll container never overflows vertically.
+    <div
+      className={cx('flex gap-1 overflow-x-auto shadow-[inset_0_-1px_0_#e4e4e7]', className)}
+      role="tablist"
+    >
       {tabs.map((t) => (
         <button
           key={t.value}
@@ -521,10 +524,8 @@ export function Tabs<T extends string>({
           aria-selected={value === t.value}
           onClick={() => onChange(t.value)}
           className={cx(
-            '-mb-px whitespace-nowrap border-b-2 px-4 py-2.5 text-[15px] font-semibold transition-colors',
-            value === t.value
-              ? 'border-brand-500 text-brand-600'
-              : 'border-transparent text-ink-500 hover:text-ink',
+            'whitespace-nowrap border-b-2 px-4 py-2.5 text-[14.5px] font-medium transition-colors',
+            value === t.value ? 'border-ink text-ink' : 'border-transparent text-ink-500 hover:text-ink',
           )}
         >
           {t.label}
@@ -579,12 +580,12 @@ export function Modal({
         aria-modal="true"
         aria-label={typeof title === 'string' ? title : undefined}
         className={cx(
-          'flex max-h-[92vh] w-full flex-col rounded-t-xl bg-white shadow-paper sm:rounded-xl',
+          'flex max-h-[92vh] w-full flex-col rounded-t-2xl border border-line bg-white shadow-paper sm:rounded-2xl',
           wide ? 'sm:max-w-3xl' : 'sm:max-w-lg',
         )}
       >
         <div className="flex items-center justify-between border-b border-ink-100 px-5 py-4">
-          <h2 className="text-lg font-bold">{title}</h2>
+          <h2 className="text-lg font-semibold">{title}</h2>
           <button
             onClick={onClose}
             className="rounded p-1 text-ink-400 hover:bg-ink-100 hover:text-ink"
@@ -659,17 +660,24 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         className="pointer-events-none fixed bottom-4 left-1/2 z-[60] flex w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 flex-col gap-2"
         aria-live="polite"
       >
-        {items.map((t) => (
-          <div
-            key={t.id}
-            className={cx(
-              'pointer-events-auto rounded-lg px-4 py-3 text-sm font-medium text-white shadow-paper',
-              t.tone === 'bad' ? 'bg-bad-700' : t.tone === 'info' ? 'bg-ink' : 'bg-ok-700',
-            )}
-          >
-            {t.text}
-          </div>
-        ))}
+        {items.map((t) => {
+          const Icon = t.tone === 'bad' ? XCircle : t.tone === 'info' ? Info : CheckCircle2;
+          return (
+            <div
+              key={t.id}
+              className="pointer-events-auto flex items-center gap-2.5 rounded-xl bg-ink px-4 py-3 text-sm font-medium text-white shadow-paper"
+            >
+              <Icon
+                className={cx(
+                  'h-4 w-4 flex-none',
+                  t.tone === 'bad' ? 'text-red-400' : t.tone === 'info' ? 'text-white/70' : 'text-green-400',
+                )}
+                aria-hidden
+              />
+              {t.text}
+            </div>
+          );
+        })}
       </div>
     </ToastCtx.Provider>
   );

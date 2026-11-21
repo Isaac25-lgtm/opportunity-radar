@@ -87,7 +87,7 @@ export default function Documents() {
         <ul className="card divide-y divide-ink-100">
           {data.documents.map((d) => (
             <li key={d.id} className="flex items-center gap-3 px-5 py-4">
-              <FileText className="h-6 w-6 flex-none text-brand-500" />
+              <FileText className="h-6 w-6 flex-none text-ink-700" />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold">{d.filename}</p>
                 <p className="text-xs text-ink-500">

@@ -12,7 +12,7 @@ export default function Payments() {
         title="Payments & subscriptions"
         subtitle="Subscriptions activate only after a server-side status check with the provider."
       />
-      <h2 className="mb-2 font-bold">Payments</h2>
+      <h2 className="mb-2 font-semibold">Payments</h2>
       <Table
         head={['Created', 'User', 'Plan', 'Amount', 'Provider', 'Status', 'Reference']}
         empty={!data.payments.length}
@@ -34,7 +34,7 @@ export default function Payments() {
           </tr>
         ))}
       </Table>
-      <h2 className="mb-2 mt-8 font-bold">Subscriptions</h2>
+      <h2 className="mb-2 mt-8 font-semibold">Subscriptions</h2>
       <Table head={['User', 'Plan', 'Status', 'Period end']} empty={!data.subscriptions.length}>
         {data.subscriptions.map((s: any) => (
           <tr key={s.id}>

@@ -66,10 +66,10 @@ export default function Settings() {
   const details = err instanceof ApiError ? (err.details ?? {}) : {};
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <h1 className="text-[28px] font-bold">Settings</h1>
+      <h1 className="text-[28px] font-semibold">Settings</h1>
       <ErrorAlert error={err} />
       <section className="card space-y-4 p-6">
-        <h2 className="text-lg font-bold">Account</h2>
+        <h2 className="text-lg font-semibold">Account</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <TextInput label="Name" value={name} onChange={(e) => setName(e.target.value)} />
           <TextInput
@@ -104,7 +104,7 @@ export default function Settings() {
       </section>
 
       <section className="card p-6">
-        <h2 className="text-lg font-bold">Alerts</h2>
+        <h2 className="text-lg font-semibold">Alerts</h2>
         {!prefs ? (
           <Spinner />
         ) : (
@@ -205,7 +205,7 @@ export default function Settings() {
       </section>
 
       <section className="card space-y-4 p-6">
-        <h2 className="text-lg font-bold">Password</h2>
+        <h2 className="text-lg font-semibold">Password</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <TextInput
             label="Current password"
@@ -243,7 +243,7 @@ export default function Settings() {
       </section>
 
       <section className="card space-y-3 p-6">
-        <h2 className="text-lg font-bold">Your data</h2>
+        <h2 className="text-lg font-semibold">Your data</h2>
         <p className="text-sm text-ink-600">
           Download everything we hold about you as a JSON file, or permanently delete your account.
         </p>

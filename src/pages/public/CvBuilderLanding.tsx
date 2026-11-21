@@ -13,8 +13,8 @@ export default function CvBuilderLanding() {
       <section className="bg-ink-100">
         <div className="container-page grid items-center gap-12 py-16 lg:grid-cols-2">
           <div>
-            <p className="text-sm font-bold uppercase tracking-wider text-brand-600">CV Builder</p>
-            <h1 className="mt-3 text-[38px] font-extrabold leading-tight sm:text-[50px]">
+            <p className="eyebrow">CV Builder</p>
+            <h1 className="mt-3 text-[38px] font-semibold leading-tight sm:text-[50px]">
               Build a professional CV in minutes
             </h1>
             <p className="mt-4 text-lg text-ink-600">
@@ -78,8 +78,8 @@ export default function CvBuilderLanding() {
             const Icon = I as typeof Eye;
             return (
               <div key={t as string}>
-                <Icon className="h-8 w-8 text-brand-500" />
-                <h3 className="mt-4 text-lg font-bold">{t as string}</h3>
+                <Icon className="h-8 w-8 text-ink-700" />
+                <h3 className="mt-4 text-lg font-semibold">{t as string}</h3>
                 <p className="mt-2 text-[15px] text-ink-600">{d as string}</p>
               </div>
             );
@@ -89,7 +89,7 @@ export default function CvBuilderLanding() {
       <section className="bg-ink-50 py-16">
         <div className="container-page flex flex-col items-center gap-4 text-center">
           <ShieldCheck className="h-10 w-10 text-ok-500" />
-          <h2 className="text-2xl font-extrabold sm:text-3xl">Factual integrity is built in</h2>
+          <h2 className="text-2xl font-semibold sm:text-3xl">Factual integrity is built in</h2>
           <p className="max-w-2xl text-ink-600">
             The builder never invents employers, job titles, dates, degrees, grades, skills, achievements or
             certifications. Templates like {CV_TEMPLATE_LABELS.ats.name} are designed to be read correctly by

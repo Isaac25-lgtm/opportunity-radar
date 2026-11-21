@@ -233,7 +233,7 @@ export default function OpportunityEdit() {
       >
         <ArrowLeft className="h-4 w-4" /> Opportunities
       </Link>
-      <h1 className="mb-4 text-2xl font-bold">{id ? 'Edit opportunity' : 'Add curated opportunity'}</h1>
+      <h1 className="mb-4 text-2xl font-semibold">{id ? 'Edit opportunity' : 'Add curated opportunity'}</h1>
       {!id && (
         <Alert tone="info" className="mb-4">
           Copy facts only from the official funder, employer or procuring-entity page. Record its URL as the
@@ -320,7 +320,7 @@ export default function OpportunityEdit() {
       </div>
       {events.length > 0 && (
         <section className="card mt-6 p-5">
-          <h2 className="font-bold">History</h2>
+          <h2 className="font-semibold">History</h2>
           <ul className="mt-3 space-y-1 text-sm">
             {events.map((e) => (
               <li key={e.id}>

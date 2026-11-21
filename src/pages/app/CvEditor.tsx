@@ -201,16 +201,16 @@ function Editor({ id }: { id: string }) {
                 onChange={(e) => update((c) => ({ ...c, title: e.target.value.slice(0, 150) }))}
                 onBlur={() => setEditingTitle(false)}
                 onKeyDown={(e) => e.key === 'Enter' && setEditingTitle(false)}
-                className="w-full max-w-sm border-b-2 border-brand-500 bg-transparent text-center text-lg font-bold outline-none"
+                className="w-full max-w-sm border-b-2 border-ink bg-transparent text-center text-lg font-semibold outline-none"
                 aria-label="CV title"
               />
             ) : (
               <button
                 onClick={() => setEditingTitle(true)}
-                className="group flex min-w-0 items-center gap-2 text-lg font-bold"
+                className="group flex min-w-0 items-center gap-2 text-lg font-semibold"
               >
                 <span className="truncate">{cv.title}</span>
-                <Pencil className="h-4 w-4 flex-none text-ink-300 group-hover:text-brand-500" />
+                <Pencil className="h-4 w-4 flex-none text-ink-300 group-hover:text-ink-700" />
               </button>
             )}
           </div>
@@ -237,8 +237,8 @@ function Editor({ id }: { id: string }) {
             <div className="flex items-center gap-3 text-sm">
               <span
                 className={cx(
-                  'rounded px-1.5 py-0.5 text-xs font-bold text-white',
-                  comp.score >= 80 ? 'bg-ok-500' : comp.score >= 50 ? 'bg-brand-500' : 'bg-warn-500',
+                  'rounded px-1.5 py-0.5 text-xs font-semibold text-white',
+                  comp.score >= 80 ? 'bg-ok-500' : comp.score >= 50 ? 'bg-ink' : 'bg-warn-500',
                 )}
               >
                 {comp.score}%
@@ -254,7 +254,7 @@ function Editor({ id }: { id: string }) {
               <div
                 className={cx(
                   'h-full transition-all',
-                  comp.score >= 80 ? 'bg-ok-500' : comp.score >= 50 ? 'bg-brand-500' : 'bg-warn-500',
+                  comp.score >= 80 ? 'bg-ok-500' : comp.score >= 50 ? 'bg-ink' : 'bg-warn-500',
                 )}
                 style={{ width: `${comp.score}%` }}
               />
@@ -363,7 +363,7 @@ function Editor({ id }: { id: string }) {
       </div>
 
       {/* RIGHT: preview */}
-      <div className="relative hidden min-h-0 flex-1 flex-col bg-ink-500 lg:flex">
+      <div className="relative hidden min-h-0 flex-1 flex-col bg-night-700 lg:flex">
         <div className="min-h-0 flex-1">
           <PreviewPane data={d} template={cv.template} />
         </div>
@@ -392,8 +392,8 @@ function Editor({ id }: { id: string }) {
       </div>
 
       {panel === 'preview' && (
-        <div className="fixed inset-0 z-40 flex flex-col bg-ink-500 lg:hidden">
-          <div className="flex items-center justify-between bg-ink px-4 py-3 text-white">
+        <div className="fixed inset-0 z-40 flex flex-col bg-night-700 lg:hidden">
+          <div className="flex items-center justify-between bg-night px-4 py-3 text-white">
             <span className="font-semibold">Preview</span>
             <button onClick={() => setPanel(null)} aria-label="Close preview">
               <X className="h-6 w-6" />

@@ -90,13 +90,13 @@ export default function Legal({ kind }: { kind: 'privacy' | 'terms' }) {
   return (
     <section className="py-14">
       <article className="container-page max-w-3xl">
-        <h1 className="text-[34px] font-extrabold sm:text-[42px]">
+        <h1 className="text-[34px] font-semibold sm:text-[42px]">
           {kind === 'privacy' ? 'Privacy policy' : 'Terms of use'}
         </h1>
         <p className="mt-2 text-sm text-ink-500">Last updated {UPDATED}</p>
         {sections.map(([h, ps]) => (
           <section key={h} className="mt-8">
-            <h2 className="text-xl font-bold">{h}</h2>
+            <h2 className="text-xl font-semibold">{h}</h2>
             {ps.length > 1 ? (
               <ul className="mt-3 list-disc space-y-2 pl-5 text-[15px] leading-relaxed text-ink-700">
                 {ps.map((p) => (

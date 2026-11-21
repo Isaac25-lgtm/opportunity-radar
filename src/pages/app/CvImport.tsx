@@ -122,11 +122,11 @@ export default function CvImport() {
           }}
           className={cx(
             'flex flex-col items-center rounded-xl border-2 border-dashed bg-white px-6 py-14 text-center',
-            drag ? 'border-brand-500 bg-brand-50' : 'border-ink-300',
+            drag ? 'border-ink bg-ink-100' : 'border-ink-300',
           )}
         >
-          <FileUp className="h-12 w-12 text-brand-500" />
-          <p className="mt-4 text-lg font-bold">Drag and drop your CV here</p>
+          <FileUp className="h-12 w-12 text-ink-700" />
+          <p className="mt-4 text-lg font-semibold">Drag and drop your CV here</p>
           <p className="text-sm text-ink-500">PDF or DOCX, up to 5 MB</p>
           <Button className="mt-5" onClick={() => input.current?.click()}>
             Choose file
@@ -174,7 +174,7 @@ export default function CvImport() {
       <ErrorAlert error={err} className="mb-4" />
       <div className="card space-y-8 p-5 sm:p-7">
         <section>
-          <h2 className="mb-3 text-lg font-bold">Personal details</h2>
+          <h2 className="mb-3 text-lg font-semibold">Personal details</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {(
               [
@@ -196,11 +196,11 @@ export default function CvImport() {
           </div>
         </section>
         <section>
-          <h2 className="mb-3 text-lg font-bold">Summary</h2>
+          <h2 className="mb-3 text-lg font-semibold">Summary</h2>
           <TextArea value={d.summary} onChange={(e) => setData((x) => ({ ...x, summary: e.target.value }))} />
         </section>
         <section>
-          <h2 className="mb-3 text-lg font-bold">Employment history ({d.experience.length})</h2>
+          <h2 className="mb-3 text-lg font-semibold">Employment history ({d.experience.length})</h2>
           <Items
             items={d.experience}
             onChange={(v) => setData((x) => ({ ...x, experience: v }))}
@@ -228,7 +228,7 @@ export default function CvImport() {
           />
         </section>
         <section>
-          <h2 className="mb-3 text-lg font-bold">Education ({d.education.length})</h2>
+          <h2 className="mb-3 text-lg font-semibold">Education ({d.education.length})</h2>
           <Items
             items={d.education}
             onChange={(v) => setData((x) => ({ ...x, education: v }))}
@@ -255,7 +255,7 @@ export default function CvImport() {
           />
         </section>
         <section>
-          <h2 className="mb-3 text-lg font-bold">Skills ({d.skills.length})</h2>
+          <h2 className="mb-3 text-lg font-semibold">Skills ({d.skills.length})</h2>
           <LevelItems
             items={d.skills}
             onChange={(v) => setData((x) => ({ ...x, skills: v }))}
@@ -265,7 +265,7 @@ export default function CvImport() {
           />
         </section>
         <section>
-          <h2 className="mb-3 text-lg font-bold">Languages ({d.languages.length})</h2>
+          <h2 className="mb-3 text-lg font-semibold">Languages ({d.languages.length})</h2>
           <LevelItems
             items={d.languages}
             onChange={(v) => setData((x) => ({ ...x, languages: v }))}

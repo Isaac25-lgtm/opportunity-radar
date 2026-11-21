@@ -113,9 +113,13 @@ export function draftCoverLetter(
   lines.push('');
   if (recent && (recent.title || recent.employer)) {
     const role = [recent.title, recent.employer && `at ${recent.employer}`].filter(Boolean).join(' ');
+    // Bulleted duties ("- Run tenders…") read as verbs, so they need a subject in a sentence.
     const duty = firstSentence(recent.description);
+    const dutyText = duty
+      ? `${isBulleted(recent.description) ? 'I ' : ''}${lowerFirst(duty)}`
+      : '[describe your main responsibility]';
     lines.push(
-      `${recent.current ? 'In my current role as' : 'Most recently, as'} ${role}, ${duty ? lowerFirst(duty) : '[describe your main responsibility]'}` +
+      `${recent.current ? 'In my current role as' : 'Most recently, as'} ${role}, ${dutyText}` +
         ' [Add one specific achievement with a result you can evidence.]',
     );
   } else lines.push('[Describe your most relevant experience and one result you can evidence.]');
@@ -140,8 +144,16 @@ export function draftCoverLetter(
   return lines.join('\n');
 }
 
+const BULLET = /^\s*(?:[-–—•*▪]|\d+[.)])\s+/;
+const isBulleted = (s: string) => BULLET.test(s.trim().split(/\n/)[0] ?? '');
+
+/** The first sentence of prose, or the first item when the text is a bulleted list. */
 function firstSentence(s: string): string {
-  const t = s.replace(/\s+/g, ' ').trim();
+  const first = s
+    .split(/\n+/)
+    .map((l) => l.replace(BULLET, '').trim())
+    .find(Boolean);
+  const t = (isBulleted(s) ? (first ?? '') : s).replace(/\s+/g, ' ').trim();
   if (!t) return '';
   const m = t.match(/^(.{20,300}?[.!?])(\s|$)/);
   const out = m ? m[1] : t.slice(0, 300);

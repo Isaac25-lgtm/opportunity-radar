@@ -109,6 +109,13 @@ describe('HTML sanitising (XSS from sources)', () => {
     expect(htmlToText('&lt;p&gt;Hi &amp;amp; bye&lt;/p&gt;')).toBe('Hi & bye');
     expect(htmlToText('&#0;&#x110000;ok')).toBe('ok');
   });
+  it('decodes accented and typographic named entities from real notices (case-sensitive)', () => {
+    expect(
+      htmlToText('Avis Sp&eacute;cifique &agrave; N&ordm; 3 &laquo;Projet&raquo; &Eacute;conomique'),
+    ).toBe('Avis Spécifique à Nº 3 «Projet» Économique');
+    expect(htmlToText('&Ccedil;a co&ucirc;te 5&nbsp;&euro;')).toBe('Ça coûte 5 €');
+    expect(htmlToText('&unknownthing; stays')).toBe('&unknownthing; stays');
+  });
 });
 
 describe('file signature checks', () => {

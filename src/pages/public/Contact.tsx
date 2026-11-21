@@ -19,7 +19,7 @@ export default function Contact() {
     <section className="py-14">
       <div className="container-page grid max-w-5xl gap-12 md:grid-cols-[1fr_1.2fr]">
         <div>
-          <h1 className="text-[36px] font-extrabold sm:text-[44px]">Contact us</h1>
+          <h1 className="text-[36px] font-semibold sm:text-[44px]">Contact us</h1>
           <p className="mt-3 text-lg text-ink-600">
             Questions about your account, an opportunity listing, a payment or your data? Send us a message
             and an administrator will reply by email.

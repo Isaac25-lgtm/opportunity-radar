@@ -26,7 +26,7 @@ export default function Onboarding() {
   };
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="text-[30px] font-extrabold">Welcome, {me.user?.name.split(' ')[0]} 👋</h1>
+      <h1 className="text-[30px] font-semibold">Welcome, {me.user?.name.split(' ')[0]}</h1>
       <p className="mt-2 text-lg text-ink-600">
         What would you like Opportunity Radar to find for you? Choose one or more — you can add or skip any
         type later.
@@ -42,16 +42,16 @@ export default function Onboarding() {
               aria-pressed={on}
               className={cx(
                 'card relative p-5 text-left transition-all',
-                on ? 'ring-2 ring-brand-500' : 'hover:shadow-paper',
+                on ? 'ring-2 ring-ink' : 'hover:shadow-paper',
               )}
             >
               {on && (
-                <span className="absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full bg-brand-500 text-white">
+                <span className="absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full bg-ink text-white">
                   <Check className="h-4 w-4" />
                 </span>
               )}
-              <Icon className="h-8 w-8 text-brand-500" />
-              <h2 className="mt-3 font-bold">
+              <Icon className="h-8 w-8 text-ink-700" />
+              <h2 className="mt-3 font-semibold">
                 {t === 'career'
                   ? 'A job or consultancy'
                   : t === 'academic'
@@ -64,7 +64,7 @@ export default function Onboarding() {
         })}
       </div>
       <div className="mt-8 card p-5">
-        <h2 className="font-bold">Fastest start</h2>
+        <h2 className="font-semibold">Fastest start</h2>
         <p className="mt-1 text-sm text-ink-600">
           Upload your CV and we will extract your experience, education and skills for you to review. Nothing
           is saved until you confirm.

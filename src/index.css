@@ -7,18 +7,26 @@
     -webkit-text-size-adjust: 100%;
   }
   body {
-    @apply bg-white font-sans text-ink antialiased;
-    font-feature-settings: 'ss01';
+    @apply bg-white font-sans text-[15.5px] leading-[1.6] text-ink antialiased;
   }
   :focus-visible {
-    outline: 2px solid #1a91f0;
+    outline: 2px solid #2563eb;
     outline-offset: 2px;
   }
   h1,
   h2,
   h3,
   h4 {
-    @apply tracking-tight;
+    /* Colour is inherited, so headings on dark panels stay light. */
+    @apply font-display tracking-tightish;
+  }
+  /* CV documents carry their own typography. */
+  .cv-paper h1,
+  .cv-paper h2,
+  .cv-paper h3,
+  .cv-paper h4 {
+    font-family: inherit;
+    letter-spacing: normal;
   }
   /* Grid children may shrink below their content width (prevents mobile overflow). */
   .grid > * {
@@ -29,56 +37,65 @@
   textarea {
     min-width: 0;
   }
+  ::selection {
+    background: #dbeafe;
+  }
 }
 
 @layer components {
   .container-page {
-    @apply mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-8;
+    @apply mx-auto w-full max-w-[1160px] px-5 sm:px-6 lg:px-8;
+  }
+  .eyebrow {
+    @apply text-[13px] font-medium text-ink-500;
   }
   .btn {
-    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded font-semibold transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[10px] font-medium transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-md {
-    @apply h-11 px-5 text-[15px];
+    @apply h-10 px-4 text-[14.5px];
   }
   .btn-lg {
-    @apply h-14 px-8 text-[17px];
+    @apply h-12 px-6 text-[15.5px];
   }
   .btn-sm {
-    @apply h-9 px-3 text-sm;
+    @apply h-8 px-3 text-[13px];
   }
   .btn-primary {
-    @apply bg-brand-500 text-white hover:bg-brand-600 active:bg-brand-700;
+    @apply bg-ink text-white hover:bg-black active:bg-black;
   }
   .btn-secondary {
-    @apply bg-brand-50 text-brand-600 hover:bg-brand-100;
+    @apply bg-ink-100 text-ink hover:bg-ink-200;
   }
   .btn-ghost {
     @apply text-ink-600 hover:bg-ink-100 hover:text-ink;
   }
   .btn-outline {
-    @apply border border-ink-200 bg-white text-ink hover:border-brand-500 hover:text-brand-600;
+    @apply border border-ink-200 bg-white text-ink hover:border-ink-400;
   }
   .btn-danger {
     @apply bg-bad-50 text-bad-700 hover:bg-bad-500 hover:text-white;
   }
   .field-label {
-    @apply mb-1.5 block text-[13px] font-medium text-ink-500;
+    @apply mb-1.5 block text-[13px] font-medium text-ink-700;
   }
   .input {
-    @apply block w-full rounded border-0 border-b-2 border-transparent bg-ink-100 px-4 py-3 text-[15px] text-ink placeholder:text-ink-400 transition-colors focus:border-brand-500 focus:bg-ink-100 focus:outline-none focus:ring-0;
+    @apply block w-full rounded-[10px] border border-ink-200 bg-white px-3.5 py-2.5 text-[15px] text-ink shadow-soft transition-colors placeholder:text-ink-400 focus:border-ink-700 focus:outline-none focus:ring-2 focus:ring-ink/10;
   }
   .input-error {
-    @apply border-bad-500;
+    @apply border-bad-500 focus:border-bad-500 focus:ring-bad-500/15;
   }
   .card {
-    @apply rounded-lg bg-white shadow-card;
+    @apply rounded-2xl border border-line bg-white shadow-panel;
+  }
+  .panel {
+    @apply rounded-2xl border border-line bg-white;
   }
   .chip {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold;
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
   }
   .link {
-    @apply font-semibold text-brand-600 hover:text-brand-700 hover:underline;
+    @apply font-medium text-brand-600 underline-offset-2 hover:underline;
   }
   .prose-plain {
     @apply whitespace-pre-line break-words text-[15px] leading-relaxed text-ink-700;

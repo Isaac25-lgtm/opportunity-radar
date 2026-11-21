@@ -11,7 +11,7 @@ export default function Templates() {
     <section className="py-14">
       <div className="container-page">
         <div className="mx-auto max-w-2xl text-center">
-          <h1 className="text-[36px] font-extrabold sm:text-[46px]">CV templates</h1>
+          <h1 className="text-[36px] font-semibold sm:text-[46px]">CV templates</h1>
           <p className="mt-3 text-lg text-ink-600">
             Each template uses the same content, so you can switch at any time. Pick an accent colour in the
             editor.
@@ -25,7 +25,7 @@ export default function Templates() {
               </div>
               <div className="mt-4 flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-bold group-hover:text-brand-600">
+                  <h2 className="text-lg font-semibold group-hover:text-brand-600">
                     {CV_TEMPLATE_LABELS[t].name}
                   </h2>
                   <p className="text-sm text-ink-500">{CV_TEMPLATE_LABELS[t].blurb}</p>

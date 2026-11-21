@@ -79,7 +79,7 @@ export default function CvList() {
                   <div className="min-w-0">
                     <Link
                       to={`/app/cvs/${c.id}/edit`}
-                      className="block truncate font-bold hover:text-brand-600"
+                      className="block truncate font-semibold hover:text-brand-600"
                     >
                       {c.title}
                     </Link>
@@ -145,7 +145,7 @@ export default function CvList() {
             ))}
             <button
               onClick={() => setCreate(true)}
-              className="flex min-h-[300px] flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-ink-200 text-ink-500 hover:border-brand-400 hover:text-brand-600"
+              className="flex min-h-[300px] flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-ink-200 text-ink-500 hover:border-ink-400 hover:text-brand-600"
             >
               <Plus className="h-8 w-8" />
               <span className="font-semibold">New CV</span>
@@ -178,7 +178,7 @@ export default function CvList() {
                   to={`/app/cover-letters/${l.id}`}
                   className="flex items-center gap-3 px-5 py-4 hover:bg-ink-50"
                 >
-                  <Mail className="h-5 w-5 text-brand-500" />
+                  <Mail className="h-5 w-5 text-ink-700" />
                   <div className="min-w-0">
                     <p className="truncate font-semibold">{l.title}</p>
                     <p className="text-xs text-ink-500">Updated {relTime(l.updated_at)}</p>
@@ -269,7 +269,7 @@ function CreateModal({
             onClick={() => setFrom(v)}
             className={cx(
               'rounded-lg border-2 p-3 text-left disabled:opacity-50',
-              from === v ? 'border-brand-500 bg-brand-50' : 'border-ink-200',
+              from === v ? 'border-ink bg-ink-100' : 'border-ink-200',
             )}
           >
             <p className="font-semibold">{l}</p>
@@ -282,10 +282,7 @@ function CreateModal({
         {CV_TEMPLATES.map((t) => (
           <button key={t} onClick={() => setTemplate(t)} className="text-left">
             <div
-              className={cx(
-                'overflow-hidden rounded ring-2',
-                template === t ? 'ring-brand-500' : 'ring-ink-100',
-              )}
+              className={cx('overflow-hidden rounded ring-2', template === t ? 'ring-ink' : 'ring-ink-100')}
             >
               <CvThumb data={SAMPLE_CV} template={t} maxHeight={180} />
             </div>

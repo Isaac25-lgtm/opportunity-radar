@@ -132,6 +132,14 @@ export function emptyCv(fullName = '', email = ''): CvData {
   return cvDataSchema.parse({ personal: { fullName, email } });
 }
 
+/** "MSc Economics" + "Economics" stays "MSc Economics"; "Bachelor's degree" + "Law" becomes "Bachelor's degree, Law". */
+export function degreeWithField(qualification?: string, field?: string): string {
+  const q = (qualification ?? '').trim();
+  const f = (field ?? '').trim();
+  if (!f || q.toLowerCase().includes(f.toLowerCase())) return q;
+  return q ? `${q}, ${f}` : f;
+}
+
 export function cvFromCareerProfile(p: Partial<CareerProfile>, fullName: string, email: string): CvData {
   return cvDataSchema.parse({
     personal: {
@@ -153,7 +161,7 @@ export function cvFromCareerProfile(p: Partial<CareerProfile>, fullName: string,
     })),
     education: (p.education ?? []).map((e) => ({
       id: rid(),
-      degree: [e.qualification, e.field].filter(Boolean).join(', '),
+      degree: degreeWithField(e.qualification, e.field),
       institution: e.institution ?? '',
       location: e.country ?? '',
       start: e.start ?? '',

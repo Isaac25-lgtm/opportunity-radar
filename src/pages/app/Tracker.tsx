@@ -93,12 +93,12 @@ export default function Tracker() {
         <Spinner />
       ) : (
         <div className="-mx-4 overflow-x-auto px-4 pb-4">
-          <div className="grid min-w-[1100px] grid-cols-6 gap-4">
+          <div className="grid min-w-[1040px] grid-cols-6 gap-3">
             {COLUMNS.map((col) => {
               const items = (data?.applications ?? []).filter((a) => col.statuses.includes(a.status));
               return (
                 <div key={col.key} className="rounded-lg bg-ink-100 p-3">
-                  <h2 className="mb-3 flex items-center justify-between text-sm font-bold text-ink-600">
+                  <h2 className="mb-3 flex items-center justify-between text-sm font-semibold text-ink-600">
                     {col.label} <span className="rounded-full bg-white px-2 text-xs">{items.length}</span>
                   </h2>
                   <div className="space-y-2">
@@ -301,7 +301,7 @@ function EditModal({
                         : [...(f.document_ids ?? []), d.id],
                     })
                   }
-                  className={`rounded-full border px-3 py-1 text-sm ${on ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-ink-200'}`}
+                  className={`rounded-full border px-3 py-1 text-sm ${on ? 'border-ink bg-ink-100 text-brand-700' : 'border-ink-200'}`}
                   aria-pressed={on}
                 >
                   {d.filename}

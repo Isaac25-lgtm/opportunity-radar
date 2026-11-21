@@ -39,7 +39,7 @@ export default function Dashboard() {
     <div className="space-y-8">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
-          <h1 className="text-[28px] font-bold">Hello, {me.user?.name.split(' ')[0]}</h1>
+          <h1 className="text-[28px] font-semibold">Hello, {me.user?.name.split(' ')[0]}</h1>
           <p className="text-ink-500">
             {data.discovery.open_opportunities.toLocaleString()} open opportunities
             {data.discovery.last_run && (
@@ -64,22 +64,20 @@ export default function Dashboard() {
           return p ? (
             <Link key={t} to={`/app/profiles/${t}`} className="card p-5 transition-shadow hover:shadow-paper">
               <div className="flex items-center gap-3">
-                <Icon className="h-6 w-6 text-brand-500" />
-                <h2 className="font-bold">{PROFILE_META[t].title}</h2>
-                <span className="ml-auto text-sm font-bold">{p.completeness}%</span>
+                <Icon className="h-6 w-6 text-ink-700" />
+                <h2 className="font-semibold">{PROFILE_META[t].title}</h2>
+                <span className="ml-auto text-sm font-semibold">{p.completeness}%</span>
               </div>
               <Progress value={p.completeness} className="mt-3" />
               <p className="mt-2 text-xs text-ink-500">
-                {p.missing.length
-                  ? `Add: ${p.missing.slice(0, 3).join(', ')}`
-                  : 'Complete — great matches ahead'}
+                {p.missing.length ? `Add: ${p.missing.slice(0, 3).join(', ')}` : 'Complete'}
               </p>
             </Link>
           ) : (
             <Link
               key={t}
               to={`/app/profiles/${t}`}
-              className="flex items-center gap-3 rounded-lg border-2 border-dashed border-ink-200 p-5 text-ink-500 hover:border-brand-300 hover:text-brand-600"
+              className="flex items-center gap-3 rounded-lg border-2 border-dashed border-ink-200 p-5 text-ink-500 hover:border-ink-400 hover:text-brand-600"
             >
               <Plus className="h-5 w-5" />
               <span className="font-semibold">Add {PROFILE_META[t].title.toLowerCase()}</span>
@@ -91,8 +89,8 @@ export default function Dashboard() {
       <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr]">
         <section>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-lg font-bold">
-              <Radar className="h-5 w-5 text-brand-500" /> Top matches for you
+            <h2 className="flex items-center gap-2 text-lg font-semibold">
+              <Radar className="h-5 w-5 text-ink-700" /> Top matches for you
             </h2>
             <Link to="/app/opportunities" className="text-sm font-semibold text-brand-600 hover:underline">
               View all
@@ -125,7 +123,7 @@ export default function Dashboard() {
         </section>
         <aside className="space-y-6">
           <div className="card p-5">
-            <h2 className="flex items-center gap-2 font-bold">
+            <h2 className="flex items-center gap-2 font-semibold">
               <CalendarClock className="h-5 w-5 text-warn-500" /> Deadlines approaching
             </h2>
             {data.deadlines.length ? (
@@ -155,8 +153,8 @@ export default function Dashboard() {
             </Link>
           </div>
           <div className="card p-5">
-            <h2 className="flex items-center gap-2 font-bold">
-              <ListChecks className="h-5 w-5 text-brand-500" /> Applications &amp; follow-ups
+            <h2 className="flex items-center gap-2 font-semibold">
+              <ListChecks className="h-5 w-5 text-ink-700" /> Applications &amp; follow-ups
             </h2>
             {data.applications.length ? (
               <ul className="mt-3 divide-y divide-ink-100">
@@ -182,8 +180,8 @@ export default function Dashboard() {
             </Link>
           </div>
           <div className="card p-5">
-            <h2 className="flex items-center gap-2 font-bold">
-              <Bell className="h-5 w-5 text-brand-500" /> Recent alerts
+            <h2 className="flex items-center gap-2 font-semibold">
+              <Bell className="h-5 w-5 text-ink-700" /> Recent alerts
             </h2>
             {data.alerts.length ? (
               <ul className="mt-3 space-y-2">
@@ -203,9 +201,9 @@ export default function Dashboard() {
             )}
           </div>
           <Link to="/app/cvs" className="card flex items-center gap-3 p-5 hover:shadow-paper">
-            <FileText className="h-6 w-6 text-brand-500" />
+            <FileText className="h-6 w-6 text-ink-700" />
             <div>
-              <p className="font-bold">CV Builder</p>
+              <p className="font-semibold">CV Builder</p>
               <p className="text-sm text-ink-500">Create, tailor and download your CVs</p>
             </div>
             <ArrowRight className="ml-auto h-5 w-5 text-ink-400" />

@@ -5,6 +5,7 @@ import {
   cvDataSchema,
   cvFromCareerProfile,
   careerFieldsFromCv,
+  degreeWithField,
   emptyCv,
 } from '../../shared/cv';
 import { analyzeForOpportunity, draftCoverLetter, tailoredCopy } from '../../worker/domain/tailor';
@@ -186,6 +187,17 @@ describe('CV model', () => {
   });
 });
 
+describe('degree wording', () => {
+  it('does not repeat a field the qualification already names', () => {
+    expect(degreeWithField('MSc Procurement & Supply Chain', 'Procurement')).toBe(
+      'MSc Procurement & Supply Chain',
+    );
+    expect(degreeWithField("Bachelor's degree", 'Law')).toBe("Bachelor's degree, Law");
+    expect(degreeWithField('', 'Economics')).toBe('Economics');
+    expect(degreeWithField('PhD', '')).toBe('PhD');
+  });
+});
+
 describe('tailoring and cover letters (no fabrication)', () => {
   const cv = parseCvText(CV_TEXT).data;
   const opp = {
@@ -219,5 +231,26 @@ describe('tailoring and cover letters (no fabrication)', () => {
     expect(letter).toContain('[Add one specific achievement');
     expect(letter).not.toMatch(/SAP/);
     expect(letter).toContain('Sarah Nambi');
+  });
+
+  it('turns a bulleted role description into one readable sentence', () => {
+    const bulleted = {
+      ...cv,
+      experience: [
+        {
+          ...cv.experience[0],
+          current: true,
+          title: 'Senior Procurement Officer',
+          employer: 'Regional Health Programme',
+          description: '- Run tenders worth $12M a year\n- Lead bid evaluation committees',
+        },
+        ...cv.experience.slice(1),
+      ],
+    };
+    const letter = draftCoverLetter(bulleted, opp);
+    expect(letter).toContain(
+      'In my current role as Senior Procurement Officer at Regional Health Programme, I run tenders worth $12M a year.',
+    );
+    expect(letter).not.toMatch(/, - /);
   });
 });

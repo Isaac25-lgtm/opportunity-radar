@@ -77,13 +77,13 @@ export default function ProfileEditor() {
       </Link>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-[28px] font-bold">{PROFILE_META[type].title}</h1>
+          <h1 className="text-[28px] font-semibold">{PROFILE_META[type].title}</h1>
           <p className="text-ink-500">{PROFILE_META[type].blurb}</p>
         </div>
         <div className="w-full sm:w-64">
           <div className="mb-1 flex justify-between text-sm">
             <span className="font-semibold">Profile completeness</span>
-            <span className="font-bold">{completeness.score}%</span>
+            <span className="font-semibold">{completeness.score}%</span>
           </div>
           <Progress value={completeness.score} />
           {completeness.missing.length > 0 && (

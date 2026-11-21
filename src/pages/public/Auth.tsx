@@ -8,27 +8,32 @@ import { safeNext } from '../../lib/redirect';
 
 function Shell({ title, subtitle, children }: { title: string; subtitle?: ReactNode; children: ReactNode }) {
   return (
-    <section className="bg-ink-100 py-10 sm:py-16">
-      <div className="container-page grid max-w-5xl overflow-hidden rounded-2xl bg-white shadow-card md:grid-cols-2">
-        <div className="p-6 sm:p-10">
-          <h1 className="text-[28px] font-extrabold">{title}</h1>
-          {subtitle && <p className="mt-2 text-[15px] text-ink-500">{subtitle}</p>}
-          <div className="mt-6">{children}</div>
-        </div>
-        <div className="hidden flex-col justify-center bg-brand-500 p-10 text-white md:flex">
-          <h2 className="text-2xl font-extrabold">One profile, every opportunity that fits</h2>
-          <ul className="mt-6 space-y-3 text-[15px]">
-            {[
-              'ATS-friendly CV builder with live preview',
-              'Jobs, scholarships, grants and tenders from verified sources',
-              'Clear eligibility checks and honest match explanations',
-              'Deadline reminders and an application tracker',
-            ].map((t) => (
-              <li key={t} className="flex gap-2">
-                <CheckCircle2 className="mt-0.5 h-5 w-5 flex-none" /> {t}
-              </li>
-            ))}
-          </ul>
+    <section className="bg-ink-50 py-10 sm:py-16">
+      <div className="container-page max-w-5xl">
+        <div className="grid overflow-hidden rounded-2xl border border-line bg-white shadow-card md:grid-cols-2">
+          <div className="p-6 sm:p-10">
+            <h1 className="text-[28px] font-semibold">{title}</h1>
+            {subtitle && <p className="mt-2 text-[15px] text-ink-500">{subtitle}</p>}
+            <div className="mt-6">{children}</div>
+          </div>
+          <div className="hidden flex-col justify-center bg-night p-10 text-white md:flex">
+            <h2 className="text-[24px] font-medium leading-snug text-white">
+              One profile, every opportunity that fits
+            </h2>
+            <ul className="mt-6 space-y-3.5 text-[15px] text-white/75">
+              {[
+                'ATS-friendly CV builder with live preview',
+                'Jobs, scholarships, grants and tenders from verified sources',
+                'Clear eligibility checks and honest match explanations',
+                'Deadline reminders and an application tracker',
+              ].map((t) => (
+                <li key={t} className="flex gap-2.5">
+                  <CheckCircle2 className="mt-0.5 h-[18px] w-[18px] flex-none text-white/55" aria-hidden />{' '}
+                  {t}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
     </section>
@@ -91,7 +96,7 @@ export function SignIn() {
           onChange={(e) => setF({ ...f, password: e.target.value })}
         />
         <div className="text-right">
-          <Link to="/forgot-password" className="text-sm font-semibold text-brand-600 hover:underline">
+          <Link to="/forgot-password" className="link text-sm">
             Forgot password?
           </Link>
         </div>
@@ -171,7 +176,7 @@ export function SignUp() {
         <label className="flex items-start gap-3 text-sm text-ink-600">
           <input
             type="checkbox"
-            className="mt-0.5 h-4 w-4 rounded border-ink-300 text-brand-500"
+            className="mt-0.5 h-4 w-4 rounded border-ink-300 text-ink-700"
             checked={f.accept_terms}
             onChange={(e) => setF({ ...f, accept_terms: e.target.checked })}
             required

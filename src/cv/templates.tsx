@@ -214,7 +214,7 @@ function Modern({ d }: { d: CvData }) {
   const t: Tone = {
     accent,
     muted: '#656e83',
-    font: 'Figtree, Arial, sans-serif',
+    font: 'Inter, Arial, sans-serif',
     title: (l) => (
       <h2
         style={{

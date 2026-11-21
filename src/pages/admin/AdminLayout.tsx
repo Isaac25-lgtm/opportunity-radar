@@ -40,7 +40,7 @@ export default function AdminLayout() {
               className={({ isActive }) =>
                 cx(
                   'flex items-center gap-2 whitespace-nowrap rounded px-3 py-2 text-sm font-semibold',
-                  isActive ? 'bg-brand-500 text-white' : 'text-ink-600 hover:bg-white',
+                  isActive ? 'bg-ink text-white' : 'text-ink-600 hover:bg-white',
                 )
               }
             >

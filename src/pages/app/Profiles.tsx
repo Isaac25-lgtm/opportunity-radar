@@ -38,14 +38,14 @@ export default function Profiles() {
           const Icon = PROFILE_ICONS[t];
           return (
             <div key={t} className="card flex flex-col p-6">
-              <Icon className="h-8 w-8 text-brand-500" />
-              <h2 className="mt-4 text-lg font-bold">{PROFILE_META[t].title}</h2>
+              <Icon className="h-8 w-8 text-ink-700" />
+              <h2 className="mt-4 text-lg font-semibold">{PROFILE_META[t].title}</h2>
               <p className="mt-1 flex-1 text-sm text-ink-500">{PROFILE_META[t].blurb}</p>
               {p ? (
                 <>
                   <div className="mt-5 flex justify-between text-sm">
                     <span>Completeness</span>
-                    <span className="font-bold">{p.completeness}%</span>
+                    <span className="font-semibold">{p.completeness}%</span>
                   </div>
                   <Progress value={p.completeness} className="mt-1" />
                   {p.missing?.length > 0 && (
