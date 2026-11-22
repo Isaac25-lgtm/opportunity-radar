@@ -10,6 +10,7 @@ import { adminRoutes } from './routes/admin';
 import { accountRoutes } from './routes/account';
 import { authRoutes } from './routes/auth';
 import { oauthRoutes } from './routes/oauth';
+import { assistantRoutes } from './routes/assistant';
 import { billingRoutes } from './routes/billing';
 import { coverLetterRoutes, cvRoutes } from './routes/cvs';
 import { documentRoutes } from './routes/documents';
@@ -95,6 +96,7 @@ app.post('/public/contact', async (c) => {
 app.route('/auth', authRoutes);
 app.route('/auth', accountRoutes);
 app.route('/auth', oauthRoutes);
+app.route('/assistant', assistantRoutes);
 app.route('/profiles', profileRoutes);
 app.route('/documents', documentRoutes);
 app.route('/cvs', cvRoutes);

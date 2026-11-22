@@ -9,6 +9,8 @@ EMAIL_FROM=
 # AI: none | python. 'python' uses the AI service in ai-service/ (see its README); 'none' uses the
 # built-in, non-AI tools. The Claude API key lives in the AI service, not here.
 AI_PROVIDER=none
+# "Ask Opportunity Radar" help assistant (DeepSeek). Leave empty to hide it.
+DEEPSEEK_API_KEY=
 AI_SERVICE_URL=http://127.0.0.1:8000
 AI_SERVICE_TOKEN=
 # Payments: none | mock | pesapal   ('mock' is refused when ENVIRONMENT=production)

@@ -3,7 +3,7 @@ import { Component, type ErrorInfo, type ReactNode } from 'react';
 type State = { error: Error | null };
 
 /** Last-resort boundary: shows a recoverable message instead of a blank page. */
-export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
+export class ErrorBoundary extends Component<{ children: ReactNode; fallback?: ReactNode }, State> {
   state: State = { error: null };
 
   static getDerivedStateFromError(error: Error): State {
@@ -16,6 +16,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
 
   render() {
     if (!this.state.error) return this.props.children;
+    if (this.props.fallback !== undefined) return this.props.fallback;
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center" role="alert">
         <h1 className="text-2xl font-semibold">Something went wrong</h1>

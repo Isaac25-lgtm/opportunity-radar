@@ -118,6 +118,18 @@ Date: 22 November 2026 · Production: https://opportunity-radar.omodingisaac123.
 16. Found while re-testing: PDF import failed on browsers older than Chrome 119 / Safari 17.4
     (`Promise.withResolvers`). PDF reading now uses pdf.js's legacy build, which includes the polyfills.
 
+17. "create an AI chatbot guiding users through the system ... Ask Opportunity Radar", with a DeepSeek key and
+    sample questions, "even in the landing page":
+    - **Widget:** floating dark pill bottom-right on every page including the home page (hidden in the CV editor,
+      print view and admin; raised above fixed save bars). Opens a chat styled like the owner's reference: dark
+      header, greeting with an AI disclaimer, six suggested questions, streamed answers with page links. Full screen
+      on phones.
+    - **Server:** `POST /api/assistant/chat` streams DeepSeek (`deepseek-flash`) as plain text. Details, privacy and
+      limits in `AI_AND_MATCHING.md`. Privacy notice updated.
+    - **Key:** read from the `DEEPSEEK_API_KEY` Worker secret, never stored in the repository. The owner sets it
+      with `npx wrangler secret put DEEPSEEK_API_KEY`; the button appears without a redeploy.
+    - **Tests:** `tests/integration/assistant.test.ts` (9, with a stand-in for DeepSeek).
+
 ## 3. Plans are segments (new)
 
 | Code    | Name                | Price | `profile_types`                 |

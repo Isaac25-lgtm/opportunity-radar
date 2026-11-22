@@ -23,6 +23,11 @@ export interface Env {
   /** Google sign-in; off until both are set. */
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
+  /** "Ask Opportunity Radar" assistant; off until the key is set. */
+  DEEPSEEK_API_KEY?: string;
+  /** Optional: defaults to https://api.deepseek.com and deepseek-flash. */
+  DEEPSEEK_BASE_URL?: string;
+  ASSISTANT_MODEL?: string;
 }
 
 export type AppUser = {

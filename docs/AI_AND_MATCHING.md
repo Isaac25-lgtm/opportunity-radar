@@ -27,6 +27,23 @@ Rules the service enforces, not just asks for (details in `ai-service/README.md`
 The Worker validates every answer again (`cvDataSchema`), adds rate limits (CV parsing 30/hour, AI cover letters
 20/hour per user), and refuses a plain-http service address in production.
 
+## Ask Opportunity Radar (help assistant)
+
+A floating "Ask Opportunity Radar" button on every page (except the CV editor, print view and admin) opens a chat
+that explains the product and links to the right page. It is powered by DeepSeek (`deepseek-flash`, thinking off,
+streamed) and is switched on by the `DEEPSEEK_API_KEY` Worker secret: without it, the button is hidden.
+
+- **Code:** `worker/domain/assistant.ts` (instructions, DeepSeek call, stream reader), `worker/routes/assistant.ts`
+  (`GET /api/assistant/status`, `POST /api/assistant/chat`), `src/components/Assistant.tsx` (widget),
+  `shared/assistant.ts` (suggested questions, limits), `shared/help.ts` (help answers shared with the Help page).
+- **Always current:** plans and prices are read from the database on every chat; payment and Google sign-in status
+  come from the live configuration.
+- **Privacy:** only the conversation, the page path and the plan name are sent; never names, emails, profiles, CVs
+  or documents. Chats are kept in the browser tab only. Message text is never logged.
+- **Limits:** questions up to 1,500 characters; the last 12 turns are sent; replies up to 700 tokens; 20 questions
+  per person per 10 minutes, 150 per day, and 5,000 per day across the site (cost ceiling).
+- **Failures:** an invalid key or empty balance shows "not available right now"; DeepSeek rate limits show "busy".
+
 ## Matching
 
 Implemented in `worker/domain/matching/`. Two separate outputs:

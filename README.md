@@ -38,6 +38,8 @@ your profile and does that work for you:
   come from official sources around the world and say where they came from.
 - **A CV builder that never invents facts.** Live A4 preview, three professional templates, PDF and Word export,
   tailored copies per application and cover-letter drafts, all from what you entered.
+- **Help on every page.** The “Ask Opportunity Radar” assistant explains plans, matching and the CV builder in
+  plain words and links to the right page.
 - **Guided, not tedious.** Profiles are filled in with type-ahead and one-click suggestions: pick
   “Civil Engineer” and it suggests AutoCAD, Road design and related roles.
 
@@ -157,6 +159,7 @@ Secrets are set with `npx wrangler secret put NAME`. See the
 | Plans and limits     | Live; online payments not yet activated                       |
 | Google sign-in       | Built and tested; switches on when Google keys are added      |
 | Email alerts         | In-app now; email delivery once a provider is configured      |
+| Help assistant       | Built (DeepSeek); switches on when its key is set             |
 | AI assistance        | Python AI service built and tested; switches on once hosted   |
 
 Known gaps are listed honestly in [known limitations](docs/KNOWN_LIMITATIONS.md).

@@ -4,6 +4,7 @@ import { AppLayout, PublicLayout, RequireAuth } from './components/Layout';
 import { Spinner } from './components/ui';
 import Home from './pages/public/Home';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { Assistant } from './components/Assistant';
 import { lazyPage } from './lib/lazyPage';
 
 const p = <T extends ComponentType<any>>(f: () => Promise<{ default: T }>) => lazyPage(f);
@@ -152,6 +153,10 @@ export default function App() {
             </Route>
           </Routes>
         </Suspense>
+      </ErrorBoundary>
+      {/* The help assistant must never take a page down with it. */}
+      <ErrorBoundary fallback={null}>
+        <Assistant />
       </ErrorBoundary>
     </>
   );

@@ -369,6 +369,12 @@ export function checkEnv(env: Env): EnvCheck[] {
       purpose: 'ReliefWeb API (approved appname)',
     },
     {
+      name: 'DEEPSEEK_API_KEY',
+      required: false,
+      present: has(env.DEEPSEEK_API_KEY),
+      purpose: 'Ask Opportunity Radar assistant (DeepSeek)',
+    },
+    {
       name: 'AI_PROVIDER',
       required: false,
       present: ai !== 'none',
