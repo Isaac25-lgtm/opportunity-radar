@@ -32,7 +32,7 @@ Secrets (set with `npx wrangler secret put NAME`; never commit them):
 | `PESAPAL_IPN_ID`                                  | for payments | ID returned when registering the IPN URL      |
 | `PESAPAL_IPN_SECRET`                              | for payments | A long random string used in the IPN URL path |
 | `RELIEFWEB_APPNAME`                               | optional     | Approved ReliefWeb API appname                |
-| `DEEPSEEK_API_KEY`                                | optional     | Switches on the Ask Opportunity Radar chat    |
+| `DEEPSEEK_API_KEY`                                | optional     | Switches on the Ask Opportunity Radar AI chat |
 | `AI_PROVIDER`                                     | optional     | `none` (default) or `python`                  |
 | `AI_SERVICE_URL`, `AI_SERVICE_TOKEN`              | for AI       | HTTPS address and shared secret of ai-service |
 

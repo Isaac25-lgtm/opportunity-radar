@@ -372,7 +372,7 @@ export function checkEnv(env: Env): EnvCheck[] {
       name: 'DEEPSEEK_API_KEY',
       required: false,
       present: has(env.DEEPSEEK_API_KEY),
-      purpose: 'Ask Opportunity Radar assistant (DeepSeek)',
+      purpose: 'Ask Opportunity Radar AI assistant (DeepSeek)',
     },
     {
       name: 'AI_PROVIDER',

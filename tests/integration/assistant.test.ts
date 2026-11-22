@@ -1,5 +1,5 @@
 /**
- * "Ask Opportunity Radar": hidden without a key; with a key, the Worker streams DeepSeek's answer as plain
+ * "Ask Opportunity Radar AI": hidden without a key; with a key, the Worker streams DeepSeek's answer as plain
  * text, sends the product guide and page context (never personal data), and handles upstream failures.
  */
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
@@ -40,7 +40,7 @@ afterAll(async () => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
-describe('Ask Opportunity Radar', () => {
+describe('Ask Opportunity Radar AI', () => {
   it('is hidden and refuses chats until a key is set', async () => {
     const c = new Client(off);
     expect((await c.get('/api/assistant/status')).json).toEqual({ enabled: false });

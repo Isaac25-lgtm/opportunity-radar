@@ -1,5 +1,5 @@
 /**
- * Help-centre questions and answers. Shared by the Help page and the "Ask Opportunity Radar" assistant,
+ * Help-centre questions and answers. Shared by the Help page and the "Ask Opportunity Radar AI" assistant,
  * so the assistant always answers from the same text people can read on the site.
  */
 export const HELP_SECTIONS: Array<[string, Array<[string, string]>]> = [

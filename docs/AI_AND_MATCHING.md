@@ -27,9 +27,9 @@ Rules the service enforces, not just asks for (details in `ai-service/README.md`
 The Worker validates every answer again (`cvDataSchema`), adds rate limits (CV parsing 30/hour, AI cover letters
 20/hour per user), and refuses a plain-http service address in production.
 
-## Ask Opportunity Radar (help assistant)
+## Ask Opportunity Radar AI (help assistant)
 
-A floating "Ask Opportunity Radar" button on every page (except the CV editor, print view and admin) opens a chat
+A floating "Ask Opportunity Radar AI" button on every page (except the CV editor, print view and admin) opens a chat
 that explains the product and links to the right page. It is powered by DeepSeek (`deepseek-flash`, thinking off,
 streamed) and is switched on by the `DEEPSEEK_API_KEY` Worker secret: without it, the button is hidden.
 

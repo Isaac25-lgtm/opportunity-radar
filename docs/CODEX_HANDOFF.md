@@ -11,7 +11,7 @@ Date: 22 November 2026 · Production: https://opportunity-radar.omodingisaac123.
 | Latest commits      | `21a3270` visual refresh · `07bd191` photo hero · `3dc0d41` USD segments + countries ·      |
 |                     | `6323736` 15-person check + relevance fixes · `c765ee2` scripts + docs                      |
 | Main branch         | `main` on GitHub; all work is pushed there                                                  |
-| Live Worker version | `4fd11789-d504-4e35-ad48-9804dabc12c1` at 100% (new navy and green radar logo)              |
+| Live Worker version | `64f5d5ff-3d6d-4bf7-8210-4d882947b52c` at 100% (Ask Opportunity Radar AI, new logo)         |
 | Rollback version    | `2a80ba45-0504-4563-b791-95e6880325eb` (audit fixes, before the assistant)                  |
 | Migrations          | `0004_usd_plan_segments.sql` applied to production (additive)                               |
 | Sample CVs          | `C:\Users\USER\Documents\ChatGPT\CV builder\sample-cvs\` (10 PDFs + PNGs, fictional people) |

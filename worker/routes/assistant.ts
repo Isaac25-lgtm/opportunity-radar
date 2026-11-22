@@ -16,7 +16,7 @@ import {
   type PlanRow,
 } from '../domain/assistant';
 
-/** "Ask Opportunity Radar". Open to visitors and members; switched on by the DEEPSEEK_API_KEY secret. */
+/** "Ask Opportunity Radar AI". Open to visitors and members; switched on by the DEEPSEEK_API_KEY secret. */
 export const assistantRoutes = new Hono<AppEnv>();
 
 const unavailable = () =>

@@ -1,7 +1,7 @@
-/** "Ask Opportunity Radar": the in-site help assistant. Shared by the widget and the Worker. */
+/** "Ask Opportunity Radar AI": the in-site help assistant. Shared by the widget and the Worker. */
 import { z } from 'zod';
 
-export const ASSISTANT_NAME = 'Ask Opportunity Radar';
+export const ASSISTANT_NAME = 'Ask Opportunity Radar AI';
 
 /** Shown as one-tap questions under the greeting. */
 export const SUGGESTED_QUESTIONS = [

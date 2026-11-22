@@ -38,7 +38,7 @@ your profile and does that work for you:
   come from official sources around the world and say where they came from.
 - **A CV builder that never invents facts.** Live A4 preview, three professional templates, PDF and Word export,
   tailored copies per application and cover-letter drafts, all from what you entered.
-- **Help on every page.** The “Ask Opportunity Radar” assistant explains plans, matching and the CV builder in
+- **Help on every page.** The “Ask Opportunity Radar AI” assistant explains plans, matching and the CV builder in
   plain words and links to the right page.
 - **Guided, not tedious.** Profiles are filled in with type-ahead and one-click suggestions: pick
   “Civil Engineer” and it suggests AutoCAD, Road design and related roles.

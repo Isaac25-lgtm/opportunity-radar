@@ -29,7 +29,7 @@ const PRIVACY: Array<[string, string[]]> = [
     [
       'We do not sell your data and do not share your CV or documents with employers or any third party.',
       'Service providers process data on our behalf: Cloudflare (hosting, database and storage), our email provider (alerts, when enabled) and our payment provider (payments, when enabled).',
-      'The “Ask Opportunity Radar” help assistant is powered by DeepSeek. When you use it, your questions, the earlier messages in that chat, the page you are on and (if you are signed in) the name of your plan are sent to DeepSeek to write the answer. Your name, email, profile, CVs and documents are never sent. Chats are kept only in your browser tab and are not saved on our servers. Please do not type personal or confidential details into the chat.',
+      'The “Ask Opportunity Radar AI” help assistant is powered by DeepSeek. When you use it, your questions, the earlier messages in that chat, the page you are on and (if you are signed in) the name of your plan are sent to DeepSeek to write the answer. Your name, email, profile, CVs and documents are never sent. Chats are kept only in your browser tab and are not saved on our servers. Please do not type personal or confidential details into the chat.',
       'Other AI features, such as reading uploaded CVs, are not currently enabled. If they are introduced, we will update this notice, send the minimum data needed, and never send another user’s data.',
     ],
   ],
