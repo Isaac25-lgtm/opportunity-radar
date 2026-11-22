@@ -15,7 +15,7 @@ questions for every one: _can you apply?_ and _how well does it fit?_
 ![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers%20%C2%B7%20D1%20%C2%B7%20KV-F38020?logo=cloudflare&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
-![Tests](https://img.shields.io/badge/tests-236%20passing-16a34a)
+[![Tests](https://img.shields.io/badge/tests-audit%20results-16a34a)](docs/CLAUDE_AUDIT_HANDOFF.md#verification)
 ![Coverage](https://img.shields.io/badge/opportunities-worldwide-0b0b0c)
 
 <img src="docs/images/home.jpg" alt="Opportunity Radar home page" width="100%" />
