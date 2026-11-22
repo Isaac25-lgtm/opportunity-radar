@@ -105,18 +105,21 @@ https://opportunity-radar.omodingisaac123.workers.dev
 
 ## 12. Deployed version
 
-Worker version `89bdb22a-5373-40d9-b8db-fa90406df00d` — professional visual refresh (commit `21a3270` on branch
-`design/professional-refresh`). Uploaded as a preview, smoke-tested at its preview URL (health, public Playwright suite
-5 passed / 1 skipped, 9-step signed-in smoke that creates and deletes its own account), then promoted to 100%.
-The public suite was re-run against production afterwards: 5 passed, 1 skipped.
+Worker version `188059c4-f650-467d-82b2-8b7dfb9ed7bd` (commit `c765ee2`, branch `design/professional-refresh`):
+USD plan segments, worldwide country eligibility, fairer relevance, academic CVs and the photo hero.
 
-Rollback: `npx wrangler versions deploy 6757f62d-945a-4f63-8969-3320705e07c9@100% --yes` (the audit-hardening version).
-No database migrations in this release.
+Order of release (zero-downtime): version uploaded as a preview → migration `0004_usd_plan_segments.sql` applied to
+the production D1 (additive: `plans.price_minor`, `plans.currency`, new plan names, prices and entitlements; the
+previous version kept working) → preview smoke-tested (health; plans $0/$10/$15/$25 with the right segments; 11-step
+signed-in smoke including "free plan cannot create a scholarship profile", account deleted afterwards; public
+Playwright 5 passed / 1 skipped) → promoted to 100% → public Playwright re-run on production: 5 passed, 1 skipped.
 
-Local verification for this release: Vitest 142 passed (9 files); Playwright 15 passed, 3 intentional mobile skips;
-a 47-route sweep (visitor, user and admin, desktop 1366 px and phone 390 px) with no page errors, failed requests or
-horizontal overflow; manual Chrome walk-through of save, dismiss, tracker, tailoring, cover letter, templates,
-version history, settings, the payment simulator's failure path and an admin source run.
+Rollback: `npx wrangler versions deploy 89bdb22a-5373-40d9-b8db-fa90406df00d@100% --yes` (visual refresh). Note that
+version reads the old plan entitlements format and would fall back to Free limits for paid plans; payments are not
+activated, so no paying users are affected.
+
+Local verification: Vitest 219 passed (10 files, including 76 checks across 15 personas); Playwright 15 passed,
+3 intentional mobile skips; 47-route sweep clean; typecheck, ESLint and Prettier clean.
 
 ## 13. Cron schedule
 

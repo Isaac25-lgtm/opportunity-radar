@@ -1,167 +1,203 @@
-# Codex handoff — Opportunity Radar, professional visual refresh
+# Codex handoff — Opportunity Radar
 
 Date: 22 November 2026 · Production: https://opportunity-radar.omodingisaac123.workers.dev
 
 ## 1. Where things are
 
-| Item                | Value                                                                                      |
-| ------------------- | ------------------------------------------------------------------------------------------ |
-| Repository          | https://github.com/Isaac25-lgtm/opportunity-radar                                          |
-| Working branch      | `design/professional-refresh` (pushed), based on `audit/release-v1.0` @ `fdf5fdb`          |
-| Refresh commit      | `21a3270` “Professional visual refresh, browser-tested fixes”                              |
-| Main branch for PRs | `release/v1.0` — the refresh branch is **not merged yet**; open a PR when the owner agrees |
-| Live Worker version | `89bdb22a-5373-40d9-b8db-fa90406df00d` at 100%                                             |
-| Rollback version    | `6757f62d-945a-4f63-8969-3320705e07c9` (audit hardening, previous production)              |
-| Database migrations | None in this release                                                                       |
+| Item                | Value                                                                                       |
+| ------------------- | ------------------------------------------------------------------------------------------- |
+| Repository          | https://github.com/Isaac25-lgtm/opportunity-radar                                           |
+| Working branch      | `design/professional-refresh` (pushed), based on `audit/release-v1.0` @ `fdf5fdb`           |
+| Latest commits      | `21a3270` visual refresh · `07bd191` photo hero · `3dc0d41` USD segments + countries ·      |
+|                     | `6323736` 15-person check + relevance fixes · `c765ee2` scripts + docs                      |
+| Main branch for PRs | `release/v1.0`. The branch is **not merged yet**; open a PR when the owner agrees.          |
+| Live Worker version | `188059c4-f650-467d-82b2-8b7dfb9ed7bd` at 100%                                              |
+| Rollback version    | `89bdb22a-5373-40d9-b8db-fa90406df00d` (visual refresh, before USD plans)                   |
+| Migrations          | `0004_usd_plan_segments.sql` applied to production (additive)                               |
+| Sample CVs          | `C:\Users\USER\Documents\ChatGPT\CV builder\sample-cvs\` (10 PDFs + PNGs, fictional people) |
 
-## 2. What the owner asked for, and the rule that came out of it
+## 2. What the owner asked for (in their words), and the rules that came out of it
 
-The owner asked for a site that looks professional and not AI-generated, modelled on their own SaaS site
-(imprintsites.omodingisaac123.workers.dev, with motionimprints.tech as a second reference). Midway they clarified:
+1. "make this site look very professional and not AI generated looking … especialy
+   https://imprintsites.omodingisaac123.workers.dev/ because they are both Saas products"
+2. "everything remains organized the same way but the aesthetic premium like i guided"
+   → **Rule: change only the look.** Keep every page's sections, order, copy, links and nav items.
+3. "this is just DARK BACKGROUND" / "SURELY WE CAN DO BETTER … THIS IS JUST WHITE"
+   → Imagery like Imprint: a darkened photo slideshow hero and photo-backed profile cards (owner approved six
+   Unsplash photos).
+4. "look at how clumsy its edges look" → no rotated elements (they alias in Chrome); stacked, straight, opaque.
+5. "make sure it can work for atleast 5 different professionals, 5 different companies and 5 different people looking
+   for scholarships. the first payment thing will be 10 dollars, then 15 and 25 with the most popular being 15 you
+   segment them. only jobs, then jobs and scholarships then the third one is for those looking also for contracts …
+   add what you think i missed"
+6. "after checking how each CV works i want to see samples"
+7. "allow everything": production migration and deploy approved.
 
-> everything remains organized the same way but the aesthetic premium like i guided
+## 3. Plans are segments (new)
 
-**Rule: change only the look. Keep every page's sections, order, copy, links and nav items.** A first draft of the home
-page that reorganised sections (adding pricing and a showcase, dropping features) was reverted to the original
-structure. Before restyling any page, read `git show fdf5fdb:<file>` and keep its section list. Removing AI-sounding
-tells (emoji, em-dash flourishes) is fine; adding or removing sections is not.
+| Code    | Name                | Price | `profile_types`                 |
+| ------- | ------------------- | ----- | ------------------------------- |
+| `free`  | Free                | $0    | career                          |
+| `basic` | Jobs                | $10   | career                          |
+| `pro`   | Jobs & Scholarships | $15   | career, academic (Most popular) |
+| `elite` | Complete            | $25   | career, academic, business      |
 
-## 3. Design system (Imprint Sites language)
+- **Entitlement:** `profile_types` (in `shared/entitlements.ts`) replaces `business_matching`. It is enforced
+  server-side in four places:
+  - profile creation (`requireProfileType` in `worker/lib/store.ts`, a 402 naming the plan that unlocks it);
+  - feeds and match details (`gated: 'plan_segment'` plus `upgrade_plan`);
+  - the dashboard top matches;
+  - alerts.
+- **Browsing:** every listing stays free to browse.
+- **Money handling:**
+  - Prices are stored in **minor units** with a currency: `plans.price_minor` and `plans.currency`.
+  - Payments store minor units in their own currency, so historical UGX payments stay correct.
+  - `shared/money.ts` converts at the provider boundary, because Pesapal speaks major units. `formatMoney()` formats
+    for display.
+  - `plans.price_ugx` is now unused and can be dropped in a later migration.
+- **UI updated:**
+  - Pricing: segment checklist and comparison rows.
+  - Billing, mock checkout, and admin plans/payments.
+  - Profiles page: locked types link to the plans page.
+  - Dashboard tiles, onboarding hints and the feed notice.
 
-All tokens live in `tailwind.config.js` and `src/index.css`.
+## 4. Matching changes (new)
 
-- **Type:** Outfit for headings (`font-display`, weights 500–600, tight tracking), Inter for body at 15.5px. CV
-  documents keep their own fonts (`.cv-paper h*` resets).
-- **Colour:** zinc neutrals (`ink-*`), near-black surfaces (`night`, `night-700/800`), and hairlines in `line` (#ececec).
-  Blue (`brand-600`, #2563eb) is only for links, focus and informational states. Status colours are `ok`, `warn` and
-  `bad`.
-- **Components:**
-  - `.btn` has a 10px radius; `btn-primary` is near-black.
-  - `.card` is rounded-2xl with a 1px `line` border and `shadow-panel`.
-  - `shadow-card` and `shadow-paper` are long, soft shadows.
-- **Headings inherit colour.** The base layer no longer forces `text-ink`, because that made headings on dark panels
-  invisible. Do not reintroduce it.
-- **Dark sections:**
-  - home hero, home matching section and home CTA (`bg-night`);
-  - auth side panel;
-  - CV editor preview and toolbar (`bg-night` / `bg-night-700`).
-  - On dark backgrounds use `text-white/…` opacities and white primary buttons (`bg-white text-ink`).
-- **Marketing helpers:** `src/components/marketing.tsx` has `SectionHeading` and `Faq`.
-- **Product imagery:** real screenshots only, no stock photos.
-  - The home profile cards use `public/product/card-*.jpg`, regenerated with `scripts/capture-product-shots.mjs`.
-  - The script needs a local server and `OR_SESSION`; see its header.
-  - Never capture production user data.
+- **Countries:** `shared/countries.ts` covers all UN member states with demonyms and aliases. It also knows the groups
+  notices use: Africa, Sub-Saharan Africa, East Africa/EAC, West Africa/ECOWAS, Southern Africa/SADC, Commonwealth,
+  EU, MENA, Asia, Latin America and the Caribbean.
+  - `countryEligibility()` returns `yes`, `no` or `unknown`.
+  - Unknown countries, and groups that can't be resolved reliably ("developing countries", "low and middle income"),
+    ask the user to confirm instead of disqualifying them.
+  - The old helper wrongly treated "Commonwealth" and "developing countries" as Africa only.
+- **No home assumption:** the career matcher no longer assumes the user lives in Uganda when no country is set. The
+  "nearby" bonus now means the same UN sub-region.
+- **Ranking:** eligible and potential matches rank together by relevance, with potential taking a −5 penalty. Not
+  eligible always comes last.
+- **Fields:**
+  - Generic words (science, studies, public, global, supply, services…) are ignored in similarity.
+  - Academic fields use a balanced (Dice) overlap.
+- **Off-topic cap:** relevance is capped at 35 when the core fit is missing. The core fit is the field of study for
+  scholarships, the firm's services for tenders, and the procurement category for tenders.
+- **Academic CVs:** `from: 'academic_profile'` builds an academic CV from the academic profile, with education,
+  publications and awards first and the Scholar template (`cvFromAcademicProfile` in `shared/cv.ts`). The new-CV
+  dialog offers it.
 
-## 4. Changes in this release
+## 5. Fifteen-person verification (new)
 
-### Visual
+- **Data:**
+  - `tests/fixtures/personas.ts` holds 5 professionals, 5 scholarship seekers and 5 companies, all fictional with
+    example.com emails.
+  - It also holds 18 fictional opportunities, including deliberate traps: country-restricted jobs, a Commonwealth job,
+    a Kenya-only scholarship, a "developing countries" PhD, a turnover-gated tender and an unrelated Head Chef job.
+- **Test:** `tests/integration/personas.test.ts` signs each person up on their plan through the API and checks:
+  - plan locks;
+  - the top match;
+  - stated eligibility outcomes, including relevance ≠ eligibility (BrightPrint: printing tender 100 relevance, not
+    eligible on turnover);
+  - that CVs contain only the person's own facts.
+- **Report:** `PERSONA_REPORT=<file> npx vitest run tests/integration/personas.test.ts` writes each person's full
+  ranking for review.
+- **Samples:**
+  - `scripts/seed-sample-personas.mjs` seeds the 15 people into a **local** server. Fixtures are marked as demo data.
+  - `scripts/capture-sample-cvs.mjs` renders their CVs through the app's print view as PDF and PNG.
+  - Both refuse non-local URLs.
 
-- Restyled the entire public site, app and admin console in the system above.
-- Home page: original sections and order kept (hero → live source strip → three profiles → features → templates →
-  how matching works → FAQ → CTA). The hero is now dark, and the profile cards show real listing screenshots.
-- Header nav (CV Builder, Opportunities, How it works, Pricing, Help) and footer columns (Product / For you / Support)
-  are unchanged in content.
-- New logo mark and favicon (`LogoMark` in `src/components/Layout.tsx`, `public/favicon.svg`).
-- Toasts are dark with a coloured status icon. Tabs draw their baseline as an inset shadow.
+## 6. Design system (Imprint Sites language)
 
-### Bugs found and fixed during browser testing
+- **Type:** Outfit headings and Inter body text.
+- **Colour:**
+  - zinc neutrals (`ink-*`) and near-black surfaces (`night*`);
+  - hairlines in `line`;
+  - blue (`brand-600`) only for links, focus and informational states.
+- **Components:** `.btn` has a 10px radius and near-black primary; `.card` is rounded-2xl with a `line` border.
+- **Headings inherit colour.** Don't add `text-ink` to base headings, because it breaks dark panels.
+- **Imagery:**
+  - The hero is `HeroSlideshow` in `src/components/marketing.tsx`: cross-fade, caption pill, dots and pause.
+    Auto-play is off for prefers-reduced-motion.
+  - Photos are in `public/photos/`, Unsplash License, owner-approved:
+    - photo-1499750310107 · 1541339907198 · 1517245386807 (hero);
+    - 1522202176988 · 1523240795612 · 1600880292203 (cards).
+  - Product shots are `public/product/card-*.jpg`, from `scripts/capture-product-shots.mjs` (local only).
 
-| Bug                                                                               | Fix / location                                                                              |
-| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `?view=<invalid>` crashed the opportunities feed                                  | View validated against `PROFILE_TYPES` (`src/pages/app/Opportunities.tsx`)                  |
-| HTML entities such as `&eacute;`, `&laquo;` and `&ordm;` shown raw in tender text | Full Latin-1 and typographic entity table, case-sensitive (`worker/lib/sanitize.ts`) + test |
-| Headings on dark panels rendered dark on dark (e.g. sign-up side panel)           | Base heading colour now inherited (`src/index.css`)                                         |
-| Sign-up/sign-in card: the dark panel did not reach the card edge                  | Card moved inside `container-page` (`src/pages/public/Auth.tsx`)                            |
-| Every switch knob rendered outside its track                                      | `left-0` on the knob (`Toggle` in `src/components/ui.tsx`)                                  |
-| Vertical scrollbar beside every tab bar                                           | Inset-shadow baseline instead of border + `-mb-px` (`Tabs` in `ui.tsx`)                     |
-| Selected CV template not visible on the dark editor panel                         | White ring with offset (`src/cv/editor/TemplatePanel.tsx`)                                  |
-| Cover letter pasted bullet lists inline (“Programme, - Run tenders … - Lead …”)   | First bullet becomes one sentence: “…, I run tenders …” (`worker/domain/tailor.ts`) + test  |
-| Degree text repeated the field (“MSc Procurement & Supply Chain, Procurement”)    | `degreeWithField()` in `shared/cv.ts` + test                                                |
-| Tailor-CV picker rows had no clickable affordance                                 | Bordered rows with chevron (`src/pages/app/OpportunityDetail.tsx`)                          |
-| Plan price wrapped (“UGX 10,000 /” then “month”)                                  | No-wrap price line (`src/pages/public/Pricing.tsx`)                                         |
-| `/login` showed a 404                                                             | Redirects to `/signin` (`src/App.tsx`)                                                      |
-| Wave emoji in the onboarding heading                                              | Removed                                                                                     |
+## 7. Verification (actual results, this release)
 
-## 5. Verification (actual results)
+| Check                                                                   | Result                                         |
+| ----------------------------------------------------------------------- | ---------------------------------------------- |
+| `npx vitest run`                                                        | 219 passed (10 files, incl. 76 persona checks) |
+| `npx playwright test` against `wrangler dev`                            | 15 passed, 3 skipped (intentional)             |
+| Route sweep: 47 routes × desktop + phone, visitor/user/admin            | 0 errors, 0 failed requests, 0 overflow        |
+| Typecheck, ESLint, Prettier                                             | Clean                                          |
+| Preview: health, plans, 11-step signed-in smoke (deleted), public suite | All passed                                     |
+| Production after promotion: public Playwright suite                     | 5 passed, 1 skipped                            |
 
-| Check                                                                     | Result                                          |
-| ------------------------------------------------------------------------- | ----------------------------------------------- |
-| `npx vitest run` (unit + integration, local D1/KV)                        | 142 passed, 0 failed (9 files)                  |
-| `npx playwright test` against `wrangler dev`                              | 15 passed, 3 skipped (intentional mobile skips) |
-| Route sweep: 47 routes × desktop 1366px + phone 390px, visitor/user/admin | 0 page errors, 0 failed requests, 0 overflow    |
-| Manual Chrome walk-through                                                | All passed (see below)                          |
-| `npm run typecheck`, `eslint .`, `prettier --check .`                     | Clean                                           |
-| Preview version: health + public Playwright + 9-step signed-in smoke      | All passed; smoke account deleted               |
-| Production after promotion: public Playwright suite                       | 5 passed, 1 skipped                             |
+Chrome checks:
 
-The Chrome walk-through covered:
+- **Slideshow:** dots, captions and pause.
+- **Pricing page:** USD prices and segment checklist.
+- **As a $10 "Jobs" user:**
+  - the scholarship feed shows the upgrade notice naming Jobs & Scholarships;
+  - the profile cards for other segments are locked.
+- **Earlier pass:** save/dismiss, tracker, tailoring, cover letters, templates, history, settings, payment-simulator
+  failure path and admin source run.
 
-- sign-in and sign-out;
-- save and dismiss in the feed;
-- tracker add and status change;
-- Tailor CV and a cover-letter draft;
-- template and accent switching, and version history;
-- settings saves;
-- the payment simulator's failure path;
-- an admin manual source run (Remotive: 7 seen, 0 new).
-
-## 6. How to run and verify locally (Windows notes)
+## 8. How to run locally (Windows notes)
 
 ```bash
-npm ci
-npx vite build
+npm ci && npx vite build
+npx wrangler d1 migrations apply opportunity-radar-db --local
 npx wrangler dev --port 8787 --ip 127.0.0.1 --test-scheduled
-npx vitest run
-npx playwright test          # needs the dev server above
+npx vitest run && npx playwright test
 ```
 
-- **Rebuild means restart.** After `npx vite build`, restart `wrangler dev`. Rebuilding replaces `dist/` while Wrangler
-  is serving it, and every route then returns 404 until restart.
-- **Playwright browsers:** if the default cache directory can't be created, set `PLAYWRIGHT_BROWSERS_PATH` to a
-  writable folder and run `npx playwright install chromium`.
-- **Git Bash paths:** prefix commands that pass a bare `/` argument with `MSYS_NO_PATHCONV=1`.
+- **Restart after rebuilds:** restart `wrangler dev` after every `vite build`, or routes 404.
+- **Chained commands:** a failing lint step in an `&&` chain skips the build. Check the build actually ran before
+  testing in a browser.
+- **Python-written files:** when writing TS from Python, `\n` inside JS strings becomes a real newline. Use the editor
+  tools or raw strings.
+- **Playwright:** set `PLAYWRIGHT_BROWSERS_PATH` if the default cache can't be created.
+- **Git Bash:** use `MSYS_NO_PATHCONV=1` for bare `/` arguments.
 - **Production requests from Windows:** use `curl --ssl-no-revoke` and `node --dns-result-order=ipv6first`.
-- **Local admin:** `admin@example.test` / `Password1234`. This is a local seed only; production admin is provisioned by
-  D1 user ID.
-- **Demo fixture:** e2e global setup creates a clearly labelled "DEMO DATA" listing (`opp_e2e_fixture`) locally.
+- **Local admin seed:** `admin@example.test` / `Password1234`. Production admin is set by D1 user ID.
 
-## 7. Deploying
+## 9. Deploying
 
-1. Run `npx vite build`.
-2. Run `npx wrangler versions upload --message "…"`. This prints a preview URL.
-3. Smoke-test the preview:
-   - `/api/health`;
-   - `E2E_BASE_URL=<preview> npx playwright test -g "public site"`;
-   - a signed-in smoke test that creates its own account and **deletes it** via `POST /api/auth/delete-account`.
-4. Promote: `npx wrangler versions deploy <id>@100% --yes`.
+1. `npx vite build`, then `npx wrangler versions upload --message "…"`.
+2. If there are migrations, keep them **additive** and run
+   `npx wrangler d1 migrations apply opportunity-radar-db --remote`. The owner approved this in this session; ask
+   again for future releases.
+3. Smoke-test the preview URL:
+   - health;
+   - the public Playwright suite with `E2E_BASE_URL`;
+   - a signed-in smoke that deletes its own account.
+4. Run `npx wrangler versions deploy <id>@100% --yes`, then re-run the public suite on production.
 5. Update `docs/RELEASE_REPORT.md` §12.
 
-## 8. Constraints the owner set (still in force)
+## 10. Constraints still in force
 
 - **Product scope:**
   - International product; no "Uganda / East Africa" positioning in marketing copy.
-  - Use the resume.io-like layout only. Never copy another company's branding or text.
+  - resume.io-like layout only, no copied branding.
 - **Cloudflare:**
   - Don't change custom domains, routes or DNS.
-  - Don't touch other resources (`fip-prod`, `jerseyville-db`, KV `link-publishers-orders`).
-  - Don't add paid services without asking.
-- **Secrets and auth:**
-  - Never commit secrets; `.dev.vars` is git-ignored.
-  - A `wrangler secret put ADMIN_EMAILS` attempt was refused. Don't work around it; production admin is by D1 user ID.
-- **Status claims:**
-  - Pesapal payments are **not activated** and outbound email is **not configured**. Don't claim otherwise.
-  - AI features are deferred by request.
-- **Code quality:** "no spaghetti code". Keep components small, typed and tested; prefer the shared `ui.tsx` primitives.
+  - Don't touch `fip-prod`, `jerseyville-db` or KV `link-publishers-orders`.
+  - No paid services without asking.
+- **Secrets:** never commit secrets. Don't work around the refused `wrangler secret put ADMIN_EMAILS`.
+- **Status claims:** Pesapal payments are **not activated**, email is **not configured**, and AI is deferred. Don't
+  claim otherwise.
+- **Code quality:** "no spaghetti code". Keep it small, typed and tested.
 
-## 9. Open items and suggestions
+## 11. Gaps found ("what you think i missed") and suggested next steps
 
-1. **Merge:** open a PR from `design/professional-refresh` into `release/v1.0` once the owner approves the look. Production
-   already runs this branch's build.
-2. **Copy polish:** about 20 em-dashes remain in UI copy (help text, labels). They were kept to respect "content stays
-   the same". Replace them only if the owner asks.
-3. **Screenshot refresh:** `card-*.jpg` show local listings from November 2026. Refresh them occasionally with the
-   capture script so dates don't look stale.
-4. **Admin styling:** admin tables still use small uppercase column headers. That is fine for an admin console, but
-   could match the 13px label style used elsewhere.
-5. **Existing limitations:** see `docs/KNOWN_LIMITATIONS.md` (scholarship and PPDA feeds curated by admins, AI provider
-   deferred, payments and email not activated).
+1. **Real scholarships in production.** The live academic feed has only Grants.gov research grants. Scholarship seekers
+   need curated, verified listings (admin console → Add curated opportunity) or a permitted feed. This is the biggest
+   gap for the $15 plan.
+2. **Company money is in UGX.** Turnover bands, contract sizes and minimum turnover (`*_ugx`) should become
+   amount + currency with FX for international companies.
+3. **Company capability statement.** Companies get matching and a bid tracker but no company document. Key-expert CVs
+   work through the CV builder.
+4. **USD and mobile money.** Confirm with Pesapal which methods are available for USD on the merchant account, or offer
+   local-currency prices.
+5. **Annual billing or a discount.** Not built. Plans are monthly and don't auto-renew.
+6. **Drop `plans.price_ugx`** in a later migration.
+7. **Merge the branch** into `release/v1.0` via PR.
