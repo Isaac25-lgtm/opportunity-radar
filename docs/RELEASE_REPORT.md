@@ -105,16 +105,19 @@ https://opportunity-radar.omodingisaac123.workers.dev
 
 ## 12. Deployed version
 
-Worker version `88b992c9-8ba7-46be-94d9-c018b7e24eb5` (commit `ce777d5`, branch `design/professional-refresh`):
-guided profile entry with clickable suggestions, pricing on the home page, and the phone layout of the hero.
-No database migration. Preview smoke-tested (health; 11-step signed-in smoke including plan gating, account deleted;
-public Playwright 5 passed / 1 skipped), promoted to 100%, public suite re-run on production: 5 passed, 1 skipped.
+Worker version `8fa862f0-1903-4595-ab73-afa19a840777` (commit `74774af`): worldwide coverage. Sources stop filtering
+to East Africa (migration `0005_worldwide_sources.sql`, data only, applied to production); profiles open with
+"Where should we look?" (Worldwide, regions or countries) and matching respects it; every list has a "Where"
+filter; the landing page states worldwide coverage. Preview smoke-tested (health; renamed sources; region filter;
+11-step signed-in smoke with account deleted; public Playwright 5 passed / 1 skipped), promoted, public suite re-run
+on production: 5 passed, 1 skipped. Worldwide listings arrive with the next scheduled run (every 6 hours) or
+immediately via Admin → Ingestion runs → Run now.
 
-Previous release in this session: `188059c4-f650-467d-82b2-8b7dfb9ed7bd` (USD plan segments; migration 0004).
-Rollback: `npx wrangler versions deploy 188059c4-f650-467d-82b2-8b7dfb9ed7bd@100% --yes`.
+Rollback: `npx wrangler versions deploy 88b992c9-8ba7-46be-94d9-c018b7e24eb5@100% --yes` (works with the widened
+sources; it only lacks the region filter and the "Where" section).
 
-Local verification: Vitest 227 passed (11 files); Playwright 15 passed, 3 intentional mobile skips; 47-route sweep
-clean; typecheck, ESLint and Prettier clean.
+Local verification: Vitest 231 passed; Playwright 15 passed, 3 intentional mobile skips; 47-route sweep clean;
+local ingestion fetched listings from Asia, Europe, the Americas and the Pacific alongside Africa.
 
 ## 13. Cron schedule
 

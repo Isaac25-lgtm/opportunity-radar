@@ -11,8 +11,8 @@ Date: 22 November 2026 · Production: https://opportunity-radar.omodingisaac123.
 | Latest commits      | `21a3270` visual refresh · `07bd191` photo hero · `3dc0d41` USD segments + countries ·      |
 |                     | `6323736` 15-person check + relevance fixes · `c765ee2` scripts + docs                      |
 | Main branch for PRs | `release/v1.0`. The branch is **not merged yet**; open a PR when the owner agrees.          |
-| Live Worker version | `88b992c9-8ba7-46be-94d9-c018b7e24eb5` at 100%                                              |
-| Rollback version    | `188059c4-f650-467d-82b2-8b7dfb9ed7bd` (USD plans, before guided entry)                     |
+| Live Worker version | `8fa862f0-1903-4595-ab73-afa19a840777` at 100%                                              |
+| Rollback version    | `88b992c9-8ba7-46be-94d9-c018b7e24eb5` (guided entry, before worldwide)                     |
 | Migrations          | `0004_usd_plan_segments.sql` applied to production (additive)                               |
 | Sample CVs          | `C:\Users\USER\Documents\ChatGPT\CV builder\sample-cvs\` (10 PDFs + PNGs, fictional people) |
 
@@ -44,6 +44,7 @@ Date: 22 November 2026 · Production: https://opportunity-radar.omodingisaac123.
    - the templates become a swipeable row.
 10. "clients have to enter details not upload stuff … when they create a profile they have to enter details but most
     importantly the system has to give suggestions so that they can click on them". Guided entry:
+
     - **Rules and vocabularies:** `shared/suggestions.ts` has the lists (job titles, skills, industries, fields of
       study, research interests, company services and products, certifications, licences, buyers, languages, every
       country). Its rules read the form so far:
@@ -58,6 +59,21 @@ Date: 22 November 2026 · Production: https://opportunity-radar.omodingisaac123.
       Uganda-only lists were replaced.
     - **Onboarding:** leads into filling in the profile. CV import remains on the CVs page only.
     - **Tests:** `tests/unit/suggestions.test.ts`.
+
+11. "i hope the option of users selecting regions or countries where they want their opportunities from is there …
+    worldwide … this should be advertised as a worldwide thing" / "this should be stated clearly in the landing page".
+    - **Sources:** migration 0005 makes the World Bank source worldwide (one request, no country filter), widens
+      Grants.gov to international keywords and removes Remotive's location filter. `shared/countries.ts` knows World
+      Bank naming ("Kyrgyz Republic", "Congo, Democratic Republic of") and regional labels.
+    - **Profiles:** each opens with "Where should we look?" (`preferred_countries` / `preferred_geographies`). It
+      offers Worldwide, regions (`REGION_CHOICES`) or countries, with suggestions from `suggestWhere()`.
+    - **Matching:** `placeCovers(preference, country)` in career, academic and business matching.
+    - **Feed:** the "Where" filter calls `/api/opportunities?region=` (Worldwide, `remote`, a region or a country),
+      filtered in SQL with `json_each`.
+    - **Landing page:**
+      - a Worldwide badge in the hero, and "around the world" in the intro;
+      - a band of clickable regions linking to the filtered feed;
+      - a new FAQ and a worldwide meta description.
 
 ## 3. Plans are segments (new)
 
@@ -150,7 +166,7 @@ Date: 22 November 2026 · Production: https://opportunity-radar.omodingisaac123.
 
 | Check                                                                   | Result                                         |
 | ----------------------------------------------------------------------- | ---------------------------------------------- |
-| `npx vitest run`                                                        | 227 passed (11 files, incl. 76 persona checks) |
+| `npx vitest run`                                                        | 231 passed (11 files, incl. 76 persona checks) |
 | `npx playwright test` against `wrangler dev`                            | 15 passed, 3 skipped (intentional)             |
 | Route sweep: 47 routes × desktop + phone, visitor/user/admin            | 0 errors, 0 failed requests, 0 overflow        |
 | Typecheck, ESLint, Prettier                                             | Clean                                          |
