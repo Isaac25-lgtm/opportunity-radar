@@ -47,7 +47,7 @@ const GUIDES: Guide[] = [
       'Where the job is, and whether it is remote, compared with where you want to work.',
     ],
     example:
-      'Grace is a procurement officer in Kampala. A “Procurement Officer” job in Kampala that asks for three years of experience shows a high score and “You qualify”. A similar job open only to Kenyan citizens shows “Not eligible”, so she does not waste time on it.',
+      'Carlos is a software developer in Mexico City who wants remote work. A remote “Senior React Developer” job open to applicants worldwide shows a high score and “You qualify”. A similar job open only to people allowed to work in Canada shows “Not eligible”, so he does not waste time on it.',
     plans: 'Included in the Free and Jobs plans.',
   },
   {
@@ -75,7 +75,7 @@ const GUIDES: Guide[] = [
       'Funding: full or partial, compared with what you need.',
     ],
     example:
-      'Fatima studied economics in Nigeria and wants a fully funded Master’s in the United Kingdom. A Master’s in Public Policy open to Commonwealth citizens shows “You qualify” with a high score. A scholarship only for Kenyan citizens shows “Not eligible”.',
+      'Priya studied biology in India and wants a funded PhD in Europe. A PhD position in Germany open to all nationalities shows “You qualify” with a high score. A scholarship only for students from Latin America shows “Not eligible”, with the reason.',
     plans: 'Included in the Jobs & Scholarships and Complete plans.',
   },
   {
@@ -106,7 +106,7 @@ const GUIDES: Guide[] = [
       'Your sector, the size of the contract, and similar contracts you have done before.',
     ],
     example:
-      'A small printing company sees a tender to print national exam papers. It fits their work perfectly, but the tender asks for a turnover their company does not have, so it shows “Not eligible” and explains why.',
+      'An engineering firm in Vietnam sees a tender to design roads in Indonesia. It matches their services, so it shows a high score. A similar tender open only to companies registered in the European Union shows “Not eligible”, and one asking for a higher yearly turnover than they have explains exactly why.',
     plans: 'Included in the Complete plan.',
   },
 ];

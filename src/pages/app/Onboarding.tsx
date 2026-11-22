@@ -21,7 +21,7 @@ export default function Onboarding() {
     await api
       .patch('/auth/me', {
         onboarded: true,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Africa/Kampala',
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
       })
       .catch(() => undefined);
     await refresh();

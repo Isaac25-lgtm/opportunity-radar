@@ -16,17 +16,14 @@ import {
 import { api, ApiError } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
 
-const TZS = [
-  'Africa/Kampala',
-  'Africa/Nairobi',
-  'Africa/Dar_es_Salaam',
-  'Africa/Kigali',
-  'Africa/Juba',
-  'Africa/Johannesburg',
-  'Europe/London',
-  'America/New_York',
-  'UTC',
-];
+/** Every timezone the browser knows (falls back to a short list on older browsers). */
+const TZS: string[] = (() => {
+  try {
+    return (Intl as unknown as { supportedValuesOf(k: string): string[] }).supportedValuesOf('timeZone');
+  } catch {
+    return ['UTC', 'Europe/London', 'America/New_York', 'Asia/Kolkata', 'Africa/Lagos', 'Australia/Sydney'];
+  }
+})();
 const HOURS = Array.from({ length: 24 }, (_, h) => ({
   value: String(h),
   label: `${String(h).padStart(2, '0')}:00`,
@@ -39,7 +36,7 @@ export default function Settings() {
   const toast = useToast();
   const nav = useNavigate();
   const [name, setName] = useState(me.user?.name ?? '');
-  const [tz, setTz] = useState(me.user?.timezone ?? 'Africa/Kampala');
+  const [tz, setTz] = useState(me.user?.timezone ?? 'UTC');
   const [prefs, setPrefs] = useState<any>(null);
   const [allowed, setAllowed] = useState<string[]>([]);
   const [pw, setPw] = useState({ current: '', next: '' });
