@@ -113,7 +113,7 @@ const LABELS = [
 const FAQS: Array<[string, string]> = [
   [
     'Is Opportunity Radar free?',
-    'Yes. The Free plan includes one profile, one CV, PDF export and weekly alerts. Paid plans (from UGX 10,000/month) add more profiles, Word export, faster alerts, tailoring and cover letters.',
+    'Yes. Browsing is free, and the Free plan gives you one career profile, one CV, PDF export and weekly job matches. Paid plans are $10 a month for jobs, $15 for jobs and scholarships, and $25 to add tenders and contracts for your company.',
   ],
   [
     'Where do the opportunities come from?',

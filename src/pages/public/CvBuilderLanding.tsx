@@ -72,7 +72,7 @@ export default function CvBuilderLanding() {
             [
               Download,
               'Download anywhere',
-              'Export to PDF from any plan; Word (.docx) export is included from the Basic plan.',
+              'Export to PDF from any plan; Word (.docx) export is included in every paid plan.',
             ],
           ].map(([I, t, d]) => {
             const Icon = I as typeof Eye;

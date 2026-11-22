@@ -1,7 +1,7 @@
 import { Briefcase, Building2, GraduationCap, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { PROFILE_TYPES } from '../../../shared/constants';
-import { formatLimit } from '../../../shared/entitlements';
+import { SEGMENT_LABELS, formatLimit } from '../../../shared/entitlements';
 import { Alert, PageHeader, Progress, Spinner, useLoad } from '../../components/ui';
 import { api } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
@@ -17,6 +17,7 @@ export default function Profiles() {
   const byType = Object.fromEntries(data.profiles.map((p) => [p.type, p]));
   const limit = me.plan?.entitlements.max_profiles ?? 1;
   const atLimit = limit >= 0 && data.profiles.length >= limit;
+  const allowed = me.plan?.entitlements.profile_types ?? ['career'];
   return (
     <>
       <PageHeader
@@ -60,6 +61,15 @@ export default function Profiles() {
                       Matches
                     </Link>
                   </div>
+                </>
+              ) : !allowed.includes(t) ? (
+                <>
+                  <p className="mt-5 text-[13px] text-ink-500">
+                    {SEGMENT_LABELS[t]} are not in your {me.plan?.name ?? 'Free'} plan.
+                  </p>
+                  <Link to="/pricing" className="btn btn-sm btn-outline mt-2">
+                    See plans
+                  </Link>
                 </>
               ) : atLimit ? (
                 <Link to="/pricing" className="btn btn-sm btn-outline mt-5">

@@ -1,6 +1,7 @@
 import type { Env } from '../env';
 import type { ProfileType } from '../../shared/constants';
 import { CATEGORY_LABELS } from '../../shared/constants';
+import { allowsProfileType } from '../../shared/entitlements';
 import { emailProvider } from '../lib/providers';
 import { getConfig, getWeights, setConfig, userPlan } from '../lib/store';
 import { addMinutes, log, newId, nowIso, parseJson } from '../lib/util';
@@ -83,7 +84,7 @@ export async function processMatchAlerts(env: Env, now = new Date(), maxOpps = 2
           plan = await userPlan(env, p.user_id);
           planCache.set(p.user_id, plan);
         }
-        if (p.type === 'business' && !plan.entitlements.business_matching) continue;
+        if (!allowsProfileType(plan.entitlements, p.type as ProfileType)) continue;
         const m = matchProfile(toProfileRecord(p), mo, weights, now);
         if (m.eligibility !== 'eligible' && m.eligibility !== 'potential') continue;
         if ((m.score ?? 0) < prefs.min_score) continue;

@@ -1,6 +1,7 @@
 import { PageHeader, Spinner, useLoad } from '../../components/ui';
 import { api } from '../../lib/api';
-import { fmtDate, fmtDateTime, ugx } from '../../lib/format';
+import { fmtDate, fmtDateTime } from '../../lib/format';
+import { formatMoney } from '../../../shared/money';
 import { StatusPill, Table, Td } from './AdminLayout';
 
 export default function Payments() {
@@ -22,7 +23,7 @@ export default function Payments() {
             <Td>{fmtDateTime(p.created_at)}</Td>
             <Td>{p.email}</Td>
             <Td>{p.plan_name}</Td>
-            <Td>{ugx(p.amount)}</Td>
+            <Td>{formatMoney(p.amount, p.currency)}</Td>
             <Td>{p.provider}</Td>
             <Td>
               <StatusPill s={p.status} />

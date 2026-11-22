@@ -23,19 +23,26 @@ settingsRoutes.put('/plans/:code', async (c) => {
     z.object({
       name: z.string().trim().min(2).max(60),
       description: z.string().max(300),
-      price_ugx: z.number().int().min(0).max(10_000_000),
+      // Minor units of the plan currency (US cents for USD).
+      price_minor: z.number().int().min(0).max(10_000_000),
+      currency: z
+        .string()
+        .regex(/^[A-Z]{3}$/, 'Use a three-letter currency code')
+        .default('USD'),
       active: z.boolean(),
       entitlements: entitlementsSchema,
     }),
   );
-  if (c.req.param('code') === 'free' && input.price_ugx !== 0) throw badRequest('The free plan must cost 0.');
+  if (c.req.param('code') === 'free' && input.price_minor !== 0)
+    throw badRequest('The free plan must cost 0.');
   const r = await c.env.DB.prepare(
-    'UPDATE plans SET name = ?, description = ?, price_ugx = ?, active = ?, entitlements = ?, updated_at = ? WHERE code = ?',
+    'UPDATE plans SET name = ?, description = ?, price_minor = ?, currency = ?, active = ?, entitlements = ?, updated_at = ? WHERE code = ?',
   )
     .bind(
       input.name,
       input.description,
-      input.price_ugx,
+      input.price_minor,
+      input.currency,
       input.active ? 1 : 0,
       JSON.stringify(input.entitlements),
       nowIso(),
@@ -44,7 +51,8 @@ settingsRoutes.put('/plans/:code', async (c) => {
     .run();
   if (!r.meta.changes) throw notFound('Plan not found.');
   await audit(c.env, admin.id, 'admin.plan_updated', 'plan', c.req.param('code'), {
-    price_ugx: input.price_ugx,
+    price_minor: input.price_minor,
+    currency: input.currency,
     active: input.active,
   });
   return c.json({ ok: true });

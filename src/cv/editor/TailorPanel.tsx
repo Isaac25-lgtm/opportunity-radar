@@ -95,7 +95,7 @@ export function TailorPanel({
               ))}
             </ul>
           )}
-          {upgrade && <Alert tone="warn">Tailored copies are included from the Basic plan.</Alert>}
+          {upgrade && <Alert tone="warn">Tailored copies are included in every paid plan.</Alert>}
           <div className="flex flex-wrap gap-2 pt-2">
             <Button
               loading={busy === 'copy'}

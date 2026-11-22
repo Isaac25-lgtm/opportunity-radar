@@ -3,10 +3,10 @@ import {
   Evidence,
   canonicalCountry,
   containsTerm,
-  countryAllowed,
+  countryEligibility,
   deadlinePassed,
   finalize,
-  isEastAfrican,
+  sameRegion,
   norm,
   phraseSimilarity,
   type MatchOpportunity,
@@ -59,10 +59,17 @@ export function matchBusiness(
   if (r.eligible_countries.length) {
     ev.req(`Eligible bidder countries: ${r.eligible_countries.join(', ')}`);
     if (!p.registration_country) ev.miss('Add your country of registration to check bidder eligibility.');
-    else if (!countryAllowed(r.eligible_countries, p.registration_country))
-      ev.disqualify(
-        `Open to firms from ${r.eligible_countries.join(', ')}; your firm is registered in ${p.registration_country}.`,
-      );
+    else {
+      const check = countryEligibility(r.eligible_countries, p.registration_country);
+      if (check === 'no')
+        ev.disqualify(
+          `Open to firms from ${r.eligible_countries.join(', ')}; your firm is registered in ${p.registration_country}.`,
+        );
+      else if (check === 'unknown')
+        ev.miss(
+          `Confirm that firms registered in ${p.registration_country} are covered by: ${r.eligible_countries.join(', ')}.`,
+        );
+    }
   }
 
   // Turnover
@@ -160,8 +167,8 @@ export function matchBusiness(
     const hit = geos.some(
       (g) => canonicalCountry(g) === oc || (o.location ? containsTerm(norm(o.location), g) : false),
     );
-    const ea = geos.some((g) => isEastAfrican(g)) && isEastAfrican(oc);
-    ev.component('geography', w.geography, hit ? 1 : ea ? 0.5 : 0.15);
+    const near = geos.some((g) => sameRegion(g, oc));
+    ev.component('geography', w.geography, hit ? 1 : near ? 0.5 : 0.15);
     if (hit)
       ev.reason('Geography', `Performance location (${o.location || o.country}) is where you operate.`);
   } else ev.component('geography', w.geography, null);

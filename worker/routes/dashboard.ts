@@ -51,7 +51,7 @@ dashboardRoutes.get('/', async (c) => {
   const plan = await userPlan(c.env, u.id);
   const topMatches = await topMatchesForUser(c.env, u.id, profiles.results, {
     weights: await getWeights(c.env),
-    allowBusiness: plan.entitlements.business_matching,
+    allowedTypes: plan.entitlements.profile_types,
   });
   return c.json({
     profiles: profiles.results.map((p) => ({

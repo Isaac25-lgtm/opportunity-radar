@@ -8,7 +8,8 @@ import {
 } from '../../shared/constants';
 import { requireUser } from '../lib/auth';
 import { badRequest, notFound } from '../lib/http';
-import { getConfig, getWeights, userPlan } from '../lib/store';
+import { getConfig, getWeights, planForProfileType, userPlan } from '../lib/store';
+import { allowsProfileType } from '../../shared/entitlements';
 import { clampInt, nowIso, parseJson } from '../lib/util';
 import { scoreRows, toMatchOpportunity, toProfileRecord } from '../domain/feed';
 import { matchProfile, rankMatches } from '../domain/matching';
@@ -101,7 +102,7 @@ opportunityRoutes.get('/', async (c) => {
 
   if (profile) {
     const plan = await userPlan(c.env, u!.id);
-    const gated = view === 'business' && !plan.entitlements.business_matching;
+    const gated = !allowsProfileType(plan.entitlements, view as ProfileType);
     const rows = (
       await c.env.DB.prepare(
         `SELECT ${OPP_LIST_COLUMNS} FROM opportunities o LEFT JOIN sources s ON s.id = o.source_id WHERE ${whereSql} ORDER BY ${order} LIMIT 400`,
@@ -148,7 +149,8 @@ opportunityRoutes.get('/', async (c) => {
       page,
       pages: Math.ceil(total / PAGE),
       matched: false,
-      gated: 'business_matching',
+      gated: 'plan_segment',
+      upgrade_plan: (await planForProfileType(c.env, view as ProfileType))?.name ?? null,
     });
   }
 
@@ -239,8 +241,8 @@ opportunityRoutes.get('/:id', async (c) => {
     out.matches = profiles
       .filter((p) => (CATEGORIES_BY_PROFILE[p.type as ProfileType] as string[]).includes(r.category))
       .map((p) =>
-        p.type === 'business' && !plan.entitlements.business_matching
-          ? { profile_type: p.type, gated: 'business_matching' }
+        !allowsProfileType(plan.entitlements, p.type as ProfileType)
+          ? { profile_type: p.type, gated: 'plan_segment' }
           : matchProfile(toProfileRecord(p), mo, weights),
       );
     const st = await c.env.DB.prepare(

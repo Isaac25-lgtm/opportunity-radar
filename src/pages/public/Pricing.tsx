@@ -1,15 +1,23 @@
 import { Check, Minus } from 'lucide-react';
-import { ENTITLEMENT_LABELS, formatLimit, type Entitlements } from '../../../shared/entitlements';
+import { PROFILE_TYPES } from '../../../shared/constants';
+import {
+  ENTITLEMENT_LABELS,
+  SEGMENT_LABELS,
+  allowsProfileType,
+  formatLimit,
+  type Entitlements,
+} from '../../../shared/entitlements';
+import { formatMoney } from '../../../shared/money';
 import { Alert, ButtonLink, Spinner, cx, useLoad } from '../../components/ui';
 import { api } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
-import { ugx } from '../../lib/format';
 
 type Plan = {
   code: string;
   name: string;
   description: string;
-  price_ugx: number;
+  price_minor: number;
+  currency: string;
   entitlements: Entitlements;
 };
 
@@ -33,14 +41,18 @@ export default function Pricing() {
     [],
   );
   if (loading || !data) return <Spinner className="min-h-[50vh]" />;
-  const keys = Object.keys(ENTITLEMENT_LABELS) as Array<keyof Entitlements>;
+  // Segments get their own rows; the remaining limits follow.
+  const keys = (Object.keys(ENTITLEMENT_LABELS) as Array<keyof Entitlements>).filter(
+    (k) => k !== 'profile_types',
+  );
   return (
     <section className="py-14">
       <div className="container-page">
         <div className="mx-auto max-w-2xl text-center">
           <h1 className="text-[36px] font-semibold sm:text-[46px]">Simple monthly plans</h1>
           <p className="mt-3 text-lg text-ink-600">
-            Browsing every verified opportunity is free. Upgrade for more profiles, exports and faster alerts.
+            Browsing every listing is free. Pick the plan that matches what you are looking for: jobs,
+            scholarships, or contracts for your company.
           </p>
         </div>
         {!data.payments.available && (
@@ -65,11 +77,26 @@ export default function Pricing() {
                 <p className="mt-1 min-h-[40px] text-sm text-ink-500">{p.description}</p>
                 <p className="mt-5 flex flex-wrap items-baseline gap-x-1.5">
                   <span className="whitespace-nowrap font-display text-[30px] font-semibold tracking-display">
-                    {p.price_ugx ? ugx(p.price_ugx) : 'UGX 0'}
+                    {formatMoney(p.price_minor, p.currency)}
                   </span>
                   <span className="whitespace-nowrap text-sm text-ink-500">/ month</span>
                 </p>
-                <ul className="mt-5 flex-1 space-y-2 text-sm text-ink-700">
+                <ul className="mt-5 space-y-2 border-b border-line pb-4 text-sm">
+                  {PROFILE_TYPES.map((t) => {
+                    const on = allowsProfileType(p.entitlements, t);
+                    return (
+                      <li key={t} className={cx('flex gap-2', on ? 'font-medium text-ink' : 'text-ink-400')}>
+                        {on ? (
+                          <Check className="mt-0.5 h-4 w-4 flex-none text-ok-500" aria-label="Included" />
+                        ) : (
+                          <Minus className="mt-0.5 h-4 w-4 flex-none" aria-label="Not included" />
+                        )}
+                        {SEGMENT_LABELS[t]}
+                      </li>
+                    );
+                  })}
+                </ul>
+                <ul className="mt-4 flex-1 space-y-2 text-sm text-ink-700">
                   <li>
                     {formatLimit(p.entitlements.max_profiles)} profile
                     {p.entitlements.max_profiles === 1 ? '' : 's'}
@@ -80,15 +107,14 @@ export default function Pricing() {
                   </li>
                   <li>{p.entitlements.docx_export ? 'PDF + Word export' : 'PDF export'}</li>
                   <li className="capitalize">{p.entitlements.alert_frequencies.join(', ')} alerts</li>
-                  {p.entitlements.business_matching && <li>Business tender matching</li>}
                   {p.entitlements.cover_letters && <li>Cover-letter drafts</li>}
                 </ul>
                 <ButtonLink
-                  to={me.user ? (p.price_ugx ? '/app/billing' : '/app') : '/signup'}
+                  to={me.user ? (p.price_minor ? '/app/billing' : '/app') : '/signup'}
                   variant={featured ? 'primary' : 'secondary'}
                   className="mt-6 w-full"
                 >
-                  {p.price_ugx ? `Choose ${p.name}` : 'Start free'}
+                  {p.price_minor ? `Choose ${p.name}` : 'Start free'}
                 </ButtonLink>
               </div>
             );
@@ -108,6 +134,16 @@ export default function Pricing() {
               </tr>
             </thead>
             <tbody>
+              {PROFILE_TYPES.map((t) => (
+                <tr key={t} className="border-b border-ink-100">
+                  <td className="py-3 pr-4 font-medium text-ink">{SEGMENT_LABELS[t]}</td>
+                  {data.plans.map((p) => (
+                    <td key={p.code} className="py-3 text-center">
+                      <PlanValue k="docx_export" v={allowsProfileType(p.entitlements, t)} />
+                    </td>
+                  ))}
+                </tr>
+              ))}
               {keys.map((k) => (
                 <tr key={k} className="border-b border-ink-100">
                   <td className="py-3 pr-4 text-ink-700">{ENTITLEMENT_LABELS[k]}</td>
@@ -121,8 +157,8 @@ export default function Pricing() {
             </tbody>
           </table>
           <p className="mt-4 text-xs text-ink-500">
-            Prices in Uganda shillings, billed monthly. Plans do not renew automatically; you choose when to
-            pay again. AI assistance is not yet enabled.
+            Prices in US dollars, billed monthly. Plans do not renew automatically; you choose when to pay
+            again. AI assistance is not yet enabled.
           </p>
         </div>
       </div>

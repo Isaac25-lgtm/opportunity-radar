@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { ENTITLEMENT_LABELS, type Entitlements } from '../../../shared/entitlements';
+import { PROFILE_TYPES } from '../../../shared/constants';
+import { ENTITLEMENT_LABELS, SEGMENT_LABELS, type Entitlements } from '../../../shared/entitlements';
+import { toMajor, toMinor } from '../../../shared/money';
 import {
   Button,
   ChipSelect,
@@ -36,7 +38,8 @@ function PlanCard({ p, onSaved }: { p: any; onSaved: () => void }) {
   const [f, setF] = useState({
     name: p.name,
     description: p.description,
-    price_ugx: p.price_ugx,
+    price_minor: p.price_minor as number,
+    currency: (p.currency as string) ?? 'USD',
     active: !!p.active,
     entitlements: p.entitlements as Entitlements,
   });
@@ -53,14 +56,23 @@ function PlanCard({ p, onSaved }: { p: any; onSaved: () => void }) {
       <ErrorAlert error={err} />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <TextInput label="Name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
-        <TextInput
-          label="Price (UGX / month)"
-          type="number"
-          min={0}
-          value={f.price_ugx}
-          onChange={(e) => setF({ ...f, price_ugx: Number(e.target.value) })}
-          disabled={p.code === 'free'}
-        />
+        <div className="grid grid-cols-[1fr_96px] gap-3">
+          <TextInput
+            label={`Price per month (${f.currency})`}
+            type="number"
+            min={0}
+            step="0.01"
+            value={toMajor(f.price_minor, f.currency)}
+            onChange={(e) => setF({ ...f, price_minor: toMinor(Number(e.target.value), f.currency) })}
+            disabled={p.code === 'free'}
+          />
+          <TextInput
+            label="Currency"
+            maxLength={3}
+            value={f.currency}
+            onChange={(e) => setF({ ...f, currency: e.target.value.toUpperCase() })}
+          />
+        </div>
         <TextInput
           className="sm:col-span-2"
           label="Description"
@@ -71,6 +83,17 @@ function PlanCard({ p, onSaved }: { p: any; onSaved: () => void }) {
           const v = f.entitlements[k];
           if (typeof v === 'boolean')
             return <Toggle key={k} label={ENTITLEMENT_LABELS[k]} checked={v} onChange={(x) => setE(k, x)} />;
+          if (k === 'profile_types')
+            return (
+              <div key={k} className="sm:col-span-2">
+                <ChipSelect
+                  label={ENTITLEMENT_LABELS[k]}
+                  value={f.entitlements.profile_types}
+                  onChange={(x) => setE(k, x)}
+                  options={PROFILE_TYPES.map((t) => ({ value: t, label: SEGMENT_LABELS[t] }))}
+                />
+              </div>
+            );
           if (Array.isArray(v))
             return (
               <div key={k} className="sm:col-span-2">

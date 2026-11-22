@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Alert, Button, ErrorAlert, Spinner, useLoad } from '../../components/ui';
 import { api } from '../../lib/api';
-import { ugx } from '../../lib/format';
+import { formatMoney, toMinor } from '../../../shared/money';
 
 /** Development-only payment simulator (the API refuses it in production). No money moves. */
 export default function MockCheckout() {
@@ -33,7 +33,9 @@ export default function MockCheckout() {
           {data && (
             <>
               <h1 className="mt-5 text-xl font-semibold">{data.payment.plan_name} plan</h1>
-              <p className="text-2xl font-semibold">{ugx(data.payment.amount)}</p>
+              <p className="text-2xl font-semibold">
+                {formatMoney(toMinor(data.payment.amount, data.payment.currency), data.payment.currency)}
+              </p>
               <div className="mt-6 grid gap-2">
                 <Button loading={busy} onClick={() => act('completed')}>
                   Simulate successful payment

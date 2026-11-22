@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { app } from '../../worker/index';
 import { applyProviderStatus } from '../../worker/domain/payments/service';
+import { toMajor } from '../../shared/money';
 import { Client, createEnv, signup, type TestEnv } from './helpers';
 
 let env: TestEnv;
@@ -22,7 +23,10 @@ describe('payments (mock provider, no real money)', () => {
     const me = (await c.get('/api/auth/me')).json.user;
     const plans = await c.get('/api/billing/plans');
     expect(plans.json.plans.map((p: any) => p.code)).toEqual(['free', 'basic', 'pro', 'elite']);
-    expect(plans.json.plans.find((p: any) => p.code === 'basic').price_ugx).toBe(10000);
+    const priced = Object.fromEntries(
+      plans.json.plans.map((p: any) => [p.code, `${p.price_minor} ${p.currency}`]),
+    );
+    expect(priced).toEqual({ free: '0 USD', basic: '1000 USD', pro: '1500 USD', elite: '2500 USD' });
     const co = await c.post('/api/billing/checkout', { plan_code: 'basic' });
     expect(co.status).toBe(200);
     expect(co.json.redirect_url).toContain('/mock-checkout/');
@@ -92,8 +96,8 @@ describe('payments (mock provider, no real money)', () => {
       p,
       {
         status: 'completed',
-        amount: 100,
-        currency: 'UGX',
+        amount: 1, // $1 reported for a $25 plan
+        currency: 'USD',
         merchantReference: p.merchant_reference,
         confirmationCode: 'x',
         paymentMethod: 'x',
@@ -108,8 +112,8 @@ describe('payments (mock provider, no real money)', () => {
       p,
       {
         status: 'completed',
-        amount: p.amount,
-        currency: 'USD',
+        amount: toMajor(p.amount, p.currency), // right number, wrong currency
+        currency: 'UGX',
         merchantReference: p.merchant_reference,
         confirmationCode: 'x',
         paymentMethod: 'x',
@@ -124,8 +128,8 @@ describe('payments (mock provider, no real money)', () => {
       p,
       {
         status: 'completed',
-        amount: p.amount,
-        currency: 'UGX',
+        amount: toMajor(p.amount, p.currency),
+        currency: p.currency,
         merchantReference: null,
         confirmationCode: null,
         paymentMethod: null,
@@ -152,7 +156,7 @@ describe('payments (mock provider, no real money)', () => {
         payment,
         {
           status: 'completed',
-          amount: payment.amount,
+          amount: toMajor(payment.amount, payment.currency),
           currency: payment.currency,
           merchantReference: payment.merchant_reference,
           confirmationCode: 'confirmation',
@@ -324,7 +328,8 @@ describe('admin console', () => {
         await admin.put('/api/admin/plans/basic', {
           name: 'Basic',
           description: basic.description,
-          price_ugx: 12000,
+          price_minor: 1200,
+          currency: 'USD',
           active: true,
           entitlements: basic.entitlements,
         })
@@ -332,14 +337,14 @@ describe('admin console', () => {
     ).toBe(200);
     expect(
       (await new Client(env).get('/api/billing/plans')).json.plans.find((p: any) => p.code === 'basic')
-        .price_ugx,
-    ).toBe(12000);
+        .price_minor,
+    ).toBe(1200);
     expect(
       (
         await admin.put('/api/admin/plans/free', {
           name: 'Free',
           description: '',
-          price_ugx: 5,
+          price_minor: 5,
           active: true,
           entitlements: basic.entitlements,
         })
@@ -356,7 +361,7 @@ describe('admin console', () => {
         await user.put('/api/admin/plans/basic', {
           name: 'Hacked',
           description: '',
-          price_ugx: 1,
+          price_minor: 1,
           active: true,
           entitlements: basic.entitlements,
         })

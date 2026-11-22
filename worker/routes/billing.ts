@@ -9,6 +9,7 @@ import { rateLimit } from '../lib/security';
 import { audit, getConfig, usage, userPlan } from '../lib/store';
 import { log, newId, nowIso, parseJson } from '../lib/util';
 import { paymentProvider } from '../domain/payments/providers';
+import { toMajor } from '../../shared/money';
 import { verifyAndApply, type PaymentRow } from '../domain/payments/service';
 
 export const billingRoutes = new Hono<AppEnv>();
@@ -18,7 +19,7 @@ const appUrl = (c: any) => c.env.APP_URL ?? new URL(c.req.url).origin;
 billingRoutes.get('/plans', async (c) => {
   const rows = (
     await c.env.DB.prepare(
-      'SELECT code, name, description, price_ugx, interval, entitlements, sort FROM plans WHERE active = 1 ORDER BY sort',
+      'SELECT code, name, description, price_minor, currency, interval, entitlements, sort FROM plans WHERE active = 1 ORDER BY sort',
     ).all<any>()
   ).results;
   const provider = paymentProvider(c.env, appUrl(c));
@@ -66,11 +67,11 @@ billingRoutes.post('/checkout', async (c) => {
   await rateLimit(c, 'checkout', 10, 3600, u.id);
   const { plan_code } = await body(c, z.object({ plan_code: z.string().max(30) }));
   const plan = await c.env.DB.prepare(
-    'SELECT id, code, name, price_ugx FROM plans WHERE code = ? AND active = 1',
+    'SELECT id, code, name, price_minor, currency FROM plans WHERE code = ? AND active = 1',
   )
     .bind(plan_code)
     .first<any>();
-  if (!plan || plan.price_ugx <= 0) throw badRequest('Choose a paid plan.');
+  if (!plan || plan.price_minor <= 0) throw badRequest('Choose a paid plan.');
   const provider = paymentProvider(c.env, appUrl(c));
   const enabled = await getConfig(c.env, 'payments.enabled', false);
   if (!provider || (provider.name !== 'mock' && enabled !== true))
@@ -84,15 +85,16 @@ billingRoutes.post('/checkout', async (c) => {
   const ts = nowIso();
   await c.env.DB.prepare(
     `INSERT INTO payments (id, user_id, plan_id, provider, merchant_reference, amount, currency, status, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, 'UGX', 'pending', ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`,
   )
-    .bind(id, u.id, plan.id, provider.name, ref, plan.price_ugx, ts, ts)
+    .bind(id, u.id, plan.id, provider.name, ref, plan.price_minor, plan.currency, ts, ts)
     .run();
   try {
     const res = await provider.createCheckout({
       merchantReference: ref,
-      amount: plan.price_ugx,
-      currency: 'UGX',
+      // Providers take major units (10.00), the database keeps minor units (1000).
+      amount: toMajor(plan.price_minor, plan.currency),
+      currency: plan.currency,
       description: `Opportunity Radar ${plan.name} — 1 month`,
       callbackUrl: `${appUrl(c)}/app/billing/return`,
       email: u.email,

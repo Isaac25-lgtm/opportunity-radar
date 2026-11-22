@@ -6,7 +6,7 @@ import { profileSchemas } from '../../shared/schemas';
 import { profileCompleteness } from '../../shared/completeness';
 import { requireUser } from '../lib/auth';
 import { badRequest, body, notFound } from '../lib/http';
-import { requireWithin, userPlan } from '../lib/store';
+import { requireProfileType, requireWithin, userPlan } from '../lib/store';
 import { newId, nowIso, parseJson } from '../lib/util';
 
 export const profileRoutes = new Hono<AppEnv>();
@@ -80,6 +80,7 @@ profileRoutes.put('/:type', async (c) => {
     return c.json({ id: existing.id, completeness: score });
   }
   const plan = await userPlan(c.env, u.id);
+  await requireProfileType(c.env, plan, type);
   const count = await c.env.DB.prepare(
     'SELECT COUNT(*) AS n FROM profiles WHERE user_id = ? AND deleted_at IS NULL',
   )

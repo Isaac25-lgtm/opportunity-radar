@@ -287,7 +287,7 @@ export function MatchPanel({ m }: { m: MatchResult }) {
       <div className="card p-5">
         <h3 className="font-semibold">{label}</h3>
         <p className="mt-2 text-sm text-ink-600">
-          Business tender matching is included from the Basic plan.{' '}
+          Matching for this profile is not included in your current plan.{' '}
           <Link to="/pricing" className="link">
             Compare plans
           </Link>

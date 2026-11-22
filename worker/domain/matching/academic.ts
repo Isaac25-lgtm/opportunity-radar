@@ -4,7 +4,7 @@ import {
   Evidence,
   canonicalCountry,
   containsTerm,
-  countryAllowed,
+  countryEligibility,
   deadlinePassed,
   finalize,
   norm,
@@ -72,14 +72,16 @@ export function matchAcademic(
       ev.insufficient = true;
     } else {
       ev.fact(`Nationality/residence: ${nat}`);
-      const ok =
-        countryAllowed(r.eligible_countries, p.nationality || '') ||
-        countryAllowed(r.eligible_countries, p.residence_country || '');
-      if (!ok)
+      const checks = [p.nationality, p.residence_country]
+        .filter(Boolean)
+        .map((c) => countryEligibility(r.eligible_countries, c));
+      if (checks.includes('yes')) ev.reason('Eligibility', `${nat} is within the stated eligible countries.`);
+      else if (checks.includes('unknown'))
+        ev.miss(`Confirm that ${nat} applicants are covered by: ${r.eligible_countries.join(', ')}.`);
+      else
         ev.disqualify(
           `Open to nationals/residents of ${r.eligible_countries.join(', ')}; your profile shows ${nat}.`,
         );
-      else ev.reason('Eligibility', `${nat} is within the stated eligible countries.`);
     }
   }
 

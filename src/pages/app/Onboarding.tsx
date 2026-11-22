@@ -28,7 +28,7 @@ export default function Onboarding() {
     <div className="mx-auto max-w-3xl">
       <h1 className="text-[30px] font-semibold">Welcome, {me.user?.name.split(' ')[0]}</h1>
       <p className="mt-2 text-lg text-ink-600">
-        What would you like Opportunity Radar to find for you? Choose one or more — you can add or skip any
+        What would you like Opportunity Radar to find for you? Choose one or more. You can add or skip any
         type later.
       </p>
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
@@ -59,6 +59,9 @@ export default function Onboarding() {
                     : 'Tenders for my business'}
               </h2>
               <p className="mt-1 text-sm text-ink-500">{PROFILE_META[t].blurb}</p>
+              {!(me.plan?.entitlements.profile_types ?? ['career']).includes(t) && (
+                <p className="mt-2 text-[12.5px] font-medium text-ink-500">Needs a paid plan</p>
+              )}
             </button>
           );
         })}

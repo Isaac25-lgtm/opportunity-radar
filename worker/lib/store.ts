@@ -1,5 +1,11 @@
 import type { Env } from '../env';
-import { FREE_ENTITLEMENTS, entitlementsSchema, type Entitlements } from '../../shared/entitlements';
+import {
+  FREE_ENTITLEMENTS,
+  SEGMENT_LABELS,
+  allowsProfileType,
+  entitlementsSchema,
+  type Entitlements,
+} from '../../shared/entitlements';
 import { mergeWeights, type Weights } from '../domain/matching/common';
 import type { ProfileType } from '../../shared/constants';
 import { paymentRequired } from './http';
@@ -106,6 +112,31 @@ export function requireFeature(plan: PlanInfo, feature: keyof Entitlements, labe
   const v = plan.entitlements[feature];
   if (v === false)
     throw paymentRequired(`${label} is not included in the ${plan.name} plan.`, { feature, plan: plan.code });
+}
+
+/** The cheapest active plan that covers a profile type, for upgrade prompts. */
+export async function planForProfileType(env: Env, type: ProfileType) {
+  const rows = (
+    await env.DB.prepare(
+      'SELECT code, name, price_minor, currency, entitlements FROM plans WHERE active = 1 ORDER BY sort',
+    ).all<any>()
+  ).results;
+  const hit = rows.find((r) => {
+    const e = entitlementsSchema.safeParse(parseJson(r.entitlements, {}));
+    return e.success && allowsProfileType(e.data, type);
+  });
+  return hit ? { code: hit.code as string, name: hit.name as string } : null;
+}
+
+/** Plans are segments: a profile type outside the plan cannot be created or matched. */
+export async function requireProfileType(env: Env, plan: PlanInfo, type: ProfileType) {
+  if (allowsProfileType(plan.entitlements, type)) return;
+  const upgrade = await planForProfileType(env, type);
+  throw paymentRequired(
+    `${SEGMENT_LABELS[type]} are not included in the ${plan.name} plan.` +
+      (upgrade ? ` Choose ${upgrade.name} to add them.` : ''),
+    { feature: 'profile_types', profile_type: type, plan: plan.code, upgrade_plan: upgrade?.code ?? null },
+  );
 }
 
 export function requireWithin(plan: PlanInfo, feature: keyof Entitlements, used: number, label: string) {

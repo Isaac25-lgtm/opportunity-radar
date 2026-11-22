@@ -1,10 +1,21 @@
-import { ArrowRight, Bell, Bookmark, CalendarClock, FileText, ListChecks, Plus, Radar } from 'lucide-react';
+import {
+  ArrowRight,
+  Bell,
+  Bookmark,
+  CalendarClock,
+  FileText,
+  ListChecks,
+  Lock,
+  Plus,
+  Radar,
+} from 'lucide-react';
 import { Link, Navigate } from 'react-router-dom';
 import { APPLICATION_STATUS_LABELS, PROFILE_TYPES } from '../../../shared/constants';
 import { OpportunityCard, type OppSummary } from '../../components/opportunity';
 import { EmptyState, ErrorAlert, Progress, Spinner, useLoad } from '../../components/ui';
 import { api } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
+import { SEGMENT_LABELS } from '../../../shared/entitlements';
 import { deadlineLabel, fmtDate, relTime } from '../../lib/format';
 import { PROFILE_META } from './profileConfigs';
 import { PROFILE_ICONS } from './Profiles';
@@ -73,14 +84,26 @@ export default function Dashboard() {
                 {p.missing.length ? `Add: ${p.missing.slice(0, 3).join(', ')}` : 'Complete'}
               </p>
             </Link>
-          ) : (
+          ) : (me.plan?.entitlements.profile_types ?? ['career']).includes(t) ? (
             <Link
               key={t}
               to={`/app/profiles/${t}`}
-              className="flex items-center gap-3 rounded-lg border-2 border-dashed border-ink-200 p-5 text-ink-500 hover:border-ink-400 hover:text-brand-600"
+              className="flex items-center gap-3 rounded-lg border-2 border-dashed border-ink-200 p-5 text-ink-500 hover:border-ink-400 hover:text-ink"
             >
               <Plus className="h-5 w-5" />
               <span className="font-semibold">Add {PROFILE_META[t].title.toLowerCase()}</span>
+            </Link>
+          ) : (
+            <Link
+              key={t}
+              to="/pricing"
+              className="flex items-center gap-3 rounded-lg border-2 border-dashed border-ink-200 p-5 text-ink-500 hover:border-ink-400 hover:text-ink"
+            >
+              <Lock className="h-5 w-5" />
+              <span>
+                <span className="block font-semibold">{SEGMENT_LABELS[t]}</span>
+                <span className="text-[13px]">Not in your plan · see plans</span>
+              </span>
             </Link>
           );
         })}

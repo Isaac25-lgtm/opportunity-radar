@@ -10,7 +10,7 @@ const SECTIONS: Array<[string, Array<[string, string]>]> = [
       ],
       [
         'Can I have more than one profile?',
-        'Yes — one of each type per account. The number of active profiles depends on your plan (Free: 1, Basic: 2, Pro and Elite: 3).',
+        'Yes, one of each type per account. Your plan decides which ones are matched: Free and Jobs cover a career profile, Jobs & Scholarships adds an academic profile, and Complete adds a business profile for tenders and contracts.',
       ],
       [
         'Why do you ask for my nationality?',
@@ -27,7 +27,7 @@ const SECTIONS: Array<[string, Array<[string, string]>]> = [
       ],
       [
         'How do I download my CV?',
-        'Open the CV, then use “Download PDF”. This opens your browser’s print dialog — choose “Save as PDF”. Word export is available from the Basic plan.',
+        'Open the CV, then use “Download PDF”. This opens your browser’s print dialog — choose “Save as PDF”. Word export is included in every paid plan.',
       ],
       [
         'Can I restore an older version?',

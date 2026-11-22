@@ -127,7 +127,7 @@ export default function Settings() {
               options={[
                 {
                   value: 'instant',
-                  label: `Instant${allowed.includes('instant') ? '' : ' (Pro and Elite)'}`,
+                  label: `Instant${allowed.includes('instant') ? '' : ' (Jobs & Scholarships and Complete)'}`,
                 },
                 {
                   value: 'daily',

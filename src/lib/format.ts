@@ -60,8 +60,6 @@ export function deadlineLabel(iso: string | null | undefined): {
   return { text: `Closes ${fmtDate(iso)}`, tone: 'ok' };
 }
 
-export const ugx = (n: number) => `UGX ${n.toLocaleString('en-US')}`;
-
 export function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

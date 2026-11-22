@@ -61,7 +61,7 @@ export async function topMatchesForUser(
   profiles: ProfileRow[],
   opts: {
     weights: Record<ProfileType, Weights>;
-    allowBusiness: boolean;
+    allowedTypes: readonly ProfileType[];
     limit?: number;
     minScore?: number;
     now?: Date;
@@ -70,7 +70,7 @@ export async function topMatchesForUser(
   const now = opts.now ?? new Date();
   const best = new Map<string, Scored<any>>();
   for (const p of profiles) {
-    if (p.type === 'business' && !opts.allowBusiness) continue;
+    if (!opts.allowedTypes.includes(p.type)) continue;
     const cats = CATEGORIES_BY_PROFILE[p.type];
     const rows = (
       await env.DB.prepare(

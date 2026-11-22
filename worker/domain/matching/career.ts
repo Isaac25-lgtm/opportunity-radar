@@ -5,10 +5,10 @@ import {
   Evidence,
   canonicalCountry,
   containsTerm,
-  countryAllowed,
+  countryEligibility,
   deadlinePassed,
   finalize,
-  isEastAfrican,
+  sameRegion,
   norm,
   phraseSimilarity,
   yearsFromExperience,
@@ -51,10 +51,13 @@ export function matchCareer(
     if (!nationality) ev.miss('Add your nationality to confirm the stated country eligibility.');
     else {
       ev.fact(`Nationality: ${nationality}`);
-      if (!countryAllowed(r.eligible_countries, nationality))
+      const check = countryEligibility(r.eligible_countries, nationality);
+      if (check === 'no')
         ev.disqualify(
           `Open to ${r.eligible_countries.join(', ')} only; your profile nationality is ${nationality}.`,
         );
+      else if (check === 'unknown')
+        ev.miss(`Confirm that ${nationality} applicants are covered by: ${r.eligible_countries.join(', ')}.`);
     }
   }
 
@@ -178,10 +181,11 @@ export function matchCareer(
     if (wantsRemote) ev.reason('Location', 'Remote role, which fits your work-mode preference.');
   } else if (oppCountry) {
     const prefs = p.preferred_countries.map(canonicalCountry);
-    const home = canonicalCountry(p.country || 'Uganda');
+    // No home country means no assumption: the person simply has not said where they are.
+    const home = p.country ? canonicalCountry(p.country) : '';
     let v = 0.25;
-    if (prefs.includes(oppCountry) || home === oppCountry) v = 1;
-    else if (isEastAfrican(oppCountry) && isEastAfrican(home)) v = 0.6;
+    if (prefs.includes(oppCountry) || (home && home === oppCountry)) v = 1;
+    else if (home && sameRegion(oppCountry, home)) v = 0.6;
     ev.component('location', w.location, v);
     if (v === 1) ev.reason('Location', `Based in ${o.country}, which matches your location preferences.`);
     if (p.work_modes.length === 1 && p.work_modes[0] === 'remote')

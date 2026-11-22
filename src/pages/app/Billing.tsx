@@ -3,7 +3,10 @@ import { Link } from 'react-router-dom';
 import { formatLimit } from '../../../shared/entitlements';
 import { Alert, Button, ErrorAlert, PageHeader, Progress, Spinner, cx, useLoad } from '../../components/ui';
 import { api } from '../../lib/api';
-import { fmtDate, ugx } from '../../lib/format';
+import { fmtDate } from '../../lib/format';
+import { formatMoney } from '../../../shared/money';
+import { PROFILE_TYPES } from '../../../shared/constants';
+import { SEGMENT_LABELS, allowsProfileType } from '../../../shared/entitlements';
 
 export default function Billing() {
   const billing = useLoad(() => api.get('/billing'), []);
@@ -83,7 +86,7 @@ export default function Billing() {
         </section>
         <section className="space-y-3">
           {plans.data.plans
-            .filter((p: any) => p.price_ugx > 0)
+            .filter((p: any) => p.price_minor > 0)
             .map((p: any) => (
               <div
                 key={p.code}
@@ -94,7 +97,12 @@ export default function Billing() {
               >
                 <div>
                   <p className="font-semibold">{p.name}</p>
-                  <p className="text-sm text-ink-500">{ugx(p.price_ugx)} / month</p>
+                  <p className="text-sm text-ink-500">{formatMoney(p.price_minor, p.currency)} / month</p>
+                  <p className="mt-1 text-[13px] text-ink-500">
+                    {PROFILE_TYPES.filter((t) => allowsProfileType(p.entitlements, t))
+                      .map((t) => SEGMENT_LABELS[t])
+                      .join(' · ')}
+                  </p>
                 </div>
                 <Button
                   size="sm"
@@ -130,7 +138,7 @@ export default function Billing() {
                 <tr key={p.merchant_reference}>
                   <td className="py-2">{fmtDate(p.created_at)}</td>
                   <td>{p.plan_name}</td>
-                  <td>{ugx(p.amount)}</td>
+                  <td>{formatMoney(p.amount, p.currency)}</td>
                   <td className="capitalize">{p.status}</td>
                   <td className="font-mono text-xs">{p.merchant_reference}</td>
                 </tr>

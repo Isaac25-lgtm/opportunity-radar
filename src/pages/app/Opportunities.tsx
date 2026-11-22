@@ -25,6 +25,7 @@ import {
 } from '../../components/ui';
 import { api, qs } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
+import { SEGMENT_LABELS } from '../../../shared/entitlements';
 
 type Feed = {
   items: OppSummary[];
@@ -34,6 +35,7 @@ type Feed = {
   matched: boolean;
   needs_profile?: boolean;
   gated?: string;
+  upgrade_plan?: string | null;
   capped?: boolean;
 };
 
@@ -78,6 +80,8 @@ export default function Opportunities({ publicMode = false }: { publicMode?: boo
   };
   const cats = view === 'all' ? OPPORTUNITY_CATEGORIES : CATEGORIES_BY_PROFILE[view];
   const hasProfile = (t: string) => me.profiles?.some((p) => p.type === t);
+  // Free and signed-out visitors default to the jobs segment only.
+  const planAllows = (t: ProfileType) => (me.plan?.entitlements.profile_types ?? ['career']).includes(t);
 
   const toggleSave = async (o: OppSummary) => {
     if (!me.user) return;
@@ -287,7 +291,7 @@ export default function Opportunities({ publicMode = false }: { publicMode?: boo
               <option value="newest">Newest</option>
             </select>
           </div>
-          {!publicMode && view !== 'all' && !hasProfile(view) && (
+          {!publicMode && view !== 'all' && !hasProfile(view) && planAllows(view) && (
             <Alert tone="info" className="mb-4" title={`Create your ${view} profile to see matches`}>
               Opportunities below are not ranked yet.{' '}
               <Link to={`/app/profiles/${view}`} className="font-semibold underline">
@@ -295,10 +299,15 @@ export default function Opportunities({ publicMode = false }: { publicMode?: boo
               </Link>
             </Alert>
           )}
-          {data?.gated === 'business_matching' && (
-            <Alert tone="warn" className="mb-4" title="Business tender matching is a paid feature">
-              You can browse every tender. Match scores for business profiles are included from the Basic
-              plan.{' '}
+          {!publicMode && view !== 'all' && (data?.gated === 'plan_segment' || !planAllows(view)) && (
+            <Alert
+              tone="warn"
+              className="mb-4"
+              title={`${SEGMENT_LABELS[view]} are not in your ${me.plan?.name ?? 'current'} plan`}
+            >
+              You can still browse every listing below. Matching, ranking and alerts for{' '}
+              {SEGMENT_LABELS[view].toLowerCase()} come with
+              {data?.upgrade_plan ? ` the ${data.upgrade_plan} plan` : ' a higher plan'}.{' '}
               <Link to="/pricing" className="font-semibold underline">
                 Compare plans
               </Link>

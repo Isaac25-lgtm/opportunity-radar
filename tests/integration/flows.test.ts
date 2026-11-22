@@ -74,7 +74,7 @@ beforeAll(async () => {
 afterAll(async () => env.__dispose());
 
 describe('profiles and entitlements', () => {
-  it('creates, edits and deletes a career profile; enforces the free plan profile limit', async () => {
+  it('creates, edits and deletes a career profile; the free plan covers jobs only', async () => {
     const c = await signup(env, 'p1@example.test');
     const r = await c.put('/api/profiles/career', { data: careerData });
     expect(r.status).toBe(201);
@@ -83,41 +83,64 @@ describe('profiles and entitlements', () => {
       (await c.put('/api/profiles/career', { data: { ...careerData, headline: 'Senior analyst' } })).status,
     ).toBe(200);
     expect((await c.get('/api/profiles/career')).json.profile.data.headline).toBe('Senior analyst');
-    const second = await c.put('/api/profiles/academic', { data: { field_of_study: 'Statistics' } });
-    expect(second.status).toBe(402);
-    expect(second.json.error.details).toMatchObject({ feature: 'max_profiles', plan: 'free' });
+    const academic = await c.put('/api/profiles/academic', { data: { field_of_study: 'Statistics' } });
+    expect(academic.status).toBe(402);
+    expect(academic.json.error.details).toMatchObject({
+      feature: 'profile_types',
+      profile_type: 'academic',
+      plan: 'free',
+      upgrade_plan: 'pro',
+    });
     expect((await c.del('/api/profiles/career')).status).toBe(200);
     expect((await c.get('/api/profiles/career')).json.profile).toBeNull();
+    // Deleting a profile frees the slot, but the segment rule still applies.
     expect((await c.put('/api/profiles/academic', { data: { field_of_study: 'Statistics' } })).status).toBe(
-      201,
+      402,
     );
+    expect((await c.put('/api/profiles/career', { data: careerData })).status).toBe(201);
   });
 
-  it('one account can hold all three profile types on a paid plan', async () => {
-    const c = await signup(env, 'p3@example.test');
-    const me = await c.get('/api/auth/me');
-    await env.DB.prepare(
-      "INSERT INTO subscriptions (id, user_id, plan_id, status, current_period_start, current_period_end, created_at, updated_at) VALUES (?, ?, 'plan_pro', 'active', ?, ?, ?, ?)",
-    )
-      .bind(newId('sub'), me.json.user.id, inDays(-1), inDays(29), inDays(-1), inDays(-1))
-      .run();
-    expect((await c.put('/api/profiles/career', { data: careerData })).status).toBe(201);
+  it('each paid plan unlocks its segment: Jobs, Jobs & Scholarships, Complete', async () => {
+    const subscribe = async (c: Awaited<ReturnType<typeof signup>>, planId: string) => {
+      const me = await c.get('/api/auth/me');
+      await env.DB.prepare(
+        "INSERT INTO subscriptions (id, user_id, plan_id, status, current_period_start, current_period_end, created_at, updated_at) VALUES (?, ?, ?, 'active', ?, ?, ?, ?)",
+      )
+        .bind(newId('sub'), me.json.user.id, planId, inDays(-1), inDays(29), inDays(-1), inDays(-1))
+        .run();
+    };
+    const academicData = { current_level: 'bachelor', field_of_study: 'Statistics' };
+    const businessData = { registered_name: 'Acme Ltd', is_registered: true, service_lines: ['printing'] };
+
+    const jobs = await signup(env, 'seg-jobs@example.test');
+    await subscribe(jobs, 'plan_basic');
+    expect((await jobs.put('/api/profiles/career', { data: careerData })).status).toBe(201);
     expect(
-      (
-        await c.put('/api/profiles/academic', {
-          data: { current_level: 'bachelor', field_of_study: 'Statistics' },
-        })
-      ).status,
-    ).toBe(201);
+      (await jobs.put('/api/profiles/academic', { data: academicData })).json.error.details,
+    ).toMatchObject({ feature: 'profile_types', upgrade_plan: 'pro' });
+    // Browsing stays open, but matching for a segment outside the plan is withheld.
+    const academicFeed = await jobs.get('/api/opportunities?view=academic');
+    expect(academicFeed.status).toBe(200);
+    expect(academicFeed.json.matched).toBe(false);
+
+    const study = await signup(env, 'seg-study@example.test');
+    await subscribe(study, 'plan_pro');
+    expect((await study.put('/api/profiles/career', { data: careerData })).status).toBe(201);
+    expect((await study.put('/api/profiles/academic', { data: academicData })).status).toBe(201);
     expect(
-      (
-        await c.put('/api/profiles/business', {
-          data: { registered_name: 'Acme Ltd', is_registered: true, service_lines: ['printing'] },
-        })
-      ).status,
-    ).toBe(201);
-    expect((await c.get('/api/profiles')).json.profiles).toHaveLength(3);
-    expect((await c.get('/api/auth/me')).json.plan.code).toBe('pro');
+      (await study.put('/api/profiles/business', { data: businessData })).json.error.details,
+    ).toMatchObject({ feature: 'profile_types', profile_type: 'business', upgrade_plan: 'elite' });
+
+    const complete = await signup(env, 'seg-all@example.test');
+    await subscribe(complete, 'plan_elite');
+    for (const [type, data] of [
+      ['career', careerData],
+      ['academic', academicData],
+      ['business', businessData],
+    ] as const)
+      expect((await complete.put(`/api/profiles/${type}`, { data })).status).toBe(201);
+    expect((await complete.get('/api/profiles')).json.profiles).toHaveLength(3);
+    expect((await complete.get('/api/auth/me')).json.plan.code).toBe('elite');
   });
 
   it('validates profile input and rejects unknown profile types', async () => {

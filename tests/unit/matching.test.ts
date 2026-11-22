@@ -3,7 +3,7 @@ import {
   matchProfile,
   rankMatches,
   type MatchOpportunity,
-  countryAllowed,
+  countryEligibility,
   yearsFromExperience,
   mergeWeights,
 } from '../../worker/domain/matching';
@@ -356,12 +356,25 @@ describe('business matching', () => {
 });
 
 describe('helpers', () => {
-  it('country eligibility understands regions and open lists', () => {
-    expect(countryAllowed([], 'Uganda')).toBe(true);
-    expect(countryAllowed(['East Africa'], 'Ugandan')).toBe(true);
-    expect(countryAllowed(['Africa'], 'Kenya')).toBe(true);
-    expect(countryAllowed(['International'], 'Brazil')).toBe(true);
-    expect(countryAllowed(['Kenya'], 'Uganda')).toBe(false);
+  it('country eligibility resolves countries, demonyms and groups worldwide', () => {
+    expect(countryEligibility([], 'Uganda')).toBe('yes');
+    expect(countryEligibility(['East Africa'], 'Ugandan')).toBe('yes');
+    expect(countryEligibility(['Africa'], 'Kenya')).toBe('yes');
+    expect(countryEligibility(['Africa'], 'Tunisian')).toBe('yes');
+    expect(countryEligibility(['Sub-Saharan Africa'], 'Tunisia')).toBe('no');
+    expect(countryEligibility(['International'], 'Brazil')).toBe('yes');
+    expect(countryEligibility(['Kenya'], 'Uganda')).toBe('no');
+    expect(countryEligibility(['Commonwealth'], 'Indian')).toBe('yes');
+    expect(countryEligibility(['Commonwealth'], 'Brazilian')).toBe('no');
+    expect(countryEligibility(['SADC'], 'Zimbabwean')).toBe('yes');
+    expect(countryEligibility(['ECOWAS'], "Côte d'Ivoire")).toBe('yes');
+    expect(countryEligibility(['European Union'], 'German')).toBe('yes');
+    expect(countryEligibility(['UK'], 'British')).toBe('yes');
+  });
+  it('asks for confirmation instead of rejecting when a group or country cannot be resolved', () => {
+    expect(countryEligibility(['Developing countries'], 'Brazilian')).toBe('unknown');
+    expect(countryEligibility(['Low and middle income countries'], 'Kenya')).toBe('unknown');
+    expect(countryEligibility(['Kenya'], 'Atlantis')).toBe('unknown');
   });
   it('computes years of experience from dated roles', () => {
     expect(yearsFromExperience([{ start: '2020-01', end: '2023-01' }])).toBe(3);
