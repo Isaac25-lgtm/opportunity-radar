@@ -46,6 +46,8 @@ VALUES ('opp_e2e_fixture', 'e2e:fixture', 'job', 'Procurement Officer (demo)', '
   'https://example.org/demo', '${deadline}', 'open', 'admin_verified', 'approved', '{}',
   '{"skills":["procurement","excel"]}', 'admin', 1, '${now}', '${now}', '${now}', '${now}', '${now}');
 `);
+  // Clear limits first: repeated local runs within an hour would otherwise hit the signup limit (429).
+  localSql('DELETE FROM rate_limits;');
   const res = await fetch(`${BASE}/api/auth/signup`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-or-csrf': '1' },

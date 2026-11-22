@@ -12,7 +12,7 @@ import {
 import { Link } from 'react-router-dom';
 import { CV_TEMPLATE_LABELS, CV_TEMPLATES } from '../../../shared/constants';
 import { CvThumb } from '../../components/CvThumb';
-import { Faq, SectionHeading } from '../../components/marketing';
+import { Faq, HeroSlideshow, SectionHeading, type HeroSlide } from '../../components/marketing';
 import { ScoreRing, VerificationBadge } from '../../components/opportunity';
 import { ButtonLink, useLoad } from '../../components/ui';
 import { SAMPLE_CV } from '../../cv/sample';
@@ -24,22 +24,31 @@ type SourcesResponse = {
   totals: Array<{ category: string; n: number }>;
 };
 
+const HERO_SLIDES: HeroSlide[] = [
+  { src: '/photos/hero-career.webp', caption: 'Build a CV that gets read' },
+  { src: '/photos/hero-academic.webp', caption: 'Find funded study places' },
+  { src: '/photos/hero-business.webp', caption: 'Bid for the right contracts' },
+];
+
 const PROFILES = [
   {
     id: 'career',
     title: 'Career',
+    photo: '/photos/card-career-bg.webp',
     img: '/product/card-career.jpg',
     text: 'Jobs, internships, graduate programmes, fellowships and individual consultancies, matched to your skills, experience and preferred locations.',
   },
   {
     id: 'academic',
     title: 'Academic',
+    photo: '/photos/card-academic-bg.webp',
     img: '/product/card-academic.jpg',
     text: "Fully and partially funded scholarships, Master's and PhD places, research grants and fellowships, checked against published eligibility.",
   },
   {
     id: 'business',
     title: 'Business',
+    photo: '/photos/card-business-bg.webp',
     img: '/product/card-business.jpg',
     text: 'Tenders, RFPs, RFQs, EOIs and business grants, with registration, turnover and certification requirements flagged clearly.',
   },
@@ -144,8 +153,9 @@ export default function Home() {
   return (
     <>
       {/* HERO */}
-      <section className="relative overflow-hidden bg-night text-white">
-        <div className="container-page grid items-center gap-14 pb-20 pt-16 sm:pt-20 lg:grid-cols-[1.08fr_1fr] lg:pb-24">
+      <section className="relative isolate overflow-hidden bg-night text-white">
+        <HeroSlideshow slides={HERO_SLIDES} />
+        <div className="container-page relative grid items-center gap-14 pb-20 pt-24 sm:pt-28 lg:grid-cols-[1.08fr_1fr] lg:pb-24">
           <div className="min-w-0">
             <h1 className="text-balance text-[40px] font-semibold leading-[1.05] tracking-display text-white sm:text-[54px]">
               The professional CV builder that also{' '}
@@ -176,11 +186,12 @@ export default function Home() {
             </ul>
           </div>
 
-          <div className="relative mx-auto w-full max-w-[500px] pb-10" aria-hidden>
-            <div className="absolute right-0 top-8 hidden w-[58%] rotate-[4deg] overflow-hidden rounded-md opacity-80 shadow-paper sm:block">
+          <div className="relative mx-auto w-full max-w-[520px] pb-12" aria-hidden>
+            {/* Two templates of the same CV, stacked straight (no tilt) so edges stay crisp. */}
+            <div className="absolute right-0 top-10 hidden w-[66%] overflow-hidden rounded-lg bg-white shadow-paper ring-1 ring-black/10 brightness-[0.9] sm:block">
               <CvThumb data={SAMPLE_CV} template="ats" />
             </div>
-            <div className="relative w-[76%] overflow-hidden rounded-md shadow-paper sm:-rotate-[1.5deg]">
+            <div className="relative w-[80%] overflow-hidden rounded-lg bg-white shadow-paper ring-1 ring-black/10">
               <CvThumb data={SAMPLE_CV} template="modern" />
             </div>
             <div className="absolute bottom-0 left-4 right-4 rounded-2xl border border-line bg-white p-4 text-ink shadow-card sm:left-auto sm:right-0 sm:w-[310px]">
@@ -204,7 +215,7 @@ export default function Home() {
         </div>
 
         {/* LIVE SOURCE STRIP */}
-        <div className="border-t border-white/10">
+        <div className="relative border-t border-white/10 bg-black/30 backdrop-blur-sm">
           <div className="container-page flex flex-col items-center gap-4 py-6 text-center lg:flex-row lg:justify-between lg:gap-10 lg:text-left">
             <p className="text-[14.5px] text-white/60 lg:flex-none">
               {open !== null && active !== null ? (
@@ -217,7 +228,7 @@ export default function Home() {
                 'Opportunities from official portals, recognised job platforms and administrator-verified listings'
               )}
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-2 lg:justify-end">
+            <div className="flex flex-wrap items-center justify-center gap-2 lg:flex-nowrap lg:justify-end">
               {owners.map((owner) => (
                 <span
                   key={owner}
@@ -233,7 +244,7 @@ export default function Home() {
               )}
               <Link
                 to="/sources"
-                className="rounded-full px-3 py-1 text-[12.5px] font-medium text-white hover:underline"
+                className="whitespace-nowrap rounded-full px-3 py-1 text-[12.5px] font-medium text-white hover:underline"
               >
                 See all sources →
               </Link>
@@ -243,7 +254,7 @@ export default function Home() {
       </section>
 
       {/* THREE PROFILES */}
-      <section className="py-24">
+      <section className="bg-ink-50 py-24">
         <div className="container-page">
           <SectionHeading
             center
@@ -255,18 +266,31 @@ export default function Home() {
               <Link
                 key={c.id}
                 to={`/how-it-works#${c.id}`}
-                className="card group flex flex-col overflow-hidden transition-shadow hover:shadow-card"
+                className="card group flex flex-col overflow-hidden !shadow-card transition-transform duration-300 hover:-translate-y-1"
               >
-                <div className="relative h-44 overflow-hidden border-b border-line bg-ink-100">
+                {/* Photo of the audience, with a real listing from the product floating on top. */}
+                <div className="relative h-56 overflow-hidden">
                   <img
-                    src={c.img}
+                    src={c.photo}
                     alt=""
                     loading="lazy"
-                    className="absolute left-6 top-12 w-[150%] max-w-none rounded-tl-lg border border-line shadow-panel transition-transform duration-500 group-hover:-translate-y-1"
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/5 to-transparent" />
                   <span className="absolute left-4 top-4 rounded-full bg-white px-2.5 py-1 text-[12.5px] font-medium text-ink shadow-soft">
                     {c.title}
                   </span>
+                  <div className="absolute -bottom-3 left-1/2 w-[84%] -translate-x-1/2 overflow-hidden rounded-xl border border-white/60 bg-white shadow-paper transition-transform duration-500 group-hover:-translate-y-1">
+                    <div
+                      className="flex items-center gap-1 border-b border-line bg-ink-50 px-2.5 py-1.5"
+                      aria-hidden
+                    >
+                      {[0, 1, 2].map((d) => (
+                        <span key={d} className="h-1.5 w-1.5 rounded-full bg-ink-300" />
+                      ))}
+                    </div>
+                    <img src={c.img} alt="" loading="lazy" className="block w-full" />
+                  </div>
                 </div>
                 <div className="flex flex-1 flex-col p-6">
                   <h3 className="text-[19px] font-semibold">{c.title} profile</h3>
@@ -282,7 +306,7 @@ export default function Home() {
       </section>
 
       {/* FEATURES */}
-      <section className="border-y border-line bg-ink-50 py-24">
+      <section className="py-24">
         <div className="container-page grid gap-14 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
           <div>
             <SectionHeading
@@ -310,7 +334,7 @@ export default function Home() {
       </section>
 
       {/* TEMPLATES */}
-      <section className="py-24">
+      <section className="border-y border-line bg-ink-50 py-24">
         <div className="container-page">
           <div className="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-end">
             <SectionHeading
@@ -375,7 +399,14 @@ export default function Home() {
       {/* CTA */}
       <section className="pb-24">
         <div className="container-page">
-          <div className="flex flex-col items-center gap-6 rounded-[20px] bg-night px-6 py-16 text-center text-white">
+          <div className="relative isolate flex flex-col items-center gap-6 overflow-hidden rounded-[20px] bg-night px-6 py-20 text-center text-white">
+            <img
+              src="/photos/hero-business.webp"
+              alt=""
+              loading="lazy"
+              className="absolute inset-0 -z-10 h-full w-full object-cover opacity-35"
+            />
+            <div className="absolute inset-0 -z-10 bg-gradient-to-b from-night/60 to-night/90" aria-hidden />
             <h2 className="max-w-2xl text-[30px] font-medium leading-tight text-white sm:text-[37px]">
               Your next opportunity is already out there
             </h2>
