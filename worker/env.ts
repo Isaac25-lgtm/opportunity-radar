@@ -9,9 +9,10 @@ export interface Env {
   EMAIL_PROVIDER?: string;
   EMAIL_API_KEY?: string;
   EMAIL_FROM?: string;
+  /** none (default) | python: the separate AI service in ai-service/. */
   AI_PROVIDER?: string;
-  AI_API_KEY?: string;
-  AI_MODEL?: string;
+  AI_SERVICE_URL?: string;
+  AI_SERVICE_TOKEN?: string;
   PAYMENT_PROVIDER?: string;
   PESAPAL_ENV?: string;
   PESAPAL_CONSUMER_KEY?: string;

@@ -5,8 +5,7 @@
 - **Original repository not used.** `github.com/Isaac25-lgtm/opportunity-radar` returned "Repository not found" (it is
   private or renamed, and this machine has no GitHub credentials). The application was built new in this folder.
   Nothing from the earlier Next.js/Prisma codebase was reused or migrated, and no existing production data was touched.
-- **AI is not enabled** (deferred as requested). CV parsing and requirement extraction are deterministic and will miss
-  unusual layouts; scanned (image-only) PDFs cannot be read.
+- **AI is built but not switched on.** The Python AI service (`ai-service/`) is tested but not hosted, so CV parsing and cover letters use the built-in tools, which can miss unusual CV layouts. Wording suggestions and AI requirement extraction exist in the service but are not yet used by the app. Before switching AI on, update the privacy notice to say CV text is sent to an AI provider.
 - **Scholarship and Uganda public-procurement coverage depends on administrators** until permitted feeds are
   confirmed (see OPPORTUNITY_SOURCES.md). Out of the box the academic feed contains Grants.gov research grants only.
 - **ReliefWeb** needs an approved appname before it can be enabled.

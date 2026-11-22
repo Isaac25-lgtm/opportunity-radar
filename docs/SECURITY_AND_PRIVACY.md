@@ -35,7 +35,9 @@ Remaining: a moderate `minimatch` advisory inside `typescript-eslint` (lint-time
 - Data collected and why: see the in-app privacy policy (`/privacy`). Nationality and supplier classifications are
   used only to check published criteria.
 - CV text extraction runs in the browser; only extracted text is sent to the server for sectioning. No AI provider
-  is called today.
+  is called today. When the optional Python AI service is switched on, that text (and, for cover letters, the CV
+  and the opportunity) goes to the service and on to Claude. The Claude key stays in the service, the Worker holds
+  only a shared token, and production requires HTTPS. Update the privacy notice before switching AI on.
 - Users can export all their data (JSON) and permanently delete their account from Settings.
 - The privacy policy is written with Uganda's Data Protection and Privacy Act, 2019 in mind but has **not** had legal
   review; the product does not claim legal compliance or certification.

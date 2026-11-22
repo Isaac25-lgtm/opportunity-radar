@@ -300,7 +300,10 @@ coverLetterRoutes.post('/draft', async (c) => {
     .first<any>();
   if (!cvRow) throw notFound('CV not found.');
   const opp = await loadOpp(c.env, input.opportunity_id);
-  const text = draftCoverLetter(cvDataSchema.parse(parseJson(cvRow.data, {})), opp);
+  const cv = cvDataSchema.parse(parseJson(cvRow.data, {}));
+  const ai = aiProvider(c.env);
+  if (ai.enabled) await rateLimit(c, 'cover-letter-ai', 20, 3600, u.id);
+  const text = (ai.enabled ? await ai.coverLetter(cv, opp) : null) ?? draftCoverLetter(cv, opp);
   const id = newId('cl');
   const ts = nowIso();
   await c.env.DB.prepare(

@@ -18,3 +18,8 @@ test-results/
 /.sweep.mjs
 /.cap.mjs
 /.ps.mjs
+
+# Python AI service
+.venv/
+__pycache__/
+.pytest_cache/

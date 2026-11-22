@@ -32,7 +32,8 @@ Secrets (set with `npx wrangler secret put NAME`; never commit them):
 | `PESAPAL_IPN_ID`                                  | for payments | ID returned when registering the IPN URL      |
 | `PESAPAL_IPN_SECRET`                              | for payments | A long random string used in the IPN URL path |
 | `RELIEFWEB_APPNAME`                               | optional     | Approved ReliefWeb API appname                |
-| `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL`           | deferred     | Reserved for the future AI integration        |
+| `AI_PROVIDER`                                     | optional     | `none` (default) or `python`                  |
+| `AI_SERVICE_URL`, `AI_SERVICE_TOKEN`              | for AI       | HTTPS address and shared secret of ai-service |
 
 Admin → Configuration lists each of these by name with present/missing status (values are never displayed).
 

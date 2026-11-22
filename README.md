@@ -15,7 +15,8 @@ questions for every one: _can you apply?_ and _how well does it fit?_
 ![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers%20%C2%B7%20D1%20%C2%B7%20KV-F38020?logo=cloudflare&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
-![Tests](https://img.shields.io/badge/tests-236%20passing-16a34a)
+![Python](https://img.shields.io/badge/AI%20service-Python%20%C2%B7%20FastAPI-3776AB?logo=python&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-263%20passing-16a34a)
 ![Coverage](https://img.shields.io/badge/opportunities-worldwide-0b0b0c)
 
 <img src="docs/images/home.jpg" alt="Opportunity Radar home page" width="100%" />
@@ -87,6 +88,7 @@ seekers and five companies) against opportunities with known right answers.
 | Scheduling | Cloudflare Cron Triggers: ingestion, alerts, reminders                         |
 | Payments   | Pesapal adapter with server-side verification (not yet activated)              |
 | Sign-in    | Email and password; Google (OpenID Connect + PKCE), ready to switch on         |
+| AI         | Separate Python service (FastAPI, Claude), optional; checks answers for facts  |
 | Testing    | Vitest (unit + integration on real local D1/KV), Playwright (desktop + mobile) |
 
 ```
@@ -99,6 +101,7 @@ src/          React client: public site, signed-in app, admin console, CV editor
 migrations/   D1 SQL migrations, applied in order
 tests/        unit, integration, e2e, fixtures (real API samples, 15 personas)
 docs/         Product, architecture, data model, sources, security, tests, deployment
+ai-service/   Optional Python (FastAPI) AI service: CV reading, wording, cover letters
 ```
 
 ## Getting started
@@ -154,7 +157,7 @@ Secrets are set with `npx wrangler secret put NAME`. See the
 | Plans and limits     | Live; online payments not yet activated                       |
 | Google sign-in       | Built and tested; switches on when Google keys are added      |
 | Email alerts         | In-app now; email delivery once a provider is configured      |
-| AI assistance        | Planned; the matching and CV tools work without it today      |
+| AI assistance        | Python AI service built and tested; switches on once hosted   |
 
 Known gaps are listed honestly in [known limitations](docs/KNOWN_LIMITATIONS.md).
 

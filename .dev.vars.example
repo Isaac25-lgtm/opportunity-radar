@@ -6,10 +6,11 @@ ADMIN_EMAILS=you@example.com
 EMAIL_PROVIDER=none
 EMAIL_API_KEY=
 EMAIL_FROM=
-# AI: none | openai  (AI integration is deferred; 'none' uses deterministic fallbacks)
+# AI: none | python. 'python' uses the AI service in ai-service/ (see its README); 'none' uses the
+# built-in, non-AI tools. The Claude API key lives in the AI service, not here.
 AI_PROVIDER=none
-AI_API_KEY=
-AI_MODEL=
+AI_SERVICE_URL=http://127.0.0.1:8000
+AI_SERVICE_TOKEN=
 # Payments: none | mock | pesapal   ('mock' is refused when ENVIRONMENT=production)
 PAYMENT_PROVIDER=mock
 PESAPAL_ENV=sandbox

@@ -1,22 +1,31 @@
 # AI and matching
 
-## AI status: deferred by design
+## AI: optional Python service
 
-As requested, AI APIs will be integrated later. Every AI-shaped capability works today without a model:
+AI lives in a separate Python (FastAPI) service, `ai-service/`, that calls Claude. The Worker uses it only when
+`AI_PROVIDER=python`, `AI_SERVICE_URL` and `AI_SERVICE_TOKEN` are set. Otherwise, and whenever the service fails,
+is slow, refuses, or returns something that does not pass the app's zod schemas, the built-in tools below are used.
+The service is built and tested but not hosted yet, so production runs on the built-in tools.
 
-| Capability             | Current implementation                                                                                                       | AI hook                                             |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| CV extraction          | `shared/cvParser.ts` — deterministic section/date/contact parser that only copies text present in the file                   | `AiProvider.extractCv` in `worker/lib/providers.ts` |
-| Requirement extraction | `worker/domain/ingestion/extract.ts` — conservative patterns that only record explicit wording; results labelled `heuristic` | connector post-processing                           |
-| Tailoring              | `worker/domain/tailor.ts` — reorders existing content and lists matching/missing keywords                                    | —                                                   |
-| Cover letters          | Template filled only with CV facts; `[bracketed prompts]` for anything else                                                  | —                                                   |
-| Match explanations     | Generated from the matcher's evidence                                                                                        | —                                                   |
+| Capability             | Built-in (always available)                                                                      | With the AI service                                             |
+| ---------------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- |
+| CV extraction          | `shared/cvParser.ts`: section, date and contact parser that only copies text present in the file | `POST /v1/cv/parse`, wired through `AiProvider.extractCv`       |
+| Cover letters          | Template filled only with CV facts; `[bracketed prompts]` for anything else                      | `POST /v1/cover-letter`, wired through `AiProvider.coverLetter` |
+| Wording improvements   | None                                                                                             | `POST /v1/cv/improve` (service ready; no button in the app yet) |
+| Requirement extraction | `worker/domain/ingestion/extract.ts`: conservative patterns; results labelled `heuristic`        | `POST /v1/requirements/extract` (service ready; not wired yet)  |
+| Tailoring              | `worker/domain/tailor.ts`: reorders existing content and lists matching/missing keywords         | None                                                            |
+| Match explanations     | Generated from the matcher's evidence                                                            | None: eligibility is never decided by AI                        |
 
-To add a provider later: implement `AiProvider` (and set `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL` secrets), validate
-every response with the same zod schemas (`cvDataSchema`, `requirementsSchema`) before saving, send only the current
-user's text, never log documents, and keep the deterministic path as the fallback on timeouts or invalid output.
-Treat source text and uploaded documents as untrusted data: never let them change instructions, data or tools.
-The AI must never be the only authority on hard eligibility.
+Rules the service enforces, not just asks for (details in `ai-service/README.md`):
+
+- Answers are structured JSON that matches a strict schema.
+- Parsed CV fields are kept only when they can be found in the CV text; the rest are dropped and listed.
+- Wording suggestions and cover letters that add a number or name not in the CV are rejected.
+- Only the current user's own text is sent. Documents are never logged. Source text is treated as data, never as
+  instructions.
+
+The Worker validates every answer again (`cvDataSchema`), adds rate limits (CV parsing 30/hour, AI cover letters
+20/hour per user), and refuses a plain-http service address in production.
 
 ## Matching
 

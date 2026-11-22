@@ -1,6 +1,8 @@
 import type { Env } from '../env';
 import { isProduction } from '../env';
+import { z } from 'zod';
 import { parseCvText, type ParseResult } from '../../shared/cvParser';
+import { cvDataSchema, rid, type CvData } from '../../shared/cv';
 import { log } from './util';
 
 /* =================== Email =================== */
@@ -101,14 +103,28 @@ export function emailProvider(env: Env): EmailProvider {
 
 /* =================== AI =================== */
 /**
- * AI provider abstraction. AI integration is deferred: with AI_PROVIDER=none (default) every capability
- * uses a deterministic, non-generative fallback that only reuses the user's own text.
- * A model-backed provider must validate output with the same zod schemas before anything is saved.
+ * AI provider abstraction. With AI_PROVIDER=none (the default) every capability uses a deterministic,
+ * non-generative fallback that only reuses the user's own text.
+ *
+ * AI_PROVIDER=python sends the work to the separate Python AI service (ai-service/), which calls Claude
+ * and removes anything it cannot trace back to the user's own text. Its answers are validated again here
+ * with the app's zod schemas, and any failure (down, slow, refused, malformed) falls back to the
+ * built-in tools, so AI is never required for the app to work.
  */
+export type CoverLetterOpportunity = {
+  title: string;
+  organization: string;
+  reference_no?: string | null;
+  description: string;
+  requirements: unknown;
+};
+
 export interface AiProvider {
   name: string;
   enabled: boolean;
   extractCv(text: string): Promise<ParseResult>;
+  /** An AI-written cover letter, or null to use the built-in draft. */
+  coverLetter(cv: CvData, opp: CoverLetterOpportunity): Promise<string | null>;
 }
 
 class NoAi implements AiProvider {
@@ -117,11 +133,119 @@ class NoAi implements AiProvider {
   async extractCv(text: string): Promise<ParseResult> {
     return parseCvText(text);
   }
+  async coverLetter(): Promise<string | null> {
+    return null;
+  }
+}
+
+const LIST_SECTIONS = [
+  'experience',
+  'education',
+  'skills',
+  'projects',
+  'certifications',
+  'languages',
+  'publications',
+  'awards',
+  'memberships',
+] as const;
+
+const aiParseResponse = z.object({
+  data: z.record(z.string(), z.unknown()),
+  found: z.array(z.string().max(40)).max(20).default([]),
+  unassigned: z.array(z.string().max(300)).max(40).default([]),
+});
+const aiLetterResponse = z.object({ body: z.string().min(1).max(10000) });
+
+/** Give every list item an id, then validate against the CV schema. Null when it does not fit. */
+export function cvFromAi(data: Record<string, unknown>): CvData | null {
+  const withIds: Record<string, unknown> = { ...data };
+  for (const key of LIST_SECTIONS) {
+    const items = data[key];
+    withIds[key] = Array.isArray(items)
+      ? items.filter((i) => i && typeof i === 'object').map((i) => ({ ...(i as object), id: rid() }))
+      : [];
+  }
+  const parsed = cvDataSchema.safeParse(withIds);
+  return parsed.success ? parsed.data : null;
+}
+
+export class PythonAi implements AiProvider {
+  name = 'python';
+  enabled = true;
+  constructor(
+    private readonly baseUrl: string,
+    private readonly token: string,
+    private readonly fetcher: typeof fetch = (input, init) => fetch(input, init),
+    private readonly timeoutMs = 45000,
+  ) {}
+
+  private async call<T>(path: string, payload: unknown, schema: z.ZodType<T>): Promise<T | null> {
+    try {
+      const res = await this.fetcher(`${this.baseUrl.replace(/\/+$/, '')}${path}`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${this.token}` },
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(this.timeoutMs),
+      });
+      if (!res.ok) {
+        log('warn', 'ai.call_failed', { path, status: res.status });
+        return null;
+      }
+      const parsed = schema.safeParse(await res.json());
+      if (!parsed.success) {
+        log('warn', 'ai.bad_response', { path });
+        return null;
+      }
+      return parsed.data;
+    } catch (e) {
+      log('warn', 'ai.unreachable', { path, error: String(e).slice(0, 200) });
+      return null;
+    }
+  }
+
+  async extractCv(text: string): Promise<ParseResult> {
+    const r = await this.call('/v1/cv/parse', { text }, aiParseResponse);
+    const data = r && cvFromAi(r.data);
+    if (!r || !data) return parseCvText(text);
+    return { data, found: r.found, unassigned: r.unassigned, method: 'ai' };
+  }
+
+  async coverLetter(cv: CvData, opp: CoverLetterOpportunity): Promise<string | null> {
+    const r = await this.call(
+      '/v1/cover-letter',
+      {
+        cv,
+        opportunity: {
+          title: opp.title.slice(0, 300),
+          organization: opp.organization.slice(0, 300),
+          reference_no: opp.reference_no ? opp.reference_no.slice(0, 120) : null,
+          description: (opp.description ?? '').slice(0, 20000),
+          requirements: opp.requirements && typeof opp.requirements === 'object' ? opp.requirements : {},
+        },
+      },
+      aiLetterResponse,
+    );
+    return r?.body ?? null;
+  }
+}
+
+/** The service URL must be https in production; plain http is accepted for local development. */
+function aiServiceUrl(env: Env): string | null {
+  const url = (env.AI_SERVICE_URL ?? '').trim();
+  if (!url) return null;
+  if (/^https:\/\//i.test(url)) return url;
+  if (!isProduction(env) && /^http:\/\//i.test(url)) return url;
+  return null;
 }
 
 export function aiProvider(env: Env): AiProvider {
   const p = (env.AI_PROVIDER ?? 'none').toLowerCase();
-  if (p !== 'none') log('warn', 'ai.provider_not_implemented', { provider: p });
+  if (p === 'python') {
+    const url = aiServiceUrl(env);
+    if (url && env.AI_SERVICE_TOKEN) return new PythonAi(url, env.AI_SERVICE_TOKEN);
+    log('warn', 'ai.not_configured', { provider: p });
+  } else if (p !== 'none') log('warn', 'ai.provider_not_implemented', { provider: p });
   return new NoAi();
 }
 
@@ -158,6 +282,7 @@ export function checkEnv(env: Env): EnvCheck[] {
   const has = (v?: string) => typeof v === 'string' && v.length > 0;
   const pay = (env.PAYMENT_PROVIDER ?? 'none').toLowerCase();
   const mail = (env.EMAIL_PROVIDER ?? 'none').toLowerCase();
+  const ai = (env.AI_PROVIDER ?? 'none').toLowerCase();
   return [
     { name: 'DB (D1 binding)', required: true, present: !!env.DB, purpose: 'Primary database' },
     { name: 'DOCS (KV binding)', required: true, present: !!env.DOCS, purpose: 'Private document storage' },
@@ -234,8 +359,20 @@ export function checkEnv(env: Env): EnvCheck[] {
     {
       name: 'AI_PROVIDER',
       required: false,
-      present: (env.AI_PROVIDER ?? 'none') !== 'none',
-      purpose: 'AI assistance (deferred)',
+      present: ai !== 'none',
+      purpose: 'AI assistance (none | python)',
+    },
+    {
+      name: 'AI_SERVICE_URL',
+      required: ai === 'python',
+      present: has(env.AI_SERVICE_URL),
+      purpose: 'Python AI service address (https)',
+    },
+    {
+      name: 'AI_SERVICE_TOKEN',
+      required: ai === 'python',
+      present: has(env.AI_SERVICE_TOKEN),
+      purpose: 'Shared secret for the Python AI service',
     },
   ];
 }
