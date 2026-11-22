@@ -8,10 +8,11 @@ import {
   deadlinePassed,
   finalize,
   norm,
-  phraseSimilarity,
   type MatchOpportunity,
   type MatchResult,
   type Weights,
+  fieldSimilarity,
+  OFF_TOPIC_CAP,
 } from './common';
 
 /** Qualification normally required before entering each target level. */
@@ -156,9 +157,11 @@ export function matchAcademic(
   if (myFields.length) {
     if (r.fields.length) {
       ev.req(`Fields: ${r.fields.slice(0, 8).join(', ')}`);
-      const sim = Math.max(...r.fields.map((f) => phraseSimilarity(myFields, f).value));
-      const best = r.fields.find((f) => phraseSimilarity(myFields, f).value === sim) ?? '';
+      const sim = Math.max(...r.fields.map((f) => fieldSimilarity(myFields, f).value));
+      const best = r.fields.find((f) => fieldSimilarity(myFields, f).value === sim) ?? '';
       ev.component('field', w.field, sim);
+      // Level, funding and destination cannot make a different discipline a good match.
+      if (sim < 0.2) ev.capScore(OFF_TOPIC_CAP);
       if (sim >= 0.5) ev.reason('Field', `Your field fits “${best}”.`);
       else ev.reason('Field', `Stated fields (${r.fields.slice(0, 4).join(', ')}) differ from your profile.`);
     } else {

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { CV_TEMPLATES } from './constants';
-import type { CareerProfile } from './schemas';
+import { EDUCATION_LABELS } from './constants';
+import type { AcademicProfile, CareerProfile } from './schemas';
 
 const s = (max = 300) => z.string().max(max).default('');
 const id = z.string().max(40);
@@ -138,6 +139,72 @@ export function degreeWithField(qualification?: string, field?: string): string 
   const f = (field ?? '').trim();
   if (!f || q.toLowerCase().includes(f.toLowerCase())) return q;
   return q ? `${q}, ${f}` : f;
+}
+
+/**
+ * An academic CV from an academic profile: education, research, publications and awards lead.
+ * Only facts from the profile are used; the research statement is the person's own text.
+ */
+export function cvFromAcademicProfile(p: Partial<AcademicProfile>, fullName: string, email: string): CvData {
+  const interests = (p.research_interests ?? []).filter(Boolean);
+  const summary = [
+    p.proposed_research?.trim(),
+    interests.length ? `Research interests: ${interests.join(', ')}.` : '',
+  ]
+    .filter(Boolean)
+    .join('\n\n');
+  return cvDataSchema.parse({
+    personal: {
+      fullName,
+      email,
+      headline: [p.current_level ? EDUCATION_LABELS[p.current_level] : '', p.field_of_study]
+        .filter(Boolean)
+        .join(', '),
+      location: p.residence_country ?? '',
+    },
+    summary,
+    order: [
+      'summary',
+      'education',
+      'publications',
+      'awards',
+      'projects',
+      'experience',
+      'languages',
+      'skills',
+      'certifications',
+      'memberships',
+      'references',
+    ],
+    education: (p.qualifications ?? []).map((q) => ({
+      id: rid(),
+      degree: degreeWithField(q.qualification, q.field),
+      institution: q.institution ?? '',
+      location: q.country ?? '',
+      start: '',
+      end: q.year ?? '',
+      grade: [q.classification, q.gpa != null ? `GPA ${q.gpa}${q.gpa_scale ? `/${q.gpa_scale}` : ''}` : '']
+        .filter(Boolean)
+        .join(' · '),
+      details: '',
+    })),
+    projects: p.research_experience?.trim()
+      ? [{ id: rid(), name: 'Research experience', role: '', link: '', description: p.research_experience }]
+      : [],
+    publications: (p.publications ?? []).map((x) => ({
+      id: rid(),
+      title: x.title,
+      venue: x.venue ?? '',
+      year: x.year ?? '',
+      link: '',
+    })),
+    awards: (p.awards ?? []).map((a) => ({ id: rid(), title: a.title, issuer: '', year: a.year ?? '' })),
+    languages: (p.languages ?? []).map((l) => ({
+      id: rid(),
+      name: l.name,
+      level: [l.level, l.test && `${l.test}${l.score ? ` ${l.score}` : ''}`].filter(Boolean).join(' · '),
+    })),
+  });
 }
 
 export function cvFromCareerProfile(p: Partial<CareerProfile>, fullName: string, email: string): CvData {

@@ -196,6 +196,7 @@ export default function CvList() {
       {create && (
         <CreateModal
           hasProfile={!!me.profiles?.some((p) => p.type === 'career')}
+          hasAcademic={!!me.profiles?.some((p) => p.type === 'academic')}
           onClose={() => setCreate(false)}
           onError={setErr}
         />
@@ -206,17 +207,21 @@ export default function CvList() {
 
 function CreateModal({
   hasProfile,
+  hasAcademic,
   onClose,
   onError,
 }: {
   hasProfile: boolean;
+  hasAcademic: boolean;
   onClose: () => void;
   onError: (e: unknown) => void;
 }) {
   const nav = useNavigate();
   const [title, setTitle] = useState('My CV');
   const [template, setTemplate] = useState<CvTemplate>('modern');
-  const [from, setFrom] = useState<'blank' | 'profile'>(hasProfile ? 'profile' : 'blank');
+  const [from, setFrom] = useState<'blank' | 'profile' | 'academic_profile'>(
+    hasProfile ? 'profile' : hasAcademic ? 'academic_profile' : 'blank',
+  );
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<unknown>(null);
   return (
@@ -252,7 +257,7 @@ function CreateModal({
         hint="Only you see this — e.g. “NGO M&E roles”."
       />
       <p className="field-label mt-5">Start from</p>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <div className={cx('grid grid-cols-1 gap-2', hasAcademic ? 'sm:grid-cols-3' : 'sm:grid-cols-2')}>
         {(
           [
             [
@@ -260,13 +265,25 @@ function CreateModal({
               'My career profile',
               hasProfile ? 'Pre-fills experience, education and skills.' : 'Create a career profile first.',
             ],
+            ...(hasAcademic
+              ? ([
+                  [
+                    'academic_profile',
+                    'My academic profile',
+                    'Education, research, publications and awards first. Best for scholarships.',
+                  ],
+                ] as const)
+              : []),
             ['blank', 'A blank CV', 'Start with only your name and email.'],
           ] as const
         ).map(([v, l, d]) => (
           <button
             key={v}
             disabled={v === 'profile' && !hasProfile}
-            onClick={() => setFrom(v)}
+            onClick={() => {
+              setFrom(v);
+              if (v === 'academic_profile') setTemplate('academic');
+            }}
             className={cx(
               'rounded-lg border-2 p-3 text-left disabled:opacity-50',
               from === v ? 'border-ink bg-ink-100' : 'border-ink-200',

@@ -12,6 +12,7 @@ import {
   type MatchOpportunity,
   type MatchResult,
   type Weights,
+  OFF_TOPIC_CAP,
 } from './common';
 
 const fmtUgx = (n: number) => `UGX ${n.toLocaleString('en-US')}`;
@@ -139,14 +140,21 @@ export function matchBusiness(
   let scope: number | null = null;
   if (offer.length || p.procurement_categories.length) {
     const hits = offer.filter((s) => containsTerm(text, s));
-    let v = offer.length ? Math.min(1, hits.length / Math.min(3, offer.length)) : 0;
-    const sim = offer.length ? phraseSimilarity(offer, o.title).value : 0;
-    v = Math.max(v, sim);
+    const serviceFit = offer.length
+      ? Math.max(Math.min(1, hits.length / Math.min(3, offer.length)), phraseSimilarity(offer, o.title).value)
+      : null;
+    let v = serviceFit ?? 0;
+    // What the firm actually does decides relevance; a shared category ("goods") alone does not.
+    if (serviceFit !== null && serviceFit < 0.15) ev.capScore(OFF_TOPIC_CAP);
     if (r.procurement_categories.length && p.procurement_categories.length) {
       const catOk = r.procurement_categories.some((c) => p.procurement_categories.includes(c));
       ev.req(`Procurement category: ${r.procurement_categories.join(', ')}`);
-      if (catOk) v = Math.max(v, 0.4) * 1;
-      else v = v * 0.3;
+      if (catOk) v = serviceFit === null ? 0.4 : serviceFit > 0 ? Math.max(serviceFit, 0.4) : 0.15;
+      else {
+        v = v * 0.3;
+        // A works contractor cannot bid for a consultancy, and vice versa: keep it low.
+        ev.capScore(OFF_TOPIC_CAP);
+      }
       if (!catOk)
         ev.reason(
           'Category',

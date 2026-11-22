@@ -36,16 +36,21 @@ export function matchProfile(
 }
 
 /** Sort: eligible/potential first, by score; not-eligible last. */
+/** A "potential" match meets every known requirement but has one to confirm: rank it with eligible ones. */
+const POTENTIAL_PENALTY = 5;
+
+/**
+ * Order: opportunities the person can apply for (eligible or potential) by relevance, then those with
+ * too little information to judge, then those they are not eligible for. Relevance never lifts a
+ * not-eligible opportunity above one they can apply for.
+ */
 export function rankMatches<T extends { match: MatchResult }>(items: T[]): T[] {
   const tier = (m: MatchResult) =>
-    m.eligibility === 'eligible'
+    m.eligibility === 'eligible' || m.eligibility === 'potential'
       ? 0
-      : m.eligibility === 'potential'
+      : m.eligibility === 'insufficient'
         ? 1
-        : m.eligibility === 'insufficient'
-          ? 2
-          : 3;
-  return [...items].sort(
-    (a, b) => tier(a.match) - tier(b.match) || (b.match.score ?? -1) - (a.match.score ?? -1),
-  );
+        : 2;
+  const rank = (m: MatchResult) => (m.score ?? -1) - (m.eligibility === 'potential' ? POTENTIAL_PENALTY : 0);
+  return [...items].sort((a, b) => tier(a.match) - tier(b.match) || rank(b.match) - rank(a.match));
 }

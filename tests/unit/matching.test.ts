@@ -380,13 +380,16 @@ describe('helpers', () => {
     expect(yearsFromExperience([{ start: '2020-01', end: '2023-01' }])).toBe(3);
     expect(yearsFromExperience([{ start: '', end: '' }])).toBeNull();
   });
-  it('ranks eligible above not-eligible regardless of score', () => {
+  it('ranks what you can apply for by relevance; not-eligible always last', () => {
     const items = [
       { id: 1, match: { eligibility: 'not_eligible', score: 99 } },
       { id: 2, match: { eligibility: 'eligible', score: 50 } },
       { id: 3, match: { eligibility: 'potential', score: 80 } },
+      { id: 4, match: { eligibility: 'potential', score: 53 } },
+      { id: 5, match: { eligibility: 'insufficient', score: 90 } },
     ] as any;
-    expect(rankMatches(items).map((x: any) => x.id)).toEqual([2, 3, 1]);
+    // A strong match with one fact to confirm beats a weak eligible one; a near-tie favours eligible.
+    expect(rankMatches(items).map((x: any) => x.id)).toEqual([3, 2, 4, 5, 1]);
   });
   it('weight overrides are bounded and only apply to known components', () => {
     const w = mergeWeights({ career: { skills: 50, bogus: 10, role: 500 } } as any);

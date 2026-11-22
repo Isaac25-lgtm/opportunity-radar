@@ -46,6 +46,8 @@ export class Evidence {
   reqs: string[] = [];
   components: Component[] = [];
   insufficient = false;
+  /** Upper bound on relevance, set when the core fit (field, scope, role) is clearly absent. */
+  cap: number | null = null;
 
   reason(label: string, detail: string) {
     this.reasons.push({ label, detail });
@@ -61,6 +63,9 @@ export class Evidence {
   }
   req(r: string) {
     if (r && !this.reqs.includes(r)) this.reqs.push(r);
+  }
+  capScore(max: number) {
+    this.cap = this.cap === null ? max : Math.min(this.cap, max);
   }
   component(key: string, weight: number, value: number | null) {
     this.components.push({ key, weight, value: value === null ? null : Math.max(0, Math.min(1, value)) });
@@ -135,13 +140,64 @@ export function containsTerm(haystackNorm: string, term: string): boolean {
   return re.test(haystackNorm);
 }
 
-/** Best word-overlap ratio of any candidate phrase against the target phrase. */
-export function phraseSimilarity(candidates: string[], target: string): { value: number; best: string } {
-  const tw = new Set(words(target));
+/**
+ * Words shared by unrelated disciplines ("Computer Science" vs "Environmental Science"). They are ignored
+ * when comparing phrases unless a phrase has no other words.
+ */
+const GENERIC = new Set([
+  'science',
+  'sciences',
+  'studies',
+  'study',
+  'applied',
+  'general',
+  'introduction',
+  'public',
+  'international',
+  'global',
+  'national',
+  'advanced',
+  // Procurement filler: "Supply of …", "Provision of … services".
+  'supply',
+  'supplies',
+  'delivery',
+  'provision',
+  'service',
+  'services',
+]);
+const specificWords = (s: string) => {
+  const all = words(s);
+  const specific = all.filter((w) => !GENERIC.has(w));
+  return specific.length ? specific : all;
+};
+
+/**
+ * Balanced overlap (Dice coefficient) of discipline names: "Agricultural economics" vs "Economics" is
+ * related (0.67) but not identical, unlike the containment ratio used for job titles.
+ */
+export function fieldSimilarity(candidates: string[], target: string): { value: number; best: string } {
+  const tw = new Set(specificWords(target));
   let best = { value: 0, best: '' };
   if (!tw.size) return best;
   for (const c of candidates) {
-    const cw = words(c);
+    const cw = [...new Set(specificWords(c))];
+    if (!cw.length) continue;
+    const v = (2 * cw.filter((w) => tw.has(w)).length) / (cw.length + tw.size);
+    if (v > best.value) best = { value: v, best: c };
+  }
+  return best;
+}
+
+/** Relevance ceiling when the core fit is missing: other factors alone cannot make a good match. */
+export const OFF_TOPIC_CAP = 35;
+
+/** Best word-overlap ratio of any candidate phrase against the target phrase. */
+export function phraseSimilarity(candidates: string[], target: string): { value: number; best: string } {
+  const tw = new Set(specificWords(target));
+  let best = { value: 0, best: '' };
+  if (!tw.size) return best;
+  for (const c of candidates) {
+    const cw = specificWords(c);
     if (!cw.length) continue;
     const hit = cw.filter((w) => tw.has(w)).length;
     const v = hit / Math.min(cw.length, tw.size);
@@ -212,7 +268,10 @@ export function finalize(
   ev: Evidence,
   minCoverage = 0.45,
 ): MatchResult {
-  const { score, coverage } = combine(ev.components, minCoverage);
+  const combined = combine(ev.components, minCoverage);
+  const coverage = combined.coverage;
+  const score =
+    combined.score !== null && ev.cap !== null ? Math.min(combined.score, ev.cap) : combined.score;
   let eligibility: Eligibility;
   if (ev.disqualifiers.length) eligibility = 'not_eligible';
   else if (ev.insufficient || score === null) eligibility = 'insufficient';

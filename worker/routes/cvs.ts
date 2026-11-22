@@ -1,8 +1,15 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import type { AppEnv } from '../env';
-import { careerProfileSchema } from '../../shared/schemas';
-import { cvDataSchema, cvFromCareerProfile, cvSaveSchema, emptyCv, type CvData } from '../../shared/cv';
+import { academicProfileSchema, careerProfileSchema } from '../../shared/schemas';
+import {
+  cvDataSchema,
+  cvFromAcademicProfile,
+  cvFromCareerProfile,
+  cvSaveSchema,
+  emptyCv,
+  type CvData,
+} from '../../shared/cv';
 import { CV_TEMPLATES } from '../../shared/constants';
 import { requireUser } from '../lib/auth';
 import { badRequest, body, notFound } from '../lib/http';
@@ -56,7 +63,8 @@ cvRoutes.post('/', async (c) => {
     z.object({
       title: z.string().trim().min(1).max(150).default('My CV'),
       template: z.enum(CV_TEMPLATES).default('modern'),
-      from: z.enum(['blank', 'profile', 'data']).default('blank'),
+      // 'profile' is the career profile; 'academic_profile' builds an academic CV for scholarships.
+      from: z.enum(['blank', 'profile', 'academic_profile', 'data']).default('blank'),
       data: z.unknown().optional(),
     }),
   );
@@ -74,6 +82,14 @@ cvRoutes.post('/', async (c) => {
       .first<any>();
     if (!p) throw badRequest('Create a career profile first, or start from a blank CV.');
     data = cvFromCareerProfile(careerProfileSchema.parse(parseJson(p.data, {})), u.name, u.email);
+  } else if (input.from === 'academic_profile') {
+    const p = await c.env.DB.prepare(
+      "SELECT data FROM profiles WHERE user_id = ? AND type = 'academic' AND deleted_at IS NULL",
+    )
+      .bind(u.id)
+      .first<any>();
+    if (!p) throw badRequest('Create an academic profile first, or start from a blank CV.');
+    data = cvFromAcademicProfile(academicProfileSchema.parse(parseJson(p.data, {})), u.name, u.email);
   } else if (input.from === 'data') {
     const parsed = cvDataSchema.safeParse(input.data);
     if (!parsed.success) throw badRequest('CV data is invalid.');
