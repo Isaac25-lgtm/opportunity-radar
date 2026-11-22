@@ -30,17 +30,17 @@ const saveChat = (m: Msg[]) => {
   }
 };
 
-/** The Opportunity Radar mark in a circle; the light ring keeps it visible on the dark button and header. */
+/** The Opportunity Radar mark on a white disc: clear on the dark button and header and on the light chat. */
 function Avatar({ size = 'md' }: { size?: 'sm' | 'md' }) {
   return (
     <span
       className={cx(
-        'flex flex-none items-center justify-center overflow-hidden rounded-full bg-[#171717] ring-1 ring-white/25',
+        'flex flex-none items-center justify-center rounded-full bg-white ring-1 ring-black/10',
         size === 'sm' ? 'h-7 w-7' : 'h-11 w-11',
       )}
       aria-hidden
     >
-      <LogoMark className="h-full w-full scale-[1.18]" />
+      <LogoMark className={size === 'sm' ? 'h-5 w-5' : 'h-8 w-8'} />
     </span>
   );
 }

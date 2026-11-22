@@ -21,29 +21,28 @@ import { useAuth } from '../lib/auth';
 import { initials } from '../lib/format';
 import { ButtonLink, Spinner, cx } from './ui';
 
-/** Radar mark: two arcs and a sweep on a near-black tile, with one blue point. */
-export function LogoMark({ className }: { className?: string }) {
+export const BRAND_NAVY = '#0b1f44';
+export const BRAND_GREEN = '#2bb24c';
+
+/**
+ * Radar mark: an outer ring, an open inner arc, a sweep from the centre and one green point (an opportunity
+ * found). Navy on light backgrounds; `light` draws it in white for dark backgrounds.
+ */
+export function LogoMark({ className, light }: { className?: string; light?: boolean }) {
+  const ink = light ? '#ffffff' : BRAND_NAVY;
   return (
     <svg viewBox="0 0 32 32" className={cx('h-8 w-8 flex-none', className)} aria-hidden>
-      <rect width="32" height="32" rx="9" fill="#171717" />
+      <circle cx="16" cy="16" r="13.7" fill="none" stroke={ink} strokeWidth="2" />
       <path
-        d="M9 23a9.9 9.9 0 0 1 0-14"
-        stroke="#fff"
-        strokeWidth="2.2"
+        d="M18.07 8.27A8 8 0 1 0 23.99 16.42"
         fill="none"
-        strokeLinecap="round"
-        opacity=".5"
-      />
-      <path
-        d="M13 19.5a4.9 4.9 0 0 1 0-7"
-        stroke="#fff"
-        strokeWidth="2.2"
-        fill="none"
+        stroke={ink}
+        strokeWidth="1.9"
         strokeLinecap="round"
       />
-      <path d="M16 16l8.5-6.5" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" />
-      <circle cx="16" cy="16" r="2.4" fill="#fff" />
-      <circle cx="24.5" cy="9.5" r="2.6" fill="#3b82f6" />
+      <path d="M16 16L24.05 4.92" stroke={ink} strokeWidth="1.8" strokeLinecap="round" />
+      <circle cx="16" cy="16" r="2.2" fill={ink} />
+      <circle cx="24.4" cy="12.3" r="2" fill={BRAND_GREEN} />
     </svg>
   );
 }
@@ -60,7 +59,7 @@ export function Logo({
 }) {
   return (
     <Link to="/" className={cx('flex items-center gap-2.5', className)} aria-label="Opportunity Radar home">
-      <LogoMark />
+      <LogoMark light={light} />
       <span
         className={cx(
           'whitespace-nowrap font-display text-[18px] font-semibold tracking-[-0.02em]',
