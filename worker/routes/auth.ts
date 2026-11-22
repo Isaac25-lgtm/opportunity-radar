@@ -8,7 +8,7 @@ import { hashPassword, randomToken, sha256Hex, verifyPassword } from '../lib/cry
 import { HttpError, badRequest, body, conflict, unauthorized } from '../lib/http';
 import { emailProvider } from '../lib/providers';
 import { rateLimit } from '../lib/security';
-import { audit, userPlan } from '../lib/store';
+import { audit, userPlan, VISIBLE_NOTIFICATION } from '../lib/store';
 import { log, newId, nowIso } from '../lib/util';
 
 export const authRoutes = new Hono<AppEnv>();
@@ -69,7 +69,7 @@ authRoutes.get('/me', async (c) => {
       .all()
   ).results;
   const unread = await c.env.DB.prepare(
-    'SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND read_at IS NULL',
+    `SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND ${VISIBLE_NOTIFICATION} AND read_at IS NULL`,
   )
     .bind(u.id)
     .first<{ n: number }>();

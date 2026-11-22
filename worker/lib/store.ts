@@ -2,6 +2,7 @@ import type { Env } from '../env';
 import {
   FREE_ENTITLEMENTS,
   SEGMENT_LABELS,
+  allowsMatchCategory,
   allowsProfileType,
   entitlementsSchema,
   type Entitlements,
@@ -10,6 +11,11 @@ import { mergeWeights, type Weights } from '../domain/matching/common';
 import type { ProfileType } from '../../shared/constants';
 import { paymentRequired } from './http';
 import { monthKey, newId, nowIso, parseJson } from './util';
+
+// Billing confirmations stay visible even when the user turns off in-app alerts.
+export const VISIBLE_NOTIFICATION = `(kind = 'system' OR NOT EXISTS (
+  SELECT 1 FROM notification_prefs np WHERE np.user_id = notifications.user_id AND np.in_app_enabled = 0
+))`;
 
 /* ---------- Audit ---------- */
 export async function audit(
@@ -63,7 +69,7 @@ export async function userPlan(env: Env, userId: string): Promise<PlanInfo> {
   const row = await env.DB.prepare(
     `SELECT p.code, p.name, p.entitlements, s.current_period_end
      FROM subscriptions s JOIN plans p ON p.id = s.plan_id
-     WHERE s.user_id = ? AND s.status = 'active' AND s.current_period_end > ?
+     WHERE s.user_id = ?1 AND s.status = 'active' AND s.current_period_start <= ?2 AND s.current_period_end > ?2
      ORDER BY p.sort DESC, s.current_period_end DESC LIMIT 1`,
   )
     .bind(userId, nowIso())
@@ -115,7 +121,7 @@ export function requireFeature(plan: PlanInfo, feature: keyof Entitlements, labe
 }
 
 /** The cheapest active plan that covers a profile type, for upgrade prompts. */
-export async function planForProfileType(env: Env, type: ProfileType) {
+export async function planForProfileType(env: Env, type: ProfileType, category?: string) {
   const rows = (
     await env.DB.prepare(
       'SELECT code, name, price_minor, currency, entitlements FROM plans WHERE active = 1 ORDER BY sort',
@@ -123,7 +129,9 @@ export async function planForProfileType(env: Env, type: ProfileType) {
   ).results;
   const hit = rows.find((r) => {
     const e = entitlementsSchema.safeParse(parseJson(r.entitlements, {}));
-    return e.success && allowsProfileType(e.data, type);
+    return (
+      e.success && allowsProfileType(e.data, type) && (!category || allowsMatchCategory(r.code, category))
+    );
   });
   return hit ? { code: hit.code as string, name: hit.name as string } : null;
 }

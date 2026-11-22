@@ -89,10 +89,18 @@ test.describe('CV builder', () => {
     await page.getByRole('button', { name: 'Confirm and save' }).click();
     await expect(page).toHaveURL(/\/app\/cvs\/.+\/edit/, { timeout: 30000 });
 
+    const olderTab = await context.newPage();
+    await olderTab.goto(page.url());
+    const olderSummary = olderTab.getByLabel(/Write 2–4 short/);
+    await expect(olderSummary).toBeVisible();
     await page
       .getByLabel(/Write 2–4 short/)
       .fill('Accountant with five years of NGO audit and reporting experience.');
     await expect(page.getByText('Saved', { exact: true })).toBeVisible({ timeout: 15000 });
+    await olderSummary.fill('Unsaved change from an older tab.');
+    await expect(olderTab.getByText(/This CV changed in another session/)).toBeVisible();
+    await expect(olderSummary).toHaveValue('Unsaved change from an older tab.');
+    await olderTab.close();
     await page.getByRole('button', { name: isMobile ? 'Templates' : 'Select template', exact: true }).click();
     await page.getByRole('button', { name: /Clarity/ }).click();
     await page.getByRole('button', { name: 'Back to editor' }).click();

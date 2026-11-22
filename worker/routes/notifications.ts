@@ -3,7 +3,7 @@ import type { AppEnv } from '../env';
 import { notificationPrefsSchema } from '../../shared/schemas';
 import { requireUser } from '../lib/auth';
 import { badRequest, body } from '../lib/http';
-import { userPlan } from '../lib/store';
+import { userPlan, VISIBLE_NOTIFICATION } from '../lib/store';
 import { nowIso, parseJson } from '../lib/util';
 
 /** In-app notifications and alert preferences. */
@@ -13,7 +13,7 @@ notificationRoutes.get('/', async (c) => {
   const u = requireUser(c);
   const rows = (
     await c.env.DB.prepare(
-      'SELECT id, kind, title, body, link, opportunity_id, read_at, created_at FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 100',
+      `SELECT id, kind, title, body, link, opportunity_id, read_at, created_at FROM notifications WHERE user_id = ? AND ${VISIBLE_NOTIFICATION} ORDER BY created_at DESC LIMIT 100`,
     )
       .bind(u.id)
       .all()
@@ -23,7 +23,7 @@ notificationRoutes.get('/', async (c) => {
 notificationRoutes.post('/:id/read', async (c) => {
   const u = requireUser(c);
   await c.env.DB.prepare(
-    'UPDATE notifications SET read_at = COALESCE(read_at, ?) WHERE id = ? AND user_id = ?',
+    `UPDATE notifications SET read_at = COALESCE(read_at, ?) WHERE id = ? AND user_id = ? AND ${VISIBLE_NOTIFICATION}`,
   )
     .bind(nowIso(), c.req.param('id'), u.id)
     .run();
@@ -31,7 +31,9 @@ notificationRoutes.post('/:id/read', async (c) => {
 });
 notificationRoutes.post('/read-all', async (c) => {
   const u = requireUser(c);
-  await c.env.DB.prepare('UPDATE notifications SET read_at = ? WHERE user_id = ? AND read_at IS NULL')
+  await c.env.DB.prepare(
+    `UPDATE notifications SET read_at = ? WHERE user_id = ? AND ${VISIBLE_NOTIFICATION} AND read_at IS NULL`,
+  )
     .bind(nowIso(), u.id)
     .run();
   return c.json({ ok: true });

@@ -22,6 +22,9 @@ accountRoutes.get('/export', async (c) => {
   const data = {
     exported_at: nowIso(),
     account: u,
+    contact_messages: await q(
+      'SELECT name, email, topic, message, created_at FROM contact_messages WHERE user_id = ?',
+    ),
     profiles: await q(
       'SELECT type, title, data, created_at, updated_at FROM profiles WHERE user_id = ? AND deleted_at IS NULL',
     ),
@@ -79,6 +82,10 @@ accountRoutes.post('/delete-account', async (c) => {
   const ts = nowIso();
   const tomb = `deleted+${u.id}@deleted.invalid`;
   await c.env.DB.batch([
+    c.env.DB.prepare('DELETE FROM contact_messages WHERE user_id = ?').bind(u.id),
+    c.env.DB.prepare('DELETE FROM password_resets WHERE user_id = ?').bind(u.id),
+    c.env.DB.prepare('DELETE FROM notification_prefs WHERE user_id = ?').bind(u.id),
+    c.env.DB.prepare('DELETE FROM usage_counters WHERE user_id = ?').bind(u.id),
     c.env.DB.prepare('DELETE FROM documents WHERE user_id = ?').bind(u.id),
     c.env.DB.prepare('DELETE FROM cvs WHERE user_id = ?').bind(u.id),
     c.env.DB.prepare('DELETE FROM cover_letters WHERE user_id = ?').bind(u.id),

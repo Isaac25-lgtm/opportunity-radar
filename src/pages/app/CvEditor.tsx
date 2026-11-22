@@ -43,6 +43,7 @@ function Editor({ id }: { id: string }) {
   const timer = useRef<ReturnType<typeof setTimeout>>();
   const latest = useRef<Cv | null>(null);
   const saved = useRef<Cv | null>(null);
+  const revision = useRef('');
   const saveQueue = useRef(Promise.resolve());
 
   useEffect(() => {
@@ -54,6 +55,7 @@ function Editor({ id }: { id: string }) {
         setCv(r.cv);
         latest.current = r.cv;
         saved.current = r.cv;
+        revision.current = r.cv.updated_at;
       })
       .catch((error) => {
         if (active) setErr(error);
@@ -71,7 +73,11 @@ function Editor({ id }: { id: string }) {
     setSaveState('saving');
     const request = saveQueue.current.then(async () => {
       if (saved.current !== c || snapshot) {
-        await api.put(`/cvs/${c.id}`, { title: c.title, template: c.template, data: c.data, snapshot, note });
+        const result = await api.put<{ updated_at: string }>(
+          `/cvs/${c.id}?base_updated_at=${encodeURIComponent(revision.current)}`,
+          { title: c.title, template: c.template, data: c.data, snapshot, note },
+        );
+        revision.current = result.updated_at;
         saved.current = c;
       }
     });
@@ -432,11 +438,14 @@ function Editor({ id }: { id: string }) {
           }}
           onRestore={async (version) => {
             await persist();
-            await api.post(`/cvs/${cv.id}/versions/${version}/restore`);
+            await api.post(
+              `/cvs/${cv.id}/versions/${version}/restore?base_updated_at=${encodeURIComponent(revision.current)}`,
+            );
             const r = await api.get<{ cv: Cv }>(`/cvs/${cv.id}`);
             setCv(r.cv);
             latest.current = r.cv;
             saved.current = r.cv;
+            revision.current = r.cv.updated_at;
             setPanel(null);
             toast('Version restored');
           }}

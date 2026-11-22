@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import type { AppEnv } from '../env';
 import { requireUser } from '../lib/auth';
-import { getConfig, getWeights, userPlan } from '../lib/store';
+import { getConfig, getWeights, userPlan, VISIBLE_NOTIFICATION } from '../lib/store';
 import { topMatchesForUser } from '../domain/feed';
 import { nowIso, parseJson } from '../lib/util';
 import { OPP_LIST_COLUMNS, publicOpportunity } from '../domain/opportunities';
@@ -37,7 +37,7 @@ dashboardRoutes.get('/', async (c) => {
       .bind(u.id)
       .all<any>(),
     c.env.DB.prepare(
-      'SELECT id, kind, title, body, link, read_at, created_at FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 5',
+      `SELECT id, kind, title, body, link, read_at, created_at FROM notifications WHERE user_id = ? AND ${VISIBLE_NOTIFICATION} ORDER BY created_at DESC LIMIT 5`,
     )
       .bind(u.id)
       .all<any>(),
@@ -51,6 +51,7 @@ dashboardRoutes.get('/', async (c) => {
   const plan = await userPlan(c.env, u.id);
   const topMatches = await topMatchesForUser(c.env, u.id, profiles.results, {
     weights: await getWeights(c.env),
+    planCode: plan.code,
     allowedTypes: plan.entitlements.profile_types,
   });
   return c.json({

@@ -195,6 +195,32 @@ describe('documents (private storage)', () => {
 });
 
 describe('opportunity feed, saving and tracking', () => {
+  it('preserves full browsing with an academic profile after paid access ends', async () => {
+    const c = await signup(env, 'downgrade-feed@example.test');
+    const user = (await c.get('/api/auth/me')).json.user;
+    await env.DB.prepare(
+      "INSERT INTO profiles (id, user_id, type, title, data, completeness, created_at, updated_at) VALUES ('retained-profile', ?, 'academic', 'Academic', '{}', 20, ?, ?)",
+    )
+      .bind(user.id, inDays(-1), inDays(-1))
+      .run();
+    await env.DB.prepare(
+      `WITH RECURSIVE seq(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM seq WHERE n<401)
+      INSERT INTO opportunities (id, canonical_key, category, title, organization, source_url, first_seen_at, last_seen_at, last_checked_at, created_at, updated_at)
+      SELECT 'bulk-'||n, 'bulk-'||n, 'scholarship', 'Pagination scholarship', 'University', 'https://example.org', ?1, ?1, ?1, ?1, ?1 FROM seq`,
+    )
+      .bind(inDays(-1))
+      .run();
+    const feed = (await c.get('/api/opportunities?view=academic&q=Pagination&page=21')).json;
+    expect(feed).toMatchObject({
+      total: 401,
+      pages: 21,
+      matched: false,
+      upgrade_plan: 'Jobs & Scholarships',
+    });
+    expect(feed.items).toHaveLength(1);
+    expect(feed.items[0].match).toBeNull();
+    await env.DB.prepare("DELETE FROM opportunities WHERE title = 'Pagination scholarship'").run();
+  });
   it('ranks opportunities for a profile with separate eligibility and relevance', async () => {
     const c = await signup(env, 'f1@example.test');
     await c.put('/api/profiles/career', { data: careerData });
@@ -214,6 +240,24 @@ describe('opportunity feed, saving and tracking', () => {
     const detail = await c.get(`/api/opportunities/${good}`);
     expect(detail.json.matches[0]).toMatchObject({ profile_type: 'career', eligibility: 'eligible' });
     expect(detail.json.opportunity.source_url).toContain('example.org');
+  });
+
+  it('keeps consultancy listings browsable while reserving their matches for paid accounts', async () => {
+    const c = await signup(env, 'free-consultancy@example.test');
+    await c.put('/api/profiles/career', { data: careerData });
+    const id = await addOpp({ category: 'consultancy' });
+    const feed = await c.get('/api/opportunities?view=career&category=consultancy');
+    expect(feed.json.items.find((item: any) => item.id === id)).toMatchObject({
+      match: null,
+      upgrade_plan: 'Jobs',
+    });
+    expect(
+      (await c.get('/api/opportunities?view=career&category=consultancy&min_score=1')).json.items,
+    ).toHaveLength(0);
+    expect((await c.get('/api/opportunities/' + id)).json.matches[0]).toMatchObject({
+      gated: 'plan_segment',
+      upgrade_plan: 'Jobs',
+    });
   });
 
   it('saves, dismisses and hides dismissed items from the feed', async () => {
@@ -268,6 +312,44 @@ describe('opportunity feed, saving and tracking', () => {
 });
 
 describe('alerts and notifications', () => {
+  it('hides optional in-app alerts on every surface when the channel is disabled', async () => {
+    const c = await signup(env, 'quiet-inbox@example.test');
+    const user = (await c.get('/api/auth/me')).json.user;
+    await env.DB.prepare('UPDATE notification_prefs SET in_app_enabled = 0 WHERE user_id = ?')
+      .bind(user.id)
+      .run();
+    for (const kind of ['deadline', 'system']) {
+      await env.DB.prepare(
+        "INSERT INTO notifications (id, user_id, kind, title, body, dedupe_key, created_at) VALUES (?, ?, ?, ?, '', ?, ?)",
+      )
+        .bind(newId('ntf'), user.id, kind, kind, kind, inDays(0))
+        .run();
+    }
+    expect((await c.get('/api/notifications')).json.notifications.map((n: any) => n.kind)).toEqual([
+      'system',
+    ]);
+    expect((await c.get('/api/auth/me')).json.unread).toBe(1);
+    expect((await c.get('/api/dashboard')).json.alerts.map((n: any) => n.kind)).toEqual(['system']);
+  });
+
+  it('continues across a page boundary shared by multiple listings', async () => {
+    const time = inDays(1);
+    const ids = await Promise.all([addOpp({}), addOpp({}), addOpp({})]);
+    await env.DB.prepare('UPDATE opportunities SET first_seen_at = ? WHERE id IN (?, ?, ?)')
+      .bind(time, ...ids)
+      .run();
+    await env.DB.prepare(
+      "INSERT OR REPLACE INTO system_config (key,value,updated_at) VALUES ('alerts.cursor',?,?)",
+    )
+      .bind(JSON.stringify(time), time)
+      .run();
+    expect((await processMatchAlerts(env, new Date(), 2)).opportunities).toBe(2);
+    expect((await processMatchAlerts(env, new Date(), 2)).opportunities).toBe(1);
+    expect((await processMatchAlerts(env, new Date(), 2)).opportunities).toBe(0);
+    await env.DB.prepare('DELETE FROM opportunities WHERE id IN (?, ?, ?)')
+      .bind(...ids)
+      .run();
+  });
   it('sends a new-match alert once, never for expired listings, and respects preferences', async () => {
     const c = await signup(env, 'n1@example.test');
     const me = await c.get('/api/auth/me');
@@ -399,6 +481,30 @@ describe('alerts and notifications', () => {
 });
 
 describe('CV builder API', () => {
+  it('preserves the winning CV edit and its history when another editor saves or restores a stale revision', async () => {
+    const c = await signup(env, 'cv-race@example.test', 'CV Editor');
+    const created = await c.post('/api/cvs', { title: 'Original' });
+    const path = `/api/cvs/${created.json.id}`;
+    const original = (await c.get(path)).json.cv;
+    const guard = `?base_updated_at=${encodeURIComponent(original.updated_at)}`;
+    const edits = ['First tab', 'Second tab'];
+    const writes = await Promise.all(
+      edits.map((title) =>
+        c.put(path + guard, { title, data: original.data, template: original.template, snapshot: true }),
+      ),
+    );
+    expect(writes.map((r) => r.status).sort()).toEqual([200, 409]);
+    expect((await c.post(path + '/versions/1/restore' + guard)).status).toBe(409);
+    const current = (await c.get(path)).json.cv;
+    expect(current.title).toBe(edits[writes.findIndex((r) => r.status === 200)]);
+    expect(current.updated_at).not.toBe(original.updated_at);
+    expect((await c.get(path + '/versions')).json.versions).toHaveLength(2);
+    expect(
+      (await c.post(path + '/versions/1/restore?base_updated_at=' + encodeURIComponent(current.updated_at)))
+        .status,
+    ).toBe(200);
+  });
+
   it('creates from profile, autosaves, versions, restores, exports within plan limits and tailors', async () => {
     const c = await signup(env, 'cv1@example.test', 'CV Person');
     await c.put('/api/profiles/career', { data: careerData });
@@ -470,13 +576,29 @@ describe('CV builder API', () => {
 describe('account data rights', () => {
   it('exports and permanently deletes an account', async () => {
     const c = await signup(env, 'gone@example.test');
+    expect(
+      (
+        await c.post('/api/public/contact', {
+          name: 'Private Name',
+          email: 'gone@example.test',
+          topic: 'account',
+          message: 'Private support request',
+        })
+      ).status,
+    ).toBe(201);
     await c.put('/api/profiles/career', { data: careerData });
     const ex = await c.get('/api/auth/export');
     expect(ex.json.profiles).toHaveLength(1);
     expect(ex.json.account.email).toBe('gone@example.test');
+    expect(ex.json.contact_messages).toHaveLength(1);
     expect(JSON.stringify(ex.json)).not.toContain('password_hash');
     expect((await c.post('/api/auth/delete-account', { password: 'wrong' })).status).toBe(400);
     expect((await c.post('/api/auth/delete-account', { password: 'Password1234' })).status).toBe(200);
+    expect(
+      await env.DB.prepare('SELECT id FROM contact_messages WHERE user_id = ?')
+        .bind(ex.json.account.id)
+        .first(),
+    ).toBeNull();
     expect((await c.get('/api/auth/me')).json.user).toBeNull();
     const again = new Client(env);
     expect(

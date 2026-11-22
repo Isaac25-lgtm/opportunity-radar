@@ -1,7 +1,7 @@
 import type { Env } from '../../env';
 import { audit } from '../../lib/store';
 import { log, newId, nowIso } from '../../lib/util';
-import { toMinor } from '../../../shared/money';
+import { toMajor } from '../../../shared/money';
 import type { PaymentProvider, ProviderStatus } from './providers';
 
 export type PaymentRow = {
@@ -48,7 +48,7 @@ export async function applyProviderStatus(
     const mismatch =
       // Provider amounts are in major units; payments store minor units.
       st.amount == null ||
-      toMinor(st.amount, payment.currency) !== payment.amount ||
+      st.amount !== toMajor(payment.amount, payment.currency) ||
       st.currency?.toUpperCase() !== payment.currency.toUpperCase() ||
       st.merchantReference !== payment.merchant_reference;
     if (mismatch) {

@@ -1,7 +1,7 @@
 import type { Env } from '../env';
 import type { ProfileType } from '../../shared/constants';
 import { CATEGORY_LABELS } from '../../shared/constants';
-import { allowsProfileType } from '../../shared/entitlements';
+import { allowsMatchCategory, allowsProfileType } from '../../shared/entitlements';
 import { emailProvider } from '../lib/providers';
 import { getConfig, getWeights, setConfig, userPlan } from '../lib/store';
 import { addMinutes, log, newId, nowIso, parseJson } from '../lib/util';
@@ -47,12 +47,18 @@ export function inQuietHours(hour: number, start: number | null, end: number | n
  * later ingestion cycles never alerts twice; the (user, dedupe_key) unique index is a second guard.
  */
 export async function processMatchAlerts(env: Env, now = new Date(), maxOpps = 25) {
-  const cursor = await getConfig<string>(env, 'alerts.cursor', '1970-01-01T00:00:00.000Z');
+  const cursor = await getConfig<string | { time: string; id: string }>(
+    env,
+    'alerts.cursor',
+    '1970-01-01T00:00:00.000Z',
+  );
+  const time = typeof cursor === 'string' ? cursor : cursor.time;
+  const id = typeof cursor === 'string' ? '' : cursor.id;
   const opps = (
     await env.DB.prepare(
-      `SELECT * FROM opportunities WHERE first_seen_at > ? AND moderation = 'approved' AND is_demo = 0 ORDER BY first_seen_at LIMIT ?`,
+      `SELECT * FROM opportunities WHERE (first_seen_at, id) > (?, ?) AND moderation = 'approved' AND is_demo = 0 ORDER BY first_seen_at, id LIMIT ?`,
     )
-      .bind(cursor, maxOpps)
+      .bind(time, id, maxOpps)
       .all<any>()
   ).results;
   if (!opps.length) return { opportunities: 0, notifications: 0 };
@@ -84,7 +90,11 @@ export async function processMatchAlerts(env: Env, now = new Date(), maxOpps = 2
           plan = await userPlan(env, p.user_id);
           planCache.set(p.user_id, plan);
         }
-        if (!allowsProfileType(plan.entitlements, p.type as ProfileType)) continue;
+        if (
+          !allowsProfileType(plan.entitlements, p.type as ProfileType) ||
+          !allowsMatchCategory(plan.code, o.category)
+        )
+          continue;
         const m = matchProfile(toProfileRecord(p), mo, weights, now);
         if (m.eligibility !== 'eligible' && m.eligibility !== 'potential') continue;
         if ((m.score ?? 0) < prefs.min_score) continue;
@@ -137,7 +147,8 @@ export async function processMatchAlerts(env: Env, now = new Date(), maxOpps = 2
     }
     for (let i = 0; i < stmts.length; i += 60) await env.DB.batch(stmts.slice(i, i + 60));
   }
-  await setConfig(env, 'alerts.cursor', opps[opps.length - 1].first_seen_at, null);
+  const last = opps[opps.length - 1];
+  await setConfig(env, 'alerts.cursor', { time: last.first_seen_at, id: last.id }, null);
   return { opportunities: opps.length, notifications: created };
 }
 
@@ -155,7 +166,7 @@ export async function processReminders(env: Env, now = new Date()) {
               'Closes ' || substr(o.deadline_at, 1, 10) || ' — ' || o.organization, '/app/opportunities/' || o.id, o.id, 'deadline:' || o.id || ':3d', ?
        FROM user_opportunity uo JOIN opportunities o ON o.id = uo.opportunity_id
        LEFT JOIN notification_prefs np ON np.user_id = uo.user_id
-       WHERE uo.state = 'saved' AND o.status = 'open' AND o.deadline_at > ? AND o.deadline_at <= ?
+       WHERE uo.state = 'saved' AND o.moderation = 'approved' AND o.status = 'open' AND o.deadline_at > ? AND o.deadline_at <= ?
          AND (np.categories IS NULL OR np.categories LIKE '%deadline%')`,
     ).bind(ts, ts, soon),
     env.DB.prepare(
@@ -173,7 +184,8 @@ export async function processReminders(env: Env, now = new Date()) {
        SELECT 'ntf_' || lower(hex(randomblob(10))), a.user_id, 'deadline', 'Deadline approaching: ' || substr(a.title, 1, 120),
               'Your tracked ' || a.kind || ' is due ' || substr(a.deadline_at, 1, 10) || '.', '/app/tracker', a.opportunity_id,
               'appdeadline:' || a.id || ':' || substr(a.deadline_at, 1, 10), ?
-       FROM applications a WHERE a.deleted_at IS NULL AND a.deadline_at > ? AND a.deadline_at <= ?
+       FROM applications a LEFT JOIN notification_prefs np ON np.user_id = a.user_id
+       WHERE (np.categories IS NULL OR np.categories LIKE '%deadline%') AND a.deleted_at IS NULL AND a.deadline_at > ? AND a.deadline_at <= ?
          AND a.status IN ('interested','preparing')`,
     ).bind(ts, ts, soon),
   ]);
