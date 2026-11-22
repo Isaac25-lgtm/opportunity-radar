@@ -105,6 +105,16 @@ https://opportunity-radar.omodingisaac123.workers.dev
 
 ## 12. Deployed version
 
+Latest: Worker version `7e20f5e3-a04d-42f5-9ff9-75483d5c1d9a` (commit `ae774f9`): the Ask Opportunity Radar help
+assistant (hidden until `DEEPSEEK_API_KEY` is set) and the updated privacy notice. No migrations. Preview
+smoke-tested (11-step signed-in smoke, account deleted; public Playwright 5 passed / 1 skipped) and promoted.
+Rollback: `npx wrangler versions deploy 2a80ba45-0504-4563-b791-95e6880325eb@100% --yes`.
+
+Switch on the assistant: `npx wrangler secret put DEEPSEEK_API_KEY` (paste the key when asked). The button appears
+on the next page load; no deploy needed. Remove the secret to switch it off.
+
+Previous release:
+
 Latest: Worker version `2a80ba45-0504-4563-b791-95e6880325eb` (commit `2404870`): the reviewed Codex audit fixes,
 the AI provider hook for the Python service (AI stays off: `AI_PROVIDER` is not set), and PDF import on older
 browsers. No migrations. Preview smoke-tested (health; 11-step signed-in smoke, account deleted; public Playwright
