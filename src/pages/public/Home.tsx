@@ -12,6 +12,7 @@ import {
 import { Link } from 'react-router-dom';
 import { CV_TEMPLATE_LABELS, CV_TEMPLATES } from '../../../shared/constants';
 import { CvThumb } from '../../components/CvThumb';
+import { PlanCards, usePlans } from '../../components/PlanCards';
 import { Faq, HeroSlideshow, SectionHeading, type HeroSlide } from '../../components/marketing';
 import { ScoreRing, VerificationBadge } from '../../components/opportunity';
 import { ButtonLink, useLoad } from '../../components/ui';
@@ -155,18 +156,18 @@ export default function Home() {
       {/* HERO */}
       <section className="relative isolate overflow-hidden bg-night text-white">
         <HeroSlideshow slides={HERO_SLIDES} />
-        <div className="container-page relative grid items-center gap-14 pb-20 pt-24 sm:pt-28 lg:grid-cols-[1.08fr_1fr] lg:pb-24">
+        <div className="container-page relative grid items-center gap-12 pb-14 pt-20 sm:gap-14 sm:pb-20 sm:pt-28 lg:grid-cols-[1.08fr_1fr] lg:pb-24">
           <div className="min-w-0">
             <h1 className="text-balance text-[40px] font-semibold leading-[1.05] tracking-display text-white sm:text-[54px]">
               The professional CV builder that also{' '}
               <span className="text-white/55">finds your next opportunity</span>
             </h1>
-            <p className="mt-6 max-w-xl text-[17px] leading-relaxed text-white/70">
+            <p className="mt-5 max-w-xl text-[16px] leading-relaxed text-white/75 sm:mt-6 sm:text-[17px] sm:text-white/70">
               Create one profile. Opportunity Radar turns it into an ATS-ready CV, checks official sources
               every six hours for jobs, scholarships, grants and tenders, and tells you honestly how well each
               one fits, before the deadline.
             </p>
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-8 flex flex-col gap-3 sm:mt-9 sm:flex-row">
               <Link to={start} className="btn btn-lg bg-white text-ink hover:bg-ink-100">
                 Create my CV, free
               </Link>
@@ -177,7 +178,7 @@ export default function Home() {
                 Browse opportunities
               </Link>
             </div>
-            <ul className="mt-9 flex flex-wrap gap-x-7 gap-y-3 text-[15px] text-white/80">
+            <ul className="mt-7 flex flex-wrap gap-x-6 gap-y-2.5 text-[14.5px] text-white/80 sm:mt-9 sm:gap-x-7 sm:gap-y-3 sm:text-[15px]">
               {['Free to start', 'Official & verified sources', 'No invented facts, ever'].map((t) => (
                 <li key={t} className="flex items-center gap-2">
                   <CircleCheck className="h-[18px] w-[18px] text-white/55" aria-hidden /> {t}
@@ -186,15 +187,16 @@ export default function Home() {
             </ul>
           </div>
 
-          <div className="relative mx-auto w-full max-w-[520px] pb-12" aria-hidden>
+          <div className="relative mx-auto w-full max-w-[340px] pb-14 sm:max-w-[520px] sm:pb-12" aria-hidden>
             {/* Two templates of the same CV, stacked straight (no tilt) so edges stay crisp. */}
             <div className="absolute right-0 top-10 hidden w-[66%] overflow-hidden rounded-lg bg-white shadow-paper ring-1 ring-black/10 brightness-[0.9] sm:block">
               <CvThumb data={SAMPLE_CV} template="ats" />
             </div>
-            <div className="relative w-[80%] overflow-hidden rounded-lg bg-white shadow-paper ring-1 ring-black/10">
+            {/* On phones the sheet is centred and cropped with a fade so the hero stays short. */}
+            <div className="relative mx-auto max-h-[300px] w-[88%] overflow-hidden rounded-lg bg-white shadow-paper ring-1 ring-black/10 [mask-image:linear-gradient(to_bottom,black_65%,transparent)] sm:mx-0 sm:max-h-none sm:w-[80%] sm:[mask-image:none]">
               <CvThumb data={SAMPLE_CV} template="modern" />
             </div>
-            <div className="absolute bottom-0 left-4 right-4 rounded-2xl border border-line bg-white p-4 text-ink shadow-card sm:left-auto sm:right-0 sm:w-[310px]">
+            <div className="absolute bottom-0 left-0 right-0 rounded-2xl border border-line bg-white p-4 text-ink shadow-card sm:left-auto sm:right-0 sm:w-[310px]">
               <div className="flex items-center gap-3">
                 <ScoreRing score={87} size={48} />
                 <div className="min-w-0">
@@ -220,9 +222,14 @@ export default function Home() {
             <p className="text-[14.5px] text-white/60 lg:flex-none">
               {open !== null && active !== null ? (
                 <>
-                  Monitoring <span className="font-medium text-white">{active} sources</span> ·{' '}
-                  <span className="font-medium text-white">{open.toLocaleString()} open opportunities</span>{' '}
-                  right now
+                  <span className="block sm:inline">
+                    Monitoring <span className="font-medium text-white">{active} sources</span>
+                  </span>
+                  <span className="hidden sm:inline"> · </span>
+                  <span className="block sm:inline">
+                    <span className="font-medium text-white">{open.toLocaleString()} open opportunities</span>{' '}
+                    right now
+                  </span>
                 </>
               ) : (
                 'Opportunities from official portals, recognised job platforms and administrator-verified listings'
@@ -345,9 +352,10 @@ export default function Home() {
               See all templates
             </ButtonLink>
           </div>
-          <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Phones: a swipeable row (the next template peeks in); larger screens: a grid. */}
+          <div className="-mx-5 mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-4 sm:mx-0 sm:mt-12 sm:grid sm:snap-none sm:grid-cols-2 sm:gap-8 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
             {CV_TEMPLATES.map((t) => (
-              <Link key={t} to={start} className="group">
+              <Link key={t} to={start} className="group w-[78%] flex-none snap-start sm:w-auto">
                 <div className="overflow-hidden rounded-xl border border-line bg-white shadow-panel transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-card">
                   <CvThumb data={SAMPLE_CV} template={t} />
                 </div>
@@ -386,6 +394,9 @@ export default function Home() {
         </div>
       </section>
 
+      {/* PRICING */}
+      <HomePricing />
+
       {/* FAQ */}
       <section className="py-24">
         <div className="container-page max-w-3xl">
@@ -420,5 +431,31 @@ export default function Home() {
         </div>
       </section>
     </>
+  );
+}
+
+/** The same plan cards as the Pricing page, so the two always agree. */
+function HomePricing() {
+  const { data } = usePlans();
+  if (!data?.plans.length) return null;
+  return (
+    <section className="border-b border-line bg-ink-50 py-24">
+      <div className="container-page">
+        <SectionHeading
+          center
+          title="Simple monthly plans"
+          sub="Browsing every listing is free. Pick the plan that matches what you are looking for: jobs, scholarships, or contracts for your company."
+        />
+        <div className="mt-14">
+          <PlanCards plans={data.plans} />
+        </div>
+        <p className="mt-8 text-center text-[14.5px] text-ink-500">
+          Prices in US dollars, billed monthly. Plans do not renew automatically.{' '}
+          <Link to="/pricing" className="font-medium text-ink underline-offset-4 hover:underline">
+            Compare every feature →
+          </Link>
+        </p>
+      </div>
+    </section>
   );
 }

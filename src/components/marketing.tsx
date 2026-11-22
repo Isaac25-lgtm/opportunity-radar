@@ -42,8 +42,10 @@ export function HeroSlideshow({ slides }: { slides: HeroSlide[] }) {
           />
         ))}
         {/* Darken for legible text: strongest on the left where the copy sits, and towards the bottom. */}
-        <div className="absolute inset-0 bg-gradient-to-r from-night/95 via-night/75 to-night/30" />
-        <div className="absolute inset-0 bg-gradient-to-t from-night via-night/20 to-night/50" />
+        {/* Phones: copy spans the full width, so darken evenly and let the photo show through the middle.
+            Desktop: copy sits on the left, so darken left-to-right and towards the bottom. */}
+        <div className="absolute inset-0 bg-gradient-to-b from-night/80 via-night/60 to-night lg:bg-gradient-to-r lg:from-night/95 lg:via-night/75 lg:to-night/30" />
+        <div className="absolute inset-0 hidden bg-gradient-to-t from-night via-night/20 to-night/50 lg:block" />
       </div>
       <div className="container-page relative">
         <div className="absolute right-4 top-5 z-10 flex items-center gap-3 sm:right-6 lg:right-8">
