@@ -5,15 +5,18 @@ import {
   useContext,
   useEffect,
   useId,
+  useMemo,
   useRef,
   useState,
   type ButtonHTMLAttributes,
   type InputHTMLAttributes,
+  type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
   type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
 } from 'react';
 import { Link, type LinkProps } from 'react-router-dom';
+import { filterOptions } from '../../shared/suggestions';
 import { ApiError } from '../lib/api';
 
 export function cx(...c: Array<string | false | null | undefined>) {
@@ -180,7 +183,109 @@ export function SelectInput({
   );
 }
 
-/** Chips input: Enter or comma adds; Backspace on empty removes last. */
+/**
+ * Keyboard-accessible type-ahead list under an input (ARIA combobox pattern).
+ * Arrow keys move, Enter picks, Escape closes; mouse picks without stealing focus.
+ */
+function useTypeahead(options: string[], text: string, exclude: string[], onPick: (v: string) => void) {
+  const [open, setOpen] = useState(false);
+  // Nothing is highlighted until the person uses the arrow keys, so Enter keeps exactly what they typed.
+  const [active, setActive] = useState(-1);
+  const listId = useId();
+  const matches = useMemo(() => filterOptions(options, text, exclude), [options, text, exclude]);
+  const shown = open && matches.length > 0;
+  const pick = (v: string) => {
+    onPick(v);
+    setOpen(false);
+    setActive(-1);
+  };
+  /** Handles navigation keys; returns true when the key was used. */
+  const onKey = (e: ReactKeyboardEvent<HTMLInputElement>): boolean => {
+    if (e.key === 'ArrowDown' && matches.length) {
+      e.preventDefault();
+      setOpen(true);
+      setActive((a) => (a + 1) % matches.length);
+      return true;
+    }
+    if (e.key === 'ArrowUp' && matches.length) {
+      e.preventDefault();
+      setActive((a) => (a <= 0 ? matches.length - 1 : a - 1));
+      return true;
+    }
+    if (e.key === 'Escape' && shown) {
+      e.preventDefault();
+      setOpen(false);
+      return true;
+    }
+    if (e.key === 'Enter' && shown && active >= 0) {
+      e.preventDefault();
+      pick(matches[active]);
+      return true;
+    }
+    return false;
+  };
+  const ariaProps = {
+    role: 'combobox' as const,
+    'aria-autocomplete': 'list' as const,
+    'aria-expanded': shown,
+    'aria-controls': listId,
+    'aria-activedescendant': shown && active >= 0 ? `${listId}-${active}` : undefined,
+  };
+  const list = shown ? (
+    <ul
+      id={listId}
+      role="listbox"
+      className="absolute left-0 right-0 top-full z-30 mt-1 max-h-64 overflow-auto rounded-xl border border-line bg-white py-1 shadow-card"
+    >
+      {matches.map((m, i) => (
+        <li
+          key={m}
+          id={`${listId}-${i}`}
+          role="option"
+          aria-selected={i === active}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            pick(m);
+          }}
+          onMouseEnter={() => setActive(i)}
+          className={cx(
+            'cursor-pointer px-3 py-2 text-[14.5px]',
+            i === active ? 'bg-ink-100 text-ink' : 'text-ink-700',
+          )}
+        >
+          {m}
+        </li>
+      ))}
+    </ul>
+  ) : null;
+  const reset = () => {
+    setOpen(true);
+    setActive(-1);
+  };
+  return { ariaProps, onKey, list, open: () => setOpen(true), close: () => setOpen(false), reset };
+}
+
+/** Clickable suggestions shown under a field. */
+function SuggestionChips({ items, onPick }: { items: string[]; onPick: (v: string) => void }) {
+  if (!items.length) return null;
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+      <span className="mr-0.5 text-[12.5px] text-ink-500">Suggested:</span>
+      {items.map((s) => (
+        <button
+          key={s}
+          type="button"
+          onClick={() => onPick(s)}
+          className="chip border border-ink-200 bg-white text-ink-600 transition-colors hover:border-ink-400 hover:text-ink"
+        >
+          + {s}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** Chips input: Enter or comma adds; Backspace on empty removes last. Offers type-ahead and suggestions. */
 export function TagInput({
   label,
   hint,
@@ -188,6 +293,7 @@ export function TagInput({
   onChange,
   placeholder = 'Type and press Enter',
   suggestions = [],
+  vocabulary = [],
   max = 60,
 }: {
   label?: ReactNode;
@@ -195,7 +301,10 @@ export function TagInput({
   value: string[];
   onChange: (v: string[]) => void;
   placeholder?: string;
+  /** Context-aware ideas, shown as clickable chips. */
   suggestions?: string[];
+  /** Everything that can be typed ahead. */
+  vocabulary?: string[];
   max?: number;
 }) {
   const [draft, setDraft] = useState('');
@@ -212,52 +321,104 @@ export function TagInput({
     onChange(next);
     setDraft('');
   };
-  const sugg = suggestions.filter((s) => !value.some((v) => v.toLowerCase() === s.toLowerCase())).slice(0, 8);
+  const ta = useTypeahead(vocabulary, draft, value, add);
+  const sugg = suggestions
+    .filter((s) => !value.some((v) => v.toLowerCase() === s.toLowerCase()))
+    .slice(0, 10);
   return (
     <Field label={label} hint={hint} htmlFor={id}>
-      <div className="input flex min-h-[50px] flex-wrap items-center gap-1.5 py-2">
-        {value.map((t) => (
-          <span key={t} className="chip bg-white text-ink-700 shadow-sm">
-            {t}
-            <button
-              type="button"
-              aria-label={`Remove ${t}`}
-              className="rounded-full p-0.5 text-ink-400 hover:text-bad-500"
-              onClick={() => onChange(value.filter((x) => x !== t))}
-            >
-              <X className="h-3 w-3" />
-            </button>
-          </span>
-        ))}
+      <div className="relative">
+        <div className="input flex min-h-[50px] flex-wrap items-center gap-1.5 py-2">
+          {value.map((t) => (
+            <span key={t} className="chip bg-white text-ink-700 shadow-sm">
+              {t}
+              <button
+                type="button"
+                aria-label={`Remove ${t}`}
+                className="rounded-full p-0.5 text-ink-400 hover:text-bad-500"
+                onClick={() => onChange(value.filter((x) => x !== t))}
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          ))}
+          <input
+            id={id}
+            value={draft}
+            {...ta.ariaProps}
+            onFocus={ta.open}
+            onChange={(e) => {
+              setDraft(e.target.value);
+              ta.reset();
+            }}
+            onKeyDown={(e) => {
+              if (ta.onKey(e)) return;
+              if ((e.key === 'Enter' || e.key === ',') && draft.trim()) {
+                e.preventDefault();
+                add(draft);
+              } else if (e.key === 'Backspace' && !draft && value.length) onChange(value.slice(0, -1));
+            }}
+            onBlur={() => {
+              ta.close();
+              if (draft.trim()) add(draft);
+            }}
+            placeholder={value.length ? '' : placeholder}
+            className="min-w-[120px] flex-1 border-0 bg-transparent p-1 text-[15px] outline-none placeholder:text-ink-400"
+          />
+        </div>
+        {ta.list}
+      </div>
+      <SuggestionChips items={sugg} onPick={add} />
+    </Field>
+  );
+}
+
+/** Single-line text with type-ahead from a vocabulary and optional one-click suggestions. */
+export function SuggestInput({
+  label,
+  hint,
+  error,
+  value,
+  onChange,
+  placeholder,
+  vocabulary = [],
+  suggestions = [],
+}: {
+  label?: ReactNode;
+  hint?: ReactNode;
+  error?: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  vocabulary?: string[];
+  suggestions?: string[];
+}) {
+  const id = useId();
+  const exclude = useMemo(() => (value ? [value] : []), [value]);
+  const ta = useTypeahead(vocabulary, value, exclude, onChange);
+  const sugg = value ? [] : suggestions.slice(0, 6);
+  return (
+    <Field label={label} hint={hint} error={error} htmlFor={id}>
+      <div className="relative">
         <input
           id={id}
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => {
-            if ((e.key === 'Enter' || e.key === ',') && draft.trim()) {
-              e.preventDefault();
-              add(draft);
-            } else if (e.key === 'Backspace' && !draft && value.length) onChange(value.slice(0, -1));
+          value={value}
+          placeholder={placeholder}
+          autoComplete="off"
+          aria-invalid={!!error || undefined}
+          className={cx('input', error && 'input-error')}
+          {...ta.ariaProps}
+          onFocus={ta.open}
+          onChange={(e) => {
+            onChange(e.target.value);
+            ta.reset();
           }}
-          onBlur={() => draft.trim() && add(draft)}
-          placeholder={value.length ? '' : placeholder}
-          className="min-w-[120px] flex-1 border-0 bg-transparent p-1 text-[15px] outline-none placeholder:text-ink-400"
+          onKeyDown={(e) => void ta.onKey(e)}
+          onBlur={ta.close}
         />
+        {ta.list}
       </div>
-      {sugg.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {sugg.map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => add(s)}
-              className="chip border border-ink-200 bg-white text-ink-600 hover:border-ink-400 hover:text-ink"
-            >
-              + {s}
-            </button>
-          ))}
-        </div>
-      )}
+      <SuggestionChips items={sugg} onPick={onChange} />
     </Field>
   );
 }

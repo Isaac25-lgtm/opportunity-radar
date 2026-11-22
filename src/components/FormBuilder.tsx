@@ -1,13 +1,31 @@
 import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
-import { ChipSelect, SelectInput, TagInput, TextArea, TextInput, TriState, cx } from './ui';
+import { ChipSelect, SelectInput, SuggestInput, TagInput, TextArea, TextInput, TriState, cx } from './ui';
 
 export type Opt = { value: string; label: string };
+
+/** What a suggestion rule can see: the whole form, and the list item being edited (if any). */
+export type SuggestCtx = { data: Record<string, any>; item?: Record<string, any> };
+type Suggests = {
+  /** Options offered while typing. */
+  vocab?: string[];
+  /** One-click ideas computed from what the person has entered so far. */
+  suggest?: (ctx: SuggestCtx) => string[];
+};
+
 export type FieldDef =
+  | ({
+      key: string;
+      label: string;
+      type: 'text';
+      hint?: string;
+      placeholder?: string;
+      wide?: boolean;
+    } & Suggests)
   | {
       key: string;
       label: string;
-      type: 'text' | 'textarea' | 'month' | 'year';
+      type: 'textarea' | 'month' | 'year';
       hint?: string;
       placeholder?: string;
       wide?: boolean;
@@ -32,15 +50,16 @@ export type FieldDef =
       wide?: boolean;
       placeholder?: string;
     }
-  | {
+  | ({
       key: string;
       label: string;
       type: 'tags';
       hint?: string;
       wide?: boolean;
+      /** Fixed suggestions, used when there is no context rule. */
       suggestions?: string[];
       placeholder?: string;
-    }
+    } & Suggests)
   | { key: string; label: string; type: 'chips'; options: Opt[]; hint?: string; wide?: boolean }
   | { key: string; label: string; type: 'tristate'; hint?: string; wide?: boolean; yes?: string; no?: string }
   | { key: string; label: string; type: 'checkbox'; hint?: string; wide?: boolean }
@@ -63,14 +82,29 @@ export function FieldControl({
   value,
   onChange,
   error,
+  ctx = { data: {} },
 }: {
   f: FieldDef;
   value: any;
   onChange: (v: any) => void;
   error?: string;
+  ctx?: SuggestCtx;
 }) {
   switch (f.type) {
     case 'text':
+      if (f.vocab || f.suggest)
+        return (
+          <SuggestInput
+            label={f.label}
+            hint={f.hint}
+            placeholder={f.placeholder}
+            value={value ?? ''}
+            onChange={onChange}
+            error={error}
+            vocabulary={f.vocab}
+            suggestions={f.suggest?.(ctx)}
+          />
+        );
       return (
         <TextInput
           label={f.label}
@@ -150,7 +184,8 @@ export function FieldControl({
           hint={f.hint}
           value={value ?? []}
           onChange={onChange}
-          suggestions={f.suggestions}
+          suggestions={f.suggest ? f.suggest(ctx) : f.suggestions}
+          vocabulary={f.vocab}
           placeholder={f.placeholder}
         />
       );
@@ -188,7 +223,7 @@ export function FieldControl({
         </label>
       );
     case 'list':
-      return <ListEditor f={f} value={value ?? []} onChange={onChange} />;
+      return <ListEditor f={f} value={value ?? []} onChange={onChange} data={ctx.data} />;
   }
 }
 
@@ -196,10 +231,12 @@ function ListEditor({
   f,
   value,
   onChange,
+  data,
 }: {
   f: Extract<FieldDef, { type: 'list' }>;
   value: any[];
   onChange: (v: any[]) => void;
+  data: Record<string, any>;
 }) {
   const [open, setOpen] = useState<number | null>(value.length ? null : null);
   const update = (i: number, k: string, v: unknown) =>
@@ -264,7 +301,12 @@ function ListEditor({
                       (sf.wide || sf.type === 'textarea' || sf.type === 'tags') && 'sm:col-span-2',
                     )}
                   >
-                    <FieldControl f={sf} value={item[sf.key]} onChange={(v) => update(i, sf.key, v)} />
+                    <FieldControl
+                      f={sf}
+                      value={item[sf.key]}
+                      onChange={(v) => update(i, sf.key, v)}
+                      ctx={{ data, item }}
+                    />
                   </div>
                 ))}
               </div>
@@ -316,6 +358,7 @@ export function FormSections({
                   value={data[f.key]}
                   onChange={(v) => onChange(f.key, v)}
                   error={errors[f.key]}
+                  ctx={{ data }}
                 />
               </div>
             ))}

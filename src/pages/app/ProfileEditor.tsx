@@ -91,15 +91,10 @@ export default function ProfileEditor() {
           )}
         </div>
       </div>
-      {type === 'career' && (
-        <p className="mb-4 text-sm text-ink-500">
-          Have a CV already?{' '}
-          <Link to="/app/cvs/import" className="link">
-            Import it
-          </Link>{' '}
-          to fill this profile for you to review.
-        </p>
-      )}
+      <p className="mb-4 text-sm text-ink-500">
+        Start typing in any field to see options, or click a suggestion to add it. Suggestions update as you
+        fill in more.
+      </p>
       <ErrorAlert error={err} className="mb-4" />
       <FormSections
         sections={PROFILE_SECTIONS[type]}

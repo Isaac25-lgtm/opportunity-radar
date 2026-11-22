@@ -48,7 +48,7 @@ test.describe('public site', () => {
 test.describe('job seeker journey', () => {
   test('sign up, create a career profile and see explained matches', async ({ page }) => {
     await signUp(page);
-    await page.getByRole('button', { name: /Fill in my career profile manually/ }).click();
+    await page.getByRole('button', { name: /Start my career profile/ }).click();
     await expect(page.getByRole('heading', { name: 'Career profile' })).toBeVisible();
     await page.getByLabel('Professional headline').fill('Procurement Officer');
     await page.getByLabel('Nationality').fill('Ugandan');

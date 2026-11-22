@@ -1,4 +1,4 @@
-import { Check, FileUp } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PROFILE_TYPES, type ProfileType } from '../../../shared/constants';
@@ -13,6 +13,9 @@ export default function Onboarding() {
   const nav = useNavigate();
   const [pick, setPick] = useState<ProfileType[]>(['career']);
   const [busy, setBusy] = useState(false);
+  // Start with the first chosen type the plan covers; others can be added later.
+  const allowed = me.plan?.entitlements.profile_types ?? ['career'];
+  const startType = pick.find((t) => allowed.includes(t)) ?? (pick.length ? null : 'career');
   const finish = async (to: string) => {
     setBusy(true);
     await api
@@ -67,21 +70,18 @@ export default function Onboarding() {
         })}
       </div>
       <div className="mt-8 card p-5">
-        <h2 className="font-semibold">Fastest start</h2>
+        <h2 className="font-semibold">Next: tell us about yourself</h2>
         <p className="mt-1 text-sm text-ink-600">
-          Upload your CV and we will extract your experience, education and skills for you to review. Nothing
-          is saved until you confirm.
+          Fill in your details step by step. As you type we suggest job titles, skills, fields of study and
+          services that fit what you have entered, so most answers are one click.
         </p>
-        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-          <Button onClick={() => finish('/app/cvs/import')} loading={busy}>
-            <FileUp className="h-4 w-4" /> Upload my CV
-          </Button>
+        <div className="mt-4">
           <Button
-            variant="secondary"
-            disabled={!pick.length || busy}
-            onClick={() => finish(`/app/profiles/${pick[0]}`)}
+            disabled={busy}
+            loading={busy}
+            onClick={() => finish(startType ? `/app/profiles/${startType}` : '/pricing')}
           >
-            Fill in my {pick[0] ?? 'career'} profile manually
+            {startType ? `Start my ${startType} profile` : 'See plans'}
           </Button>
         </div>
       </div>

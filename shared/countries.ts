@@ -345,3 +345,22 @@ export function sameRegion(a: string, b: string): boolean {
   const ra = REGION.get(canonicalCountry(a));
   return !!ra && ra === REGION.get(canonicalCountry(b));
 }
+
+const SMALL_WORDS = new Set(['and', 'of', 'the']);
+const SPECIAL_NAMES: Record<string, string> = {
+  "cote d'ivoire": "Côte d'Ivoire",
+  'sao tome and principe': 'São Tomé and Príncipe',
+  'guinea-bissau': 'Guinea-Bissau',
+  'timor-leste': 'Timor-Leste',
+};
+
+/** All countries in their usual written form ("United Kingdom", "Côte d'Ivoire"), sorted. */
+export function worldCountryNames(): string[] {
+  return COUNTRIES.map(([name]) => {
+    if (SPECIAL_NAMES[name]) return SPECIAL_NAMES[name];
+    return name
+      .split(' ')
+      .map((w, i) => (i > 0 && SMALL_WORDS.has(w) ? w : w[0].toUpperCase() + w.slice(1)))
+      .join(' ');
+  }).sort((a, b) => a.localeCompare(b));
+}
