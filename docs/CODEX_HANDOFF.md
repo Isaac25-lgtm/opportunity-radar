@@ -11,8 +11,8 @@ Date: 22 November 2026 · Production: https://opportunity-radar.omodingisaac123.
 | Latest commits      | `21a3270` visual refresh · `07bd191` photo hero · `3dc0d41` USD segments + countries ·      |
 |                     | `6323736` 15-person check + relevance fixes · `c765ee2` scripts + docs                      |
 | Main branch for PRs | `release/v1.0`. The branch is **not merged yet**; open a PR when the owner agrees.          |
-| Live Worker version | `188059c4-f650-467d-82b2-8b7dfb9ed7bd` at 100%                                              |
-| Rollback version    | `89bdb22a-5373-40d9-b8db-fa90406df00d` (visual refresh, before USD plans)                   |
+| Live Worker version | `88b992c9-8ba7-46be-94d9-c018b7e24eb5` at 100%                                              |
+| Rollback version    | `188059c4-f650-467d-82b2-8b7dfb9ed7bd` (USD plans, before guided entry)                     |
 | Migrations          | `0004_usd_plan_segments.sql` applied to production (additive)                               |
 | Sample CVs          | `C:\Users\USER\Documents\ChatGPT\CV builder\sample-cvs\` (10 PDFs + PNGs, fictional people) |
 
@@ -32,6 +32,32 @@ Date: 22 November 2026 · Production: https://opportunity-radar.omodingisaac123.
    add what you think i missed"
 6. "after checking how each CV works i want to see samples"
 7. "allow everything": production migration and deploy approved.
+
+## 2b. Later requests in this session (in the owner's words)
+
+8. "put the pricing on the landing page": the home page shows the plan cards before the FAQ. `PlanCards` in
+   `src/components/PlanCards.tsx` is shared with the Pricing page, so the two never disagree.
+9. "go through the mobile view well - the hero section epsecially". On phones:
+   - the photo overlay darkens evenly so the photo shows;
+   - the CV picture is centred and cropped with a fade, under the match card;
+   - spacing is tighter and the source strip sits on two lines;
+   - the templates become a swipeable row.
+10. "clients have to enter details not upload stuff … when they create a profile they have to enter details but most
+    importantly the system has to give suggestions so that they can click on them". Guided entry:
+    - **Rules and vocabularies:** `shared/suggestions.ts` has the lists (job titles, skills, industries, fields of
+      study, research interests, company services and products, certifications, licences, buyers, languages, every
+      country). Its rules read the form so far:
+      - Civil Engineer → AutoCAD, Road design;
+      - Economics → Public finance;
+      - a solar company's description → Solar installation.
+    - **Family detection:** role families come from job titles first, so a skill word ("Road design") can't switch
+      them. Description keywords describe what a company does, not its customers.
+    - **Inputs:** `TagInput` and `SuggestInput` in `src/components/ui.tsx` offer an ARIA combobox type-ahead and
+      "Suggested" chips. Enter keeps the typed text unless an option was chosen with the arrow keys.
+    - **Forms:** `FieldDef` takes `vocab` and `suggest(ctx)`. All three forms are wired in `profileConfigs.ts`, and the
+      Uganda-only lists were replaced.
+    - **Onboarding:** leads into filling in the profile. CV import remains on the CVs page only.
+    - **Tests:** `tests/unit/suggestions.test.ts`.
 
 ## 3. Plans are segments (new)
 
@@ -124,7 +150,7 @@ Date: 22 November 2026 · Production: https://opportunity-radar.omodingisaac123.
 
 | Check                                                                   | Result                                         |
 | ----------------------------------------------------------------------- | ---------------------------------------------- |
-| `npx vitest run`                                                        | 219 passed (10 files, incl. 76 persona checks) |
+| `npx vitest run`                                                        | 227 passed (11 files, incl. 76 persona checks) |
 | `npx playwright test` against `wrangler dev`                            | 15 passed, 3 skipped (intentional)             |
 | Route sweep: 47 routes × desktop + phone, visitor/user/admin            | 0 errors, 0 failed requests, 0 overflow        |
 | Typecheck, ESLint, Prettier                                             | Clean                                          |
