@@ -10,9 +10,9 @@ Date: 22 November 2026 · Production: https://opportunity-radar.omodingisaac123.
 | Working branch      | `design/professional-refresh` (pushed), based on `audit/release-v1.0` @ `fdf5fdb`           |
 | Latest commits      | `21a3270` visual refresh · `07bd191` photo hero · `3dc0d41` USD segments + countries ·      |
 |                     | `6323736` 15-person check + relevance fixes · `c765ee2` scripts + docs                      |
-| Main branch for PRs | `release/v1.0`. The branch is **not merged yet**; open a PR when the owner agrees.          |
-| Live Worker version | `b07db1fa-b250-4732-849e-507898a881cb` at 100%                                              |
-| Rollback version    | `8fa862f0-1903-4595-ab73-afa19a840777` (worldwide, before Google sign-in)                   |
+| Main branch         | `main` on GitHub; all work is pushed there                                                  |
+| Live Worker version | `2a80ba45-0504-4563-b791-95e6880325eb` at 100% (audit fixes + AI hook, AI off)              |
+| Rollback version    | `aa2fe894-7b2a-4b61-8110-7f4af514ba7a` (international examples, before the audit)           |
 | Migrations          | `0004_usd_plan_segments.sql` applied to production (additive)                               |
 | Sample CVs          | `C:\Users\USER\Documents\ChatGPT\CV builder\sample-cvs\` (10 PDFs + PNGs, fictional people) |
 

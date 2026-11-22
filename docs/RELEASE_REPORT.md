@@ -105,6 +105,15 @@ https://opportunity-radar.omodingisaac123.workers.dev
 
 ## 12. Deployed version
 
+Latest: Worker version `2a80ba45-0504-4563-b791-95e6880325eb` (commit `2404870`): the reviewed Codex audit fixes,
+the AI provider hook for the Python service (AI stays off: `AI_PROVIDER` is not set), and PDF import on older
+browsers. No migrations. Preview smoke-tested (health; 11-step signed-in smoke, account deleted; public Playwright
+5 passed / 1 skipped), promoted, public suite re-run on production: 5 passed, 1 skipped.
+
+Rollback: `npx wrangler versions deploy aa2fe894-7b2a-4b61-8110-7f4af514ba7a@100% --yes`.
+
+Earlier release:
+
 Worker version `b07db1fa-b250-4732-849e-507898a881cb` (commit `3930d49`): Google sign-in (built, switched off until
 keys are set), a natural photo panel on sign-in/sign-up, the plain-language How it works page and plain labels across
 the app. Migration `0006_user_identities.sql` (additive table) applied to production. Preview smoke-tested (health;
