@@ -1,10 +1,44 @@
 import { CheckCircle2 } from 'lucide-react';
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
-import { Alert, Button, ErrorAlert, TextInput, useLoad } from '../../components/ui';
+import { Alert, Button, ErrorAlert, TextInput, cx, useLoad } from '../../components/ui';
 import { api, ApiError } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
 import { safeNext } from '../../lib/redirect';
+
+/** One photo per kind of member (job seekers, students, companies), cross-fading slowly. */
+const AUTH_PHOTOS = [
+  '/photos/card-career-bg.webp',
+  '/photos/card-academic-bg.webp',
+  '/photos/card-business-bg.webp',
+];
+
+function AuthPhotos() {
+  const [index, setIndex] = useState(0);
+  useEffect(() => {
+    // Respect "reduce motion": keep the first photo still.
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const t = window.setInterval(() => setIndex((i) => (i + 1) % AUTH_PHOTOS.length), 6000);
+    return () => window.clearInterval(t);
+  }, []);
+  return (
+    <div className="absolute inset-0 -z-10" aria-hidden>
+      {AUTH_PHOTOS.map((src, i) => (
+        <img
+          key={src}
+          src={src}
+          alt=""
+          decoding="async"
+          loading={i === 0 ? 'eager' : 'lazy'}
+          className={cx(
+            'absolute inset-0 h-full w-full object-cover transition-[opacity,transform] duration-[1400ms] ease-out',
+            i === index ? 'scale-100 opacity-100' : 'scale-[1.04] opacity-0',
+          )}
+        />
+      ))}
+    </div>
+  );
+}
 
 function Shell({ title, subtitle, children }: { title: string; subtitle?: ReactNode; children: ReactNode }) {
   return (
@@ -18,11 +52,7 @@ function Shell({ title, subtitle, children }: { title: string; subtitle?: ReactN
           </div>
           {/* A real photo with a soft fade only where the text sits, instead of a flat black panel. */}
           <div className="relative isolate hidden min-h-[560px] flex-col justify-end overflow-hidden p-10 text-white md:flex">
-            <img
-              src="/photos/card-career-bg.webp"
-              alt=""
-              className="absolute inset-0 -z-10 h-full w-full object-cover"
-            />
+            <AuthPhotos />
             <div
               className="absolute inset-0 -z-10 bg-gradient-to-t from-black/80 via-black/35 to-transparent"
               aria-hidden
