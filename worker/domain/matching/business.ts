@@ -13,6 +13,7 @@ import {
   type MatchResult,
   type Weights,
   OFF_TOPIC_CAP,
+  placeCovers,
 } from './common';
 
 const fmtUgx = (n: number) => `UGX ${n.toLocaleString('en-US')}`;
@@ -172,8 +173,9 @@ export function matchBusiness(
   const oc = canonicalCountry(o.country);
   const geos = [...p.operating_locations, ...p.preferred_geographies, p.registration_country].filter(Boolean);
   if (geos.length && oc) {
+    // Places can be "Worldwide", regions or countries; towns are matched against the stated location.
     const hit = geos.some(
-      (g) => canonicalCountry(g) === oc || (o.location ? containsTerm(norm(o.location), g) : false),
+      (g) => placeCovers(g, oc) || (o.location ? containsTerm(norm(o.location), g) : false),
     );
     const near = geos.some((g) => sameRegion(g, oc));
     ev.component('geography', w.geography, hit ? 1 : near ? 0.5 : 0.15);

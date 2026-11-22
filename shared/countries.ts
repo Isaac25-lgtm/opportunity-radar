@@ -13,7 +13,7 @@ type Region = 'NAF' | 'EAF' | 'WAF' | 'MAF' | 'SAF' | 'EUR' | 'ME' | 'AS' | 'OC'
 const COUNTRIES: Array<[string, Region, string[]]> = [
   // Africa
   ['algeria', 'NAF', ['algerian']],
-  ['egypt', 'NAF', ['egyptian']],
+  ['egypt', 'NAF', ['egyptian', 'egypt, arab republic of']],
   ['libya', 'NAF', ['libyan']],
   ['morocco', 'NAF', ['moroccan']],
   ['tunisia', 'NAF', ['tunisian']],
@@ -40,7 +40,7 @@ const COUNTRIES: Array<[string, Region, string[]]> = [
   ['burkina faso', 'WAF', ['burkinabe', 'burkinabé']],
   ['cabo verde', 'WAF', ['cape verde', 'cape verdean', 'cabo verdean']],
   ["cote d'ivoire", 'WAF', ['ivory coast', 'ivorian', 'côte d’ivoire', "côte d'ivoire", 'cote d’ivoire']],
-  ['gambia', 'WAF', ['the gambia', 'gambian']],
+  ['gambia', 'WAF', ['the gambia', 'gambian', 'gambia, the']],
   ['ghana', 'WAF', ['ghanaian']],
   ['guinea', 'WAF', ['guinean']],
   ['guinea-bissau', 'WAF', ['guinea bissau', 'bissau-guinean']],
@@ -56,7 +56,7 @@ const COUNTRIES: Array<[string, Region, string[]]> = [
   ['cameroon', 'MAF', ['cameroonian']],
   ['central african republic', 'MAF', ['car', 'central african']],
   ['chad', 'MAF', ['chadian']],
-  ['congo', 'MAF', ['republic of the congo', 'congo-brazzaville', 'congo brazzaville']],
+  ['congo', 'MAF', ['republic of the congo', 'congo-brazzaville', 'congo brazzaville', 'congo, republic of']],
   [
     'democratic republic of the congo',
     'MAF',
@@ -109,7 +109,7 @@ const COUNTRIES: Array<[string, Region, string[]]> = [
   ['russia', 'EUR', ['russian', 'russian federation']],
   ['san marino', 'EUR', ['sammarinese']],
   ['serbia', 'EUR', ['serbian']],
-  ['slovakia', 'EUR', ['slovak']],
+  ['slovakia', 'EUR', ['slovak', 'slovak republic']],
   ['slovenia', 'EUR', ['slovenian', 'slovene']],
   ['spain', 'EUR', ['spanish', 'spaniard']],
   ['sweden', 'EUR', ['swedish', 'swede']],
@@ -122,20 +122,20 @@ const COUNTRIES: Array<[string, Region, string[]]> = [
   ],
   // Middle East
   ['bahrain', 'ME', ['bahraini']],
-  ['iran', 'ME', ['iranian']],
+  ['iran', 'ME', ['iranian', 'iran, islamic republic of']],
   ['iraq', 'ME', ['iraqi']],
   ['israel', 'ME', ['israeli']],
   ['jordan', 'ME', ['jordanian']],
   ['kuwait', 'ME', ['kuwaiti']],
   ['lebanon', 'ME', ['lebanese']],
   ['oman', 'ME', ['omani']],
-  ['palestine', 'ME', ['palestinian', 'state of palestine']],
+  ['palestine', 'ME', ['palestinian', 'state of palestine', 'west bank and gaza']],
   ['qatar', 'ME', ['qatari']],
   ['saudi arabia', 'ME', ['saudi', 'saudi arabian']],
-  ['syria', 'ME', ['syrian']],
+  ['syria', 'ME', ['syrian', 'syrian arab republic']],
   ['turkey', 'ME', ['turkish', 'turkiye', 'türkiye']],
   ['united arab emirates', 'ME', ['uae', 'emirati']],
-  ['yemen', 'ME', ['yemeni']],
+  ['yemen', 'ME', ['yemeni', 'yemen, republic of']],
   // Asia
   ['afghanistan', 'AS', ['afghan']],
   ['armenia', 'AS', ['armenian']],
@@ -150,18 +150,18 @@ const COUNTRIES: Array<[string, Region, string[]]> = [
   ['indonesia', 'AS', ['indonesian']],
   ['japan', 'AS', ['japanese']],
   ['kazakhstan', 'AS', ['kazakh', 'kazakhstani']],
-  ['kyrgyzstan', 'AS', ['kyrgyz']],
-  ['laos', 'AS', ['lao', 'laotian']],
+  ['kyrgyzstan', 'AS', ['kyrgyz', 'kyrgyz republic']],
+  ['laos', 'AS', ['lao', 'laotian', 'lao pdr', "lao people's democratic republic"]],
   ['malaysia', 'AS', ['malaysian']],
   ['maldives', 'AS', ['maldivian']],
   ['mongolia', 'AS', ['mongolian']],
   ['myanmar', 'AS', ['burmese', 'burma']],
   ['nepal', 'AS', ['nepali', 'nepalese']],
-  ['north korea', 'AS', ['north korean']],
+  ['north korea', 'AS', ['north korean', "korea, democratic people's republic of"]],
   ['pakistan', 'AS', ['pakistani']],
   ['philippines', 'AS', ['filipino', 'philippine']],
   ['singapore', 'AS', ['singaporean']],
-  ['south korea', 'AS', ['korea', 'korean', 'south korean', 'republic of korea']],
+  ['south korea', 'AS', ['korea', 'korean', 'south korean', 'republic of korea', 'korea, republic of']],
   ['sri lanka', 'AS', ['sri lankan']],
   ['taiwan', 'AS', ['taiwanese']],
   ['tajikistan', 'AS', ['tajik']],
@@ -169,13 +169,13 @@ const COUNTRIES: Array<[string, Region, string[]]> = [
   ['timor-leste', 'AS', ['east timor', 'timorese']],
   ['turkmenistan', 'AS', ['turkmen']],
   ['uzbekistan', 'AS', ['uzbek']],
-  ['vietnam', 'AS', ['vietnamese', 'viet nam']],
+  ['vietnam', 'AS', ['vietnamese', 'viet nam', 'vietnam, socialist republic of']],
   // Oceania
   ['australia', 'OC', ['australian']],
   ['fiji', 'OC', ['fijian']],
   ['kiribati', 'OC', ['i-kiribati']],
   ['marshall islands', 'OC', ['marshallese']],
-  ['micronesia', 'OC', ['micronesian']],
+  ['micronesia', 'OC', ['micronesian', 'micronesia, federated states of']],
   ['nauru', 'OC', ['nauruan']],
   ['new zealand', 'OC', ['new zealander', 'kiwi']],
   ['palau', 'OC', ['palauan']],
@@ -207,9 +207,9 @@ const COUNTRIES: Array<[string, Region, string[]]> = [
   ['peru', 'LAM', ['peruvian']],
   ['suriname', 'LAM', ['surinamese']],
   ['uruguay', 'LAM', ['uruguayan']],
-  ['venezuela', 'LAM', ['venezuelan']],
+  ['venezuela', 'LAM', ['venezuelan', 'venezuela, rb']],
   ['antigua and barbuda', 'CAR', ['antiguan']],
-  ['bahamas', 'CAR', ['the bahamas', 'bahamian']],
+  ['bahamas', 'CAR', ['the bahamas', 'bahamian', 'bahamas, the']],
   ['barbados', 'CAR', ['barbadian', 'bajan']],
   ['cuba', 'CAR', ['cuban']],
   ['dominica', 'CAR', ['dominican (dominica)']],
@@ -302,6 +302,9 @@ const GROUPS: Array<[string[], (c: string) => boolean]> = [
   [['asia', 'asia-pacific', 'asia pacific'], (c) => inRegions(c, ['AS', 'OC'])],
   [['latin america', 'latin america and the caribbean', 'lac'], (c) => inRegions(c, ['LAM', 'CAR'])],
   [['caribbean'], (c) => inRegions(c, ['CAR'])],
+  [['north america', 'northern america'], (c) => inRegions(c, ['NAM'])],
+  [['americas', 'the americas'], (c) => inRegions(c, ['NAM', 'LAM', 'CAR'])],
+  [['oceania', 'pacific', 'pacific islands'], (c) => inRegions(c, ['OC'])],
 ]; // prettier-ignore
 
 const GROUP_INDEX = new Map<string, (c: string) => boolean>();
@@ -363,4 +366,100 @@ export function worldCountryNames(): string[] {
       .map((w, i) => (i > 0 && SMALL_WORDS.has(w) ? w : w[0].toUpperCase() + w.slice(1)))
       .join(' ');
   }).sort((a, b) => a.localeCompare(b));
+}
+
+/** Regions people can choose as "where I want opportunities from", in display form. */
+export const REGION_CHOICES = [
+  'Worldwide',
+  'Africa',
+  'East Africa',
+  'West Africa',
+  'Southern Africa',
+  'Central Africa',
+  'North Africa',
+  'Europe',
+  'European Union',
+  'Middle East',
+  'Asia',
+  'Oceania',
+  'North America',
+  'Latin America and the Caribbean',
+  'Commonwealth',
+];
+
+const WORLDWIDE = new Set([
+  'worldwide',
+  'anywhere',
+  'global',
+  'international',
+  'any country',
+  'all countries',
+]);
+
+export const isWorldwide = (place: string) => WORLDWIDE.has(norm(place));
+
+/**
+ * Does a location preference ("Worldwide", a region such as "West Africa", or a country) cover a country?
+ * Unknown or empty countries are only covered by Worldwide.
+ */
+export function placeCovers(preference: string, country: string): boolean {
+  if (isWorldwide(preference)) return true;
+  const c = canonicalCountry(country);
+  if (!REGION.has(c)) return false;
+  const group = GROUP_INDEX.get(norm(preference));
+  if (group) return group(c);
+  return canonicalCountry(preference) === c;
+}
+
+/** The region a country belongs to, as one of REGION_CHOICES (for "nearby" suggestions). */
+export function regionOf(country: string): string | null {
+  const r = REGION.get(canonicalCountry(country));
+  if (!r) return null;
+  if (r === 'EAF') return isEastAfrican(country) ? 'East Africa' : 'Southern Africa';
+  const names: Record<Region, string> = {
+    NAF: 'North Africa', EAF: 'East Africa', WAF: 'West Africa', MAF: 'Central Africa', SAF: 'Southern Africa',
+    EUR: 'Europe', ME: 'Middle East', AS: 'Asia', OC: 'Oceania', NAM: 'North America',
+    LAM: 'Latin America and the Caribbean', CAR: 'Latin America and the Caribbean',
+  }; // prettier-ignore
+  return names[r];
+}
+
+/**
+ * Notices for regional projects name a region instead of a country (World Bank style). These labels are
+ * included when filtering by the broader region they belong to.
+ */
+const REGIONAL_LABELS: Record<string, string[]> = {
+  africa: ['africa', 'eastern and southern africa', 'western and central africa', 'central africa', 'east africa', 'west africa', 'southern africa', 'sub-saharan africa', 'north africa'],
+  'east africa': ['east africa', 'eastern africa', 'eastern and southern africa'],
+  'west africa': ['west africa', 'western africa', 'western and central africa'],
+  'southern africa': ['southern africa', 'eastern and southern africa'],
+  'central africa': ['central africa', 'western and central africa'],
+  'north africa': ['north africa', 'middle east and north africa'],
+  europe: ['europe', 'europe and central asia', 'western balkans'],
+  'middle east': ['middle east', 'middle east and north africa'],
+  asia: ['asia', 'east asia and pacific', 'south asia', 'central asia', 'europe and central asia'],
+  oceania: ['pacific islands', 'east asia and pacific'],
+  'latin america and the caribbean': ['latin america', 'latin america and caribbean', 'caribbean', 'central america'],
+}; // prettier-ignore
+
+/**
+ * Every lower-case name a source might use for the countries a region covers (names, aliases and regional
+ * labels), for database filters. Returns null for Worldwide (no filter) or an unknown place.
+ */
+export function countryNamesIn(region: string): string[] | null {
+  if (isWorldwide(region)) return null;
+  const key = norm(region);
+  const group = GROUP_INDEX.get(key);
+  let covered: (c: string) => boolean;
+  if (group) covered = group;
+  else {
+    const c = canonicalCountry(region);
+    if (!REGION.has(c)) return null;
+    covered = (x) => x === c;
+  }
+  const names = new Set<string>(REGIONAL_LABELS[key] ?? []);
+  for (const [alias, country] of BY_KEY) if (covered(country)) names.add(alias);
+  for (const display of worldCountryNames())
+    if (covered(canonicalCountry(display))) names.add(display.toLowerCase());
+  return [...names];
 }

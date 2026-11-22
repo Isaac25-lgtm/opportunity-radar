@@ -167,6 +167,6 @@ test.describe('admin console', () => {
     await page.getByRole('button', { name: 'Sign in' }).click();
     await expect(page.getByRole('heading', { name: 'Admin overview' })).toBeVisible();
     await page.getByRole('navigation', { name: 'Admin' }).getByRole('link', { name: 'Sources' }).click();
-    await expect(page.getByText('World Bank procurement notices (East Africa)')).toBeVisible();
+    await expect(page.getByText('World Bank procurement notices (worldwide)')).toBeVisible();
   });
 });

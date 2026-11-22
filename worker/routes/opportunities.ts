@@ -10,6 +10,7 @@ import { requireUser } from '../lib/auth';
 import { badRequest, notFound } from '../lib/http';
 import { getConfig, getWeights, planForProfileType, userPlan } from '../lib/store';
 import { allowsProfileType } from '../../shared/entitlements';
+import { countryNamesIn } from '../../shared/countries';
 import { clampInt, nowIso, parseJson } from '../lib/util';
 import { scoreRows, toMatchOpportunity, toProfileRecord } from '../domain/feed';
 import { matchProfile, rankMatches } from '../domain/matching';
@@ -47,6 +48,15 @@ opportunityRoutes.get('/', async (c) => {
     const term = `%${q.q.slice(0, 80).replace(/[%_]/g, '')}%`;
     where.push('(o.title LIKE ? OR o.organization LIKE ? OR o.summary LIKE ? OR o.location LIKE ?)');
     binds.push(term, term, term, term);
+  }
+  // Region: "remote", a region such as "West Africa" or "Europe", or a country. Empty means worldwide.
+  if (q.region === 'remote') where.push("o.remote = 'remote'");
+  else if (q.region) {
+    const names = countryNamesIn(q.region.slice(0, 80));
+    if (names) {
+      where.push('LOWER(o.country) IN (SELECT value FROM json_each(?))');
+      binds.push(JSON.stringify(names));
+    }
   }
   if (q.country) {
     where.push('(o.country = ? OR o.location LIKE ?)');

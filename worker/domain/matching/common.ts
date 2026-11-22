@@ -207,7 +207,13 @@ export function phraseSimilarity(candidates: string[], target: string): { value:
 }
 
 // Country names, demonyms and groups live in shared/countries so the client and Worker agree.
-export { canonicalCountry, countryEligibility, isEastAfrican, sameRegion } from '../../../shared/countries';
+export {
+  canonicalCountry,
+  countryEligibility,
+  isEastAfrican,
+  placeCovers,
+  sameRegion,
+} from '../../../shared/countries';
 
 export function yearsFromExperience(
   items: Array<{ start?: string; end?: string; current?: boolean }>,

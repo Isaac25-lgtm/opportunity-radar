@@ -13,6 +13,7 @@ import {
   type Weights,
   fieldSimilarity,
   OFF_TOPIC_CAP,
+  placeCovers,
 } from './common';
 
 /** Qualification normally required before entering each target level. */
@@ -178,9 +179,9 @@ export function matchAcademic(
   // Destination
   const dest = canonicalCountry(o.country);
   if (p.preferred_countries.length && dest) {
-    const hit = p.preferred_countries.some((c) => canonicalCountry(c) === dest);
+    const hit = p.preferred_countries.some((pref) => placeCovers(pref, dest));
     ev.component('destination', w.destination, hit ? 1 : 0.3);
-    if (hit) ev.reason('Destination', `${o.country} is one of your preferred study countries.`);
+    if (hit) ev.reason('Destination', `${o.country} is within where you want to study.`);
   } else ev.component('destination', w.destination, null);
 
   // Language

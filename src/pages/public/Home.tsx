@@ -2,6 +2,7 @@ import {
   BadgeCheck,
   Bell,
   CircleCheck,
+  Globe2,
   LayoutTemplate,
   ListChecks,
   Scale,
@@ -53,6 +54,19 @@ const PROFILES = [
     img: '/product/card-business.jpg',
     text: 'Tenders, RFPs, RFQs, EOIs and business grants, with registration, turnover and certification requirements flagged clearly.',
   },
+];
+
+/** Region chips on the home page: label and the feed filter they open ('' means everything). */
+const WORLD_CHOICES: Array<[string, string]> = [
+  ['Worldwide', ''],
+  ['Africa', 'Africa'],
+  ['Europe', 'Europe'],
+  ['Middle East', 'Middle East'],
+  ['Asia', 'Asia'],
+  ['North America', 'North America'],
+  ['Latin America', 'Latin America and the Caribbean'],
+  ['Oceania', 'Oceania'],
+  ['Remote', 'remote'],
 ];
 
 const FEATURES: Array<[LucideIcon, string, string]> = [
@@ -117,6 +131,10 @@ const FAQS: Array<[string, string]> = [
     'Yes. Browsing is free, and the Free plan gives you one career profile, one CV, PDF export and weekly job matches. Paid plans are $10 a month for jobs, $15 for jobs and scholarships, and $25 to add tenders and contracts for your company.',
   ],
   [
+    'Can I choose which countries or regions I see?',
+    'Yes. Opportunity Radar is worldwide. In your profile you choose Worldwide, one or more regions such as West Africa, Europe or Asia, or specific countries, and matches are ranked to fit. You can also filter any list by region or country.',
+  ],
+  [
     'Where do the opportunities come from?',
     'From official sources such as the World Bank procurement portal and Grants.gov, recognised job platforms, and listings our administrators verify against official pages. Each listing shows its source and verification label.',
   ],
@@ -158,14 +176,17 @@ export default function Home() {
         <HeroSlideshow slides={HERO_SLIDES} />
         <div className="container-page relative grid items-center gap-12 pb-14 pt-20 sm:gap-14 sm:pb-20 sm:pt-28 lg:grid-cols-[1.08fr_1fr] lg:pb-24">
           <div className="min-w-0">
+            <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[13px] font-medium text-white backdrop-blur">
+              <Globe2 className="h-4 w-4" aria-hidden /> Worldwide: any country or region
+            </p>
             <h1 className="text-balance text-[40px] font-semibold leading-[1.05] tracking-display text-white sm:text-[54px]">
               The professional CV builder that also{' '}
               <span className="text-white/55">finds your next opportunity</span>
             </h1>
             <p className="mt-5 max-w-xl text-[16px] leading-relaxed text-white/75 sm:mt-6 sm:text-[17px] sm:text-white/70">
               Create one profile. Opportunity Radar turns it into an ATS-ready CV, checks official sources
-              every six hours for jobs, scholarships, grants and tenders, and tells you honestly how well each
-              one fits, before the deadline.
+              around the world every six hours for jobs, scholarships, grants and tenders, and tells you
+              honestly how well each one fits, before the deadline.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:mt-9 sm:flex-row">
               <Link to={start} className="btn btn-lg bg-white text-ink hover:bg-ink-100">
@@ -235,17 +256,17 @@ export default function Home() {
                 'Opportunities from official portals, recognised job platforms and administrator-verified listings'
               )}
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-2 lg:flex-nowrap lg:justify-end">
+            <div className="flex flex-wrap items-center justify-center gap-2 lg:justify-end">
               {owners.map((owner) => (
                 <span
                   key={owner}
-                  className="rounded-full border border-white/15 px-3 py-1 text-[12.5px] text-white/75"
+                  className="whitespace-nowrap rounded-full border border-white/15 px-3 py-1 text-[12.5px] text-white/75"
                 >
                   {owner}
                 </span>
               ))}
               {hasCurated && (
-                <span className="rounded-full border border-white/15 px-3 py-1 text-[12.5px] text-white/75">
+                <span className="whitespace-nowrap rounded-full border border-white/15 px-3 py-1 text-[12.5px] text-white/75">
                   Admin-verified listings
                 </span>
               )}
@@ -256,6 +277,35 @@ export default function Home() {
                 See all sources →
               </Link>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* WORLDWIDE */}
+      <section className="border-b border-line bg-white py-16">
+        <div className="container-page grid items-center gap-8 lg:grid-cols-[0.9fr_1.1fr]">
+          <div>
+            <p className="eyebrow flex items-center gap-2">
+              <Globe2 className="h-4 w-4" aria-hidden /> Worldwide
+            </p>
+            <h2 className="mt-2 text-[28px] font-medium leading-tight sm:text-[34px]">
+              Opportunities from anywhere in the world
+            </h2>
+            <p className="mt-3 text-[16px] text-ink-500">
+              Choose Worldwide, a region, or the countries you care about. Your matches follow your choice,
+              and every list can be filtered the same way.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {WORLD_CHOICES.map(([label, region]) => (
+              <Link
+                key={label}
+                to={region ? `/opportunities?region=${encodeURIComponent(region)}` : '/opportunities'}
+                className="rounded-full border border-line bg-white px-4 py-2 text-[14.5px] font-medium text-ink shadow-soft transition-colors hover:border-ink-300 hover:bg-ink-50"
+              >
+                {label}
+              </Link>
+            ))}
           </div>
         </div>
       </section>

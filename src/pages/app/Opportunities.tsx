@@ -26,6 +26,7 @@ import {
 import { api, qs } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
 import { SEGMENT_LABELS } from '../../../shared/entitlements';
+import { REGION_CHOICES } from '../../../shared/countries';
 
 type Feed = {
   items: OppSummary[];
@@ -52,6 +53,7 @@ export default function Opportunities({ publicMode = false }: { publicMode?: boo
     view,
     q: sp.get('q') ?? '',
     category: sp.get('category') ?? '',
+    region: sp.get('region') ?? '',
     country: sp.get('country') ?? '',
     remote: sp.get('remote') ?? '',
     verification: sp.get('verification') ?? '',
@@ -110,6 +112,16 @@ export default function Opportunities({ publicMode = false }: { publicMode?: boo
         onChange={(e) => set('category', e.target.value)}
         placeholder="All categories"
         options={cats.map((c) => ({ value: c, label: CATEGORY_LABELS[c] }))}
+      />
+      <SelectInput
+        label="Where"
+        value={params.region}
+        onChange={(e) => set('region', e.target.value)}
+        placeholder="Worldwide"
+        options={[
+          { value: 'remote', label: 'Remote only' },
+          ...REGION_CHOICES.filter((r) => r !== 'Worldwide').map((r) => ({ value: r, label: r })),
+        ]}
       />
       <TextInput
         key={params.country}

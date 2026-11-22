@@ -1,7 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { extractRequirements } from '../../worker/domain/ingestion/extract';
-import { mapGrantsGov, mapWorldBankNotice } from '../../worker/domain/ingestion/connectors/official';
+import {
+  mapGrantsGov,
+  mapWorldBankNotice,
+  worldBankConnector,
+} from '../../worker/domain/ingestion/connectors/official';
 import {
   mapLever,
   mapRemotive,
@@ -18,6 +22,31 @@ import {
 } from '../../worker/domain/ingestion/normalize';
 
 const fx = (n: string) => JSON.parse(readFileSync(`tests/fixtures/${n}`, 'utf8'));
+
+describe('World Bank connector coverage', () => {
+  const run = async (config: Record<string, unknown>) => {
+    const urls: string[] = [];
+    const fetcher = (async (url: string) => {
+      urls.push(String(url));
+      return new Response(JSON.stringify({ procnotices: [] }));
+    }) as unknown as typeof fetch;
+    await worldBankConnector.fetch({} as any, config, { env: {} as any, fetcher, now: new Date() });
+    return urls;
+  };
+  it('worldwide mode makes one request with no country filter', async () => {
+    const urls = await run({ worldwide: true, rows: 100 });
+    expect(urls).toHaveLength(1);
+    expect(urls[0]).not.toContain('project_ctry_name_exact');
+    expect(urls[0]).toContain('rows=100');
+  });
+  it('country mode makes one request per listed country', async () => {
+    const urls = await run({ countries: ['Kenya', 'Ghana'] });
+    expect(urls.map((u) => new URL(u).searchParams.get('project_ctry_name_exact'))).toEqual([
+      'Kenya',
+      'Ghana',
+    ]);
+  });
+});
 
 describe('World Bank connector mapping (real fixture)', () => {
   const notices = fx('worldbank-uganda.json').procnotices as any[];

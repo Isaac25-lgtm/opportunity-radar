@@ -3,7 +3,7 @@
  * entered so far and propose what usually goes with it ("Civil Engineer" → AutoCAD, Road design, …).
  * Suggestions are only offered; nothing is added to a profile unless the person clicks it.
  */
-import { canonicalCountry, worldCountryNames } from './countries';
+import { REGION_CHOICES, canonicalCountry, regionOf, worldCountryNames } from './countries';
 
 type Family = {
   /** Lower-case fragments that identify the family in titles, headlines, skills or industries. */
@@ -285,8 +285,6 @@ export const suggestCareer = {
       (d.certifications ?? []).map((c: any) => c?.name),
       careerFamilies(d).flatMap((f) => f.certifications ?? []),
     ),
-  preferredCountries: (d: Data) =>
-    fresh(d.preferred_countries, [d.country, d.nationality].filter(Boolean).map(displayCountry)),
 };
 
 const academicText = (d: Data) =>
@@ -328,8 +326,6 @@ export const suggestAcademic = {
   },
   fieldOfStudy: (d: Data) =>
     [...new Set([...(d.qualifications ?? []).map((q: any) => q?.field).filter(Boolean)])].slice(0, 4),
-  preferredCountries: (d: Data) =>
-    fresh(d.preferred_countries, ['United Kingdom', 'Germany', 'Canada', 'United States', 'Netherlands', 'Australia', 'Sweden', 'France']), // prettier-ignore
 };
 
 const businessText = (d: Data) =>
@@ -358,13 +354,24 @@ export const suggestBusiness = {
       'ISO 9001',
     ]),
   licences: (d: Data) => fresh(d.licenses, LICENCES.slice(0, 4)),
-  geographies: (d: Data) =>
-    fresh(
-      d.preferred_geographies,
-      [...(d.operating_locations ?? []), d.registration_country].filter(Boolean),
-    ),
   buyers: (d: Data) => fresh(d.preferred_buyers, BUYERS),
 };
+
+/** Everything a person can choose for "where": Worldwide, regions and every country. */
+export const PLACE_CHOICES = [...REGION_CHOICES, ...COUNTRY_NAMES];
+
+/**
+ * Suggestions for "where do you want opportunities from?": Worldwide first, then the person's own country
+ * and region, then other regions. Remote is offered for jobs.
+ */
+export function suggestWhere(
+  picked: unknown,
+  home?: string | null,
+  opts: { remote?: boolean } = {},
+): string[] {
+  const own = home ? [displayCountry(home), regionOf(home)].filter((x): x is string => !!x) : [];
+  return fresh(picked, ['Worldwide', ...own, ...(opts.remote ? ['Remote'] : []), ...REGION_CHOICES.slice(1)]);
+}
 
 /** "united kingdom" → "United Kingdom"; unknown text is returned as typed. */
 export function displayCountry(c: string): string {

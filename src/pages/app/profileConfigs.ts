@@ -9,6 +9,7 @@ import {
   FIELDS_OF_STUDY,
   INDUSTRIES,
   JOB_TITLES,
+  PLACE_CHOICES,
   LANGUAGES,
   LANGUAGE_TESTS,
   LICENCES,
@@ -21,11 +22,13 @@ import {
   suggestAcademic,
   suggestBusiness,
   suggestCareer,
+  suggestWhere,
 } from '../../../shared/suggestions';
 import type { SectionDef } from '../../components/FormBuilder';
 
 const eduOpts = EDUCATION_LEVELS.map((l) => ({ value: l, label: EDUCATION_LABELS[l] }));
-const PLACES = [...COUNTRY_NAMES, 'Remote'];
+const WHERE_HINT =
+  'Choose Worldwide, one or more regions, or specific countries. You can change this at any time.';
 const langItem = [
   { key: 'name', label: 'Language', type: 'text' as const, vocab: LANGUAGES },
   {
@@ -64,6 +67,21 @@ export const PROFILE_META: Record<ProfileType, { title: string; blurb: string }>
 
 export const PROFILE_SECTIONS: Record<ProfileType, SectionDef[]> = {
   career: [
+    {
+      title: 'Where should we look?',
+      description: WHERE_HINT,
+      fields: [
+        {
+          key: 'preferred_countries',
+          label: 'Where do you want opportunities from?',
+          type: 'tags',
+          placeholder: 'e.g. Worldwide, Europe, Kenya',
+          vocab: [...PLACE_CHOICES, 'Remote'],
+          suggest: ({ data }) =>
+            suggestWhere(data.preferred_countries, data.country || data.nationality, { remote: true }),
+        },
+      ],
+    },
     {
       title: 'About you',
       description: 'Used for matching and to pre-fill your CV.',
@@ -153,13 +171,6 @@ export const PROFILE_SECTIONS: Record<ProfileType, SectionDef[]> = {
             { value: 'hybrid', label: 'Hybrid' },
             { value: 'remote', label: 'Remote' },
           ],
-        },
-        {
-          key: 'preferred_countries',
-          label: 'Preferred countries',
-          type: 'tags',
-          vocab: PLACES,
-          suggest: ({ data }) => [...suggestCareer.preferredCountries(data), 'Remote'],
         },
         { key: 'excluded_locations', label: 'Locations to exclude', type: 'tags', vocab: COUNTRY_NAMES },
       ],
@@ -314,6 +325,21 @@ export const PROFILE_SECTIONS: Record<ProfileType, SectionDef[]> = {
   ],
   academic: [
     {
+      title: 'Where should we look?',
+      description: WHERE_HINT,
+      fields: [
+        {
+          key: 'preferred_countries',
+          label: 'Where do you want to study?',
+          type: 'tags',
+          placeholder: 'e.g. Worldwide, Europe, Canada',
+          vocab: PLACE_CHOICES,
+          suggest: ({ data }) =>
+            suggestWhere(data.preferred_countries, data.residence_country || data.nationality),
+        },
+      ],
+    },
+    {
       title: 'Academic background',
       fields: [
         { key: 'current_level', label: 'Highest qualification held', type: 'select', options: eduOpts },
@@ -436,13 +462,6 @@ export const PROFILE_SECTIONS: Record<ProfileType, SectionDef[]> = {
     {
       title: 'Destinations and funding',
       fields: [
-        {
-          key: 'preferred_countries',
-          label: 'Preferred study countries',
-          type: 'tags',
-          vocab: COUNTRY_NAMES,
-          suggest: ({ data }) => suggestAcademic.preferredCountries(data),
-        },
         { key: 'preferred_institutions', label: 'Preferred institutions', type: 'tags' },
         {
           key: 'funding_need',
@@ -489,6 +508,20 @@ export const PROFILE_SECTIONS: Record<ProfileType, SectionDef[]> = {
     },
   ],
   business: [
+    {
+      title: 'Where should we look?',
+      description: WHERE_HINT,
+      fields: [
+        {
+          key: 'preferred_geographies',
+          label: 'Where do you want to win contracts?',
+          type: 'tags',
+          placeholder: 'e.g. Worldwide, East Africa, Ghana',
+          vocab: PLACE_CHOICES,
+          suggest: ({ data }) => suggestWhere(data.preferred_geographies, data.registration_country),
+        },
+      ],
+    },
     {
       title: 'Company',
       fields: [
@@ -628,13 +661,6 @@ export const PROFILE_SECTIONS: Record<ProfileType, SectionDef[]> = {
       fields: [
         { key: 'preferred_contract_min_ugx', label: 'Minimum contract size (UGX)', type: 'number', min: 0 },
         { key: 'preferred_contract_max_ugx', label: 'Maximum contract size (UGX)', type: 'number', min: 0 },
-        {
-          key: 'preferred_geographies',
-          label: 'Preferred places of performance',
-          type: 'tags',
-          vocab: COUNTRY_NAMES,
-          suggest: ({ data }) => suggestBusiness.geographies(data),
-        },
         {
           key: 'preferred_buyers',
           label: 'Preferred buyers',

@@ -15,6 +15,7 @@ import {
   type MatchOpportunity,
   type MatchResult,
   type Weights,
+  placeCovers,
 } from './common';
 
 export function highestEducation(p: CareerProfile): EducationLevel | null {
@@ -180,11 +181,12 @@ export function matchCareer(
     ev.component('location', w.location, wantsRemote ? 1 : 0.4);
     if (wantsRemote) ev.reason('Location', 'Remote role, which fits your work-mode preference.');
   } else if (oppCountry) {
-    const prefs = p.preferred_countries.map(canonicalCountry);
+    // Preferences can be "Worldwide", regions ("West Africa", "Europe") or countries.
+    const wanted = p.preferred_countries.some((pref) => placeCovers(pref, oppCountry));
     // No home country means no assumption: the person simply has not said where they are.
     const home = p.country ? canonicalCountry(p.country) : '';
     let v = 0.25;
-    if (prefs.includes(oppCountry) || (home && home === oppCountry)) v = 1;
+    if (wanted || (home && home === oppCountry)) v = 1;
     else if (home && sameRegion(oppCountry, home)) v = 0.6;
     ev.component('location', w.location, v);
     if (v === 1) ev.reason('Location', `Based in ${o.country}, which matches your location preferences.`);

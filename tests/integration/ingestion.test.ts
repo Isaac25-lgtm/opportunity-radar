@@ -39,10 +39,11 @@ let grantsFail = false;
 const fetcher = mockFetch([
   [
     /search\.worldbank\.org/,
+    // The World Bank source is configured worldwide (migration 0005): one request with no country filter.
     (req) =>
-      new URL(req.url).searchParams.get('project_ctry_name_exact') === 'Uganda'
-        ? json({ procnotices: wbNotices })
-        : json({ procnotices: [] }),
+      new URL(req.url).searchParams.has('project_ctry_name_exact')
+        ? json({ procnotices: [] })
+        : json({ procnotices: wbNotices }),
   ],
   [/api\.grants\.gov/, () => (grantsFail ? new Response('down', { status: 503 }) : json(grants))],
   [/remotive\.com/, () => json(remotive)],

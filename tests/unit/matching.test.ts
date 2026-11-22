@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { countryNamesIn } from '../../shared/countries';
 import {
   matchProfile,
   rankMatches,
   type MatchOpportunity,
   countryEligibility,
+  placeCovers,
   yearsFromExperience,
   mergeWeights,
 } from '../../worker/domain/matching';
@@ -370,6 +372,28 @@ describe('helpers', () => {
     expect(countryEligibility(['ECOWAS'], "Côte d'Ivoire")).toBe('yes');
     expect(countryEligibility(['European Union'], 'German')).toBe('yes');
     expect(countryEligibility(['UK'], 'British')).toBe('yes');
+  });
+  it('region filters include the names sources actually use', () => {
+    const asia = countryNamesIn('Asia')!;
+    expect(asia).toEqual(expect.arrayContaining(['kyrgyz republic', 'pakistan', 'south asia']));
+    expect(countryNamesIn('Africa')).toEqual(
+      expect.arrayContaining([
+        'congo, democratic republic of',
+        'eastern and southern africa',
+        "cote d'ivoire",
+      ]),
+    );
+    expect(countryNamesIn('Worldwide')).toBeNull();
+    expect(countryNamesIn('Kenya')).toEqual(expect.arrayContaining(['kenya', 'kenyan']));
+  });
+  it('location preferences accept Worldwide, regions and countries', () => {
+    expect(placeCovers('Worldwide', 'Peru')).toBe(true);
+    expect(placeCovers('West Africa', 'Ghana')).toBe(true);
+    expect(placeCovers('West Africa', 'Kenya')).toBe(false);
+    expect(placeCovers('Europe', 'Germany')).toBe(true);
+    expect(placeCovers('North America', 'Canada')).toBe(true);
+    expect(placeCovers('Kenyan', 'Kenya')).toBe(true);
+    expect(placeCovers('Europe', '')).toBe(false);
   });
   it('asks for confirmation instead of rejecting when a group or country cannot be resolved', () => {
     expect(countryEligibility(['Developing countries'], 'Brazilian')).toBe('unknown');

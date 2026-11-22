@@ -89,8 +89,14 @@ export function mapWorldBankNotice(n: any): NormalizedItem | null {
 export const worldBankConnector: Connector = {
   type: 'worldbank',
   async fetch(_source, config, ctx) {
-    const countries: string[] =
-      Array.isArray(config.countries) && config.countries.length ? config.countries : ['Uganda'];
+    // `worldwide: true` asks for the latest notices from every country in one request;
+    // otherwise one request per listed country.
+    const worldwide = config.worldwide === true;
+    const countries: (string | null)[] = worldwide
+      ? [null]
+      : Array.isArray(config.countries) && config.countries.length
+        ? config.countries
+        : ['Uganda'];
     const rows = Math.min(100, Math.max(5, Number(config.rows) || 50));
     const items: NormalizedItem[] = [];
     let skipped = 0;
@@ -98,11 +104,11 @@ export const worldBankConnector: Connector = {
       const qs = new URLSearchParams({
         format: 'json',
         rows: String(rows),
-        project_ctry_name_exact: country,
         notice_type_exact: WB_TYPES.join('^'),
         srt: 'submission_date',
         order: 'desc',
       });
+      if (country) qs.set('project_ctry_name_exact', country);
       const res = await safeFetch(`https://search.worldbank.org/api/v2/procnotices?${qs}`, {
         fetcher: ctx.fetcher,
         timeoutMs: 25000,
