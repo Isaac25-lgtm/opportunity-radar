@@ -11,8 +11,8 @@ Date: 22 November 2026 · Production: https://opportunity-radar.omodingisaac123.
 | Latest commits      | `21a3270` visual refresh · `07bd191` photo hero · `3dc0d41` USD segments + countries ·      |
 |                     | `6323736` 15-person check + relevance fixes · `c765ee2` scripts + docs                      |
 | Main branch for PRs | `release/v1.0`. The branch is **not merged yet**; open a PR when the owner agrees.          |
-| Live Worker version | `8fa862f0-1903-4595-ab73-afa19a840777` at 100%                                              |
-| Rollback version    | `88b992c9-8ba7-46be-94d9-c018b7e24eb5` (guided entry, before worldwide)                     |
+| Live Worker version | `b07db1fa-b250-4732-849e-507898a881cb` at 100%                                              |
+| Rollback version    | `8fa862f0-1903-4595-ab73-afa19a840777` (worldwide, before Google sign-in)                   |
 | Migrations          | `0004_usd_plan_segments.sql` applied to production (additive)                               |
 | Sample CVs          | `C:\Users\USER\Documents\ChatGPT\CV builder\sample-cvs\` (10 PDFs + PNGs, fictional people) |
 
@@ -62,6 +62,7 @@ Date: 22 November 2026 · Production: https://opportunity-radar.omodingisaac123.
 
 11. "i hope the option of users selecting regions or countries where they want their opportunities from is there …
     worldwide … this should be advertised as a worldwide thing" / "this should be stated clearly in the landing page".
+
     - **Sources:** migration 0005 makes the World Bank source worldwide (one request, no country filter), widens
       Grants.gov to international keywords and removes Remotive's location filter. `shared/countries.ts` knows World
       Bank naming ("Kyrgyz Republic", "Congo, Democratic Republic of") and regional labels.
@@ -74,6 +75,24 @@ Date: 22 November 2026 · Production: https://opportunity-radar.omodingisaac123.
       - a Worldwide badge in the hero, and "around the world" in the intro;
       - a band of clickable regions linking to the filtered feed;
       - a new FAQ and a worldwide meta description.
+
+12. "DARK BACKGROUND A BIT TOO STRONG. MAKE IT NATURAL AND ALSO ADD GOOGLE AUTH EVEN IF NOT ACTIVE":
+    - **Auth panel:** the sign-in/up side panel is a photo with a soft bottom fade.
+    - **Google sign-in:** lives in `worker/routes/oauth.ts`. It is OpenID Connect with PKCE; state and verifier are
+      kept in an HttpOnly cookie scoped to `/api/auth/google`.
+      - Only verified emails are accepted, and an existing account with the same email is linked.
+      - Google-created accounts get an unusable `oauth$…` password hash. They can set a first password in Settings
+        and delete by typing DELETE.
+      - Links are stored in `user_identities` (migration 0006).
+    - **Switch:** it is off until `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set. `/api/auth/providers` tells
+      the UI, which shows "Coming soon" until then. Activation steps are in `RELEASE_REPORT.md` §12.
+    - **Tests:** `tests/integration/oauth.test.ts`.
+13. "MAKE SURE THESE ARE WELL EXPLAINED - THESE ARE RANDOM USERS" (the How it works links):
+    - **How it works page:** rewritten as a plain guide. Each part says who it is for, how to start, what we check,
+      how fit is decided, gives an example and names the plan.
+    - **Labels:** shown labels are plain everywhere ("You qualify", "You may qualify", "Need more details", "Official
+      source", "Job board", "Checked by our team"; "how well it fits" instead of "relevance").
+    - **Rule for future copy:** write for someone new to the product; no internal terms.
 
 ## 3. Plans are segments (new)
 
@@ -166,7 +185,7 @@ Date: 22 November 2026 · Production: https://opportunity-radar.omodingisaac123.
 
 | Check                                                                   | Result                                         |
 | ----------------------------------------------------------------------- | ---------------------------------------------- |
-| `npx vitest run`                                                        | 231 passed (11 files, incl. 76 persona checks) |
+| `npx vitest run`                                                        | 236 passed (12 files, incl. 76 persona checks) |
 | `npx playwright test` against `wrangler dev`                            | 15 passed, 3 skipped (intentional)             |
 | Route sweep: 47 routes × desktop + phone, visitor/user/admin            | 0 errors, 0 failed requests, 0 overflow        |
 | Typecheck, ESLint, Prettier                                             | Clean                                          |

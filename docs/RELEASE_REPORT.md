@@ -105,19 +105,28 @@ https://opportunity-radar.omodingisaac123.workers.dev
 
 ## 12. Deployed version
 
-Worker version `8fa862f0-1903-4595-ab73-afa19a840777` (commit `74774af`): worldwide coverage. Sources stop filtering
-to East Africa (migration `0005_worldwide_sources.sql`, data only, applied to production); profiles open with
-"Where should we look?" (Worldwide, regions or countries) and matching respects it; every list has a "Where"
-filter; the landing page states worldwide coverage. Preview smoke-tested (health; renamed sources; region filter;
-11-step signed-in smoke with account deleted; public Playwright 5 passed / 1 skipped), promoted, public suite re-run
-on production: 5 passed, 1 skipped. Worldwide listings arrive with the next scheduled run (every 6 hours) or
-immediately via Admin → Ingestion runs → Run now.
+Worker version `b07db1fa-b250-4732-849e-507898a881cb` (commit `3930d49`): Google sign-in (built, switched off until
+keys are set), a natural photo panel on sign-in/sign-up, the plain-language How it works page and plain labels across
+the app. Migration `0006_user_identities.sql` (additive table) applied to production. Preview smoke-tested (health;
+providers report Google off and the start URL returns to sign-in with a friendly message; 11-step signed-in smoke,
+account deleted; public Playwright 5 passed / 1 skipped), promoted, public suite re-run on production: 5 passed,
+1 skipped.
 
-Rollback: `npx wrangler versions deploy 88b992c9-8ba7-46be-94d9-c018b7e24eb5@100% --yes` (works with the widened
-sources; it only lacks the region filter and the "Where" section).
+Rollback: `npx wrangler versions deploy 8fa862f0-1903-4595-ab73-afa19a840777@100% --yes`.
 
-Local verification: Vitest 231 passed; Playwright 15 passed, 3 intentional mobile skips; 47-route sweep clean;
-local ingestion fetched listings from Asia, Europe, the Americas and the Pacific alongside Africa.
+Local verification: Vitest 236 passed (12 files, incl. 5 Google sign-in tests); Playwright 15 passed, 3 intentional
+mobile skips; 47-route sweep clean; typecheck, ESLint and Prettier clean.
+
+### Switching on Google sign-in
+
+1. Google Cloud Console → APIs & Services → OAuth consent screen: External; app name "Opportunity Radar"; scopes
+   `openid`, `email`, `profile`.
+2. Credentials → Create credentials → OAuth client ID → Web application.
+   - Authorised JavaScript origin: `https://opportunity-radar.omodingisaac123.workers.dev`
+   - Authorised redirect URI: `https://opportunity-radar.omodingisaac123.workers.dev/api/auth/google/callback`
+3. `npx wrangler secret put GOOGLE_CLIENT_ID` and `npx wrangler secret put GOOGLE_CLIENT_SECRET`.
+   The button switches from "Coming soon" to active automatically; no deploy needed. If the site moves to a custom
+   domain, update `APP_URL` and the two Google settings above.
 
 ## 13. Cron schedule
 
