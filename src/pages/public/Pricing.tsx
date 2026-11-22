@@ -114,7 +114,7 @@ export default function Pricing() {
                   variant={featured ? 'primary' : 'secondary'}
                   className="mt-6 w-full"
                 >
-                  {p.price_minor ? `Choose ${p.name}` : 'Start free'}
+                  {p.price_minor ? 'Choose plan' : 'Start free'}
                 </ButtonLink>
               </div>
             );

@@ -24,7 +24,7 @@ test.describe('public site', () => {
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
     expect(overflow).toBe(false);
     await page.goto('/pricing');
-    await expect(page.getByText('UGX 10,000').first()).toBeVisible();
+    await expect(page.getByText('$10', { exact: true }).first()).toBeVisible();
     await page.goto('/opportunities');
     await expect(page.getByText(/results?$/)).toBeVisible();
     expect(errors).toEqual([]);

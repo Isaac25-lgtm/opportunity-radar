@@ -6,7 +6,9 @@
 -- Prices are stored in the currency's minor unit (US cents). Existing payments keep their own
 -- amount and currency, so historical UGX payments remain correct.
 
-ALTER TABLE plans RENAME COLUMN price_ugx TO price_minor;
+-- Additive so the previous Worker version keeps working until the new one is promoted.
+-- price_ugx is no longer read and can be dropped in a later migration.
+ALTER TABLE plans ADD COLUMN price_minor INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE plans ADD COLUMN currency TEXT NOT NULL DEFAULT 'USD';
 
 UPDATE plans SET name = 'Free', currency = 'USD', price_minor = 0,

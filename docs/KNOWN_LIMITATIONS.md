@@ -18,6 +18,16 @@
   `EMAIL_PROVIDER`, `EMAIL_API_KEY` and `EMAIL_FROM` are set. Password-reset emails therefore cannot be delivered in
   production yet; administrators can help users through the contact form.
 - **WhatsApp/SMS** channels are not implemented.
+- **Business money fields are in Uganda shillings.** Turnover bands, contract sizes and minimum-turnover requirements
+  (`turnover_band`, `*_ugx`) predate the international positioning. Companies outside Uganda must convert, and a
+  notice's minimum in another currency is not converted. A currency-aware model (amount + currency, with FX) is the
+  next step for international tenders.
+- **Prices are in US dollars.** Pesapal accepts USD card payments; whether mobile-money methods are offered for USD
+  depends on the merchant account. Confirm with Pesapal before launch, or offer local-currency prices per country.
+- **No company capability statement.** Companies get tender matching and a tracker, but the CV builder produces
+  personal CVs only (useful for key-expert CVs in bids). A company profile/capability-statement document is not built.
+- **`plans.price_ugx` is unused** since migration 0004 (kept so the previous Worker version kept working during the
+  switch). Drop it in a later migration.
 
 ## Technical
 

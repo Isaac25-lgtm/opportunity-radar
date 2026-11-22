@@ -165,7 +165,16 @@ opportunityRoutes.get('/', async (c) => {
       .all<any>()
   ).results;
   const total = count?.n ?? 0;
+  // Signed-in people browsing a segment outside their plan are told which plan covers it.
+  const outsidePlan =
+    !!u && view !== 'all' && !allowsProfileType((await userPlan(c.env, u.id)).entitlements, view);
   return c.json({
+    ...(outsidePlan
+      ? {
+          gated: 'plan_segment',
+          upgrade_plan: (await planForProfileType(c.env, view as ProfileType))?.name ?? null,
+        }
+      : {}),
     items: rows.map((r) => ({
       ...publicOpportunity(r, staleHours),
       match: null,

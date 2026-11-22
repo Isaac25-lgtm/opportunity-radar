@@ -23,7 +23,7 @@ criteria, and the forms say so.
 - Editor modelled on resume.io's layout: form on the left, live A4 preview on a dark panel on the right, completeness
   bar with next tip, collapsible entries, reorder and hide sections, autosave.
 - Templates: Executive (modern two-column), Clarity (single-column ATS), Scholar (academic, serif) with accent colours.
-- Export: PDF (print-optimised page → "Save as PDF"), DOCX (Basic plan and above). Exports count against plan limits.
+- Export: PDF (print-optimised page → "Save as PDF"), DOCX (every paid plan). Exports count against plan limits.
 - Version history with restore; duplicate CVs for different roles.
 - Tailoring: shows which CV skills the notice mentions and which keywords are missing; a tailored copy only reorders
   content. Cover-letter drafts use only CV facts and leave `[bracketed prompts]` for anything the user must supply.
@@ -58,12 +58,15 @@ user once; expired listings never alert; status changes notify users who saved t
 
 ## Plans (initial configuration, editable by admins)
 
-| Plan  | UGX / month | Highlights                                                                         |
-| ----- | ----------- | ---------------------------------------------------------------------------------- |
-| Free  | 0           | 1 profile, 1 CV, 5 PDF exports/month, weekly alerts, 3 documents, 10 tracked items |
-| Basic | 10,000      | 2 profiles, 3 CVs, DOCX, tailoring, daily alerts, business tender matching         |
-| Pro   | 20,000      | 3 profiles, 10 CVs, unlimited exports, cover letters, instant alerts               |
-| Elite | 30,000      | Everything in Pro, unlimited CVs, 100 documents                                    |
+Plans are segments: each decides which kinds of opportunity are matched (enforced server-side through the
+`profile_types` entitlement). Prices are stored in minor units (US cents) with the plan currency.
+
+| Code    | Name                | USD / month | Matches                                   | Highlights                                            |
+| ------- | ------------------- | ----------- | ----------------------------------------- | ----------------------------------------------------- |
+| `free`  | Free                | 0           | Jobs                                      | 1 profile, 1 CV, 5 PDF exports/month, weekly alerts   |
+| `basic` | Jobs                | 10          | Jobs                                      | 5 CVs, DOCX, tailoring, cover letters, daily alerts   |
+| `pro`   | Jobs & Scholarships | 15          | Jobs, scholarships (most popular)         | 2 profiles, 10 CVs, unlimited exports, instant alerts |
+| `elite` | Complete            | 25          | Jobs, scholarships, tenders and contracts | 3 profiles, unlimited CVs, 100 documents              |
 
 Browsing every verified opportunity is free on all plans. Plans last one month from confirmed payment and do not
 renew automatically.
