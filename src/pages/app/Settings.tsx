@@ -1,6 +1,6 @@
 import { Download } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Alert,
   Button,
@@ -31,6 +31,7 @@ const HOURS = Array.from({ length: 24 }, (_, h) => ({
 
 export default function Settings() {
   const { me, refresh } = useAuth();
+  const [query] = useSearchParams();
   // Accounts created with Google have no password until they set one.
   const hasPassword = me.user?.has_password !== false;
   const toast = useToast();
@@ -67,6 +68,11 @@ export default function Settings() {
     <div className="mx-auto max-w-3xl space-y-6">
       <h1 className="text-[28px] font-semibold">Settings</h1>
       <ErrorAlert error={err} />
+      {query.get('error')?.startsWith('google_') && (
+        <p role="alert">
+          Google could not connect. Choose the Google account that uses your account email and try again.
+        </p>
+      )}
       <section className="card space-y-4 p-6">
         <h2 className="text-lg font-semibold">Account</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -100,6 +106,11 @@ export default function Settings() {
         >
           Save account
         </Button>
+        {me.user?.can_link_google && (
+          <a className="ml-4 underline" href="/api/auth/google/start?next=/app/settings">
+            Connect Google
+          </a>
+        )}
       </section>
 
       <section className="card p-6">

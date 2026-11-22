@@ -80,7 +80,7 @@ Date: 22 November 2026 · Production: https://opportunity-radar.omodingisaac123.
     - **Auth panel:** the sign-in/up side panel is a photo with a soft bottom fade.
     - **Google sign-in:** lives in `worker/routes/oauth.ts`. It is OpenID Connect with PKCE; state and verifier are
       kept in an HttpOnly cookie scoped to `/api/auth/google`.
-      - Only verified emails are accepted, and an existing account with the same email is linked.
+      - Google must verify the email. Existing users sign in first and choose **Connect Google** in Settings to link the accounts.
       - Google-created accounts get an unusable `oauth$…` password hash. They can set a first password in Settings
         and delete by typing DELETE.
       - Links are stored in `user_identities` (migration 0006).

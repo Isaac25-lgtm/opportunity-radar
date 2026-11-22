@@ -73,12 +73,20 @@ authRoutes.get('/me', async (c) => {
   )
     .bind(u.id)
     .first<{ n: number }>();
-  const pw = await c.env.DB.prepare('SELECT password_hash FROM users WHERE id = ?')
+  const pw = await c.env.DB.prepare(
+    "SELECT password_hash, EXISTS(SELECT 1 FROM user_identities WHERE user_id = users.id AND provider = 'google') AS google_linked FROM users WHERE id = ?",
+  )
     .bind(u.id)
-    .first<{ password_hash: string }>();
+    .first<{ password_hash: string; google_linked: number }>();
   // Accounts created with Google have no password until the person sets one.
   const hasPassword = !String(pw?.password_hash ?? '').startsWith('oauth$');
-  return c.json({ user: { ...u, has_password: hasPassword }, plan, profiles, unread: unread?.n ?? 0 });
+  const canLinkGoogle = !!(c.env.GOOGLE_CLIENT_ID && c.env.GOOGLE_CLIENT_SECRET && pw && !pw.google_linked);
+  return c.json({
+    user: { ...u, has_password: hasPassword, can_link_google: canLinkGoogle },
+    plan,
+    profiles,
+    unread: unread?.n ?? 0,
+  });
 });
 
 authRoutes.patch('/me', async (c) => {

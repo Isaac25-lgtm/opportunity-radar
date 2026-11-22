@@ -14,6 +14,7 @@ describe('post-sign-in redirect guard (open-redirect defence)', () => {
     'javascript:alert(1)',
     '',
     null,
+    '/app\tpath',
     '/app\\..\\x',
   ])('falls back for %s', (v) => expect(safeNext(v as string | null, '/app')).toBe('/app'));
 });

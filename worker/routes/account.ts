@@ -22,6 +22,9 @@ accountRoutes.get('/export', async (c) => {
   const data = {
     exported_at: nowIso(),
     account: u,
+    sign_in_identities: await q(
+      'SELECT provider, email, created_at, last_used_at FROM user_identities WHERE user_id = ?',
+    ),
     contact_messages: await q(
       'SELECT name, email, topic, message, created_at FROM contact_messages WHERE user_id = ?',
     ),

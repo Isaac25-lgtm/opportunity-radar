@@ -418,7 +418,6 @@ export function placeCovers(preference: string, country: string): boolean {
 export function regionOf(country: string): string | null {
   const r = REGION.get(canonicalCountry(country));
   if (!r) return null;
-  if (r === 'EAF') return isEastAfrican(country) ? 'East Africa' : 'Southern Africa';
   const names: Record<Region, string> = {
     NAF: 'North Africa', EAF: 'East Africa', WAF: 'West Africa', MAF: 'Central Africa', SAF: 'Southern Africa',
     EUR: 'Europe', ME: 'Middle East', AS: 'Asia', OC: 'Oceania', NAM: 'North America',

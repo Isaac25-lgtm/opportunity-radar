@@ -97,14 +97,21 @@ describe('Google sign-in', () => {
     expect(users.n).toBe(1);
   });
 
-  it('links to an existing email account instead of creating a duplicate', async () => {
+  it('requires the existing account session for first-time Google linking', async () => {
     const existing = await signup(env, 'linked@example.com', 'Linked Person');
     const id = (await existing.get('/api/auth/me')).json.user.id;
     stubGoogle(idToken({ sub: 'g-200', email: 'linked@example.com', name: 'Other Name' }));
     const c = new Client(env);
     const { flow, state } = await start(c);
-    expect((await callback(c, flow, state)).headers.get('location')).toBe('/app/cvs');
-    const me = (await c.get('/api/auth/me')).json.user;
+    expect((await callback(c, flow, state)).headers.get('location')).toBe(
+      '/signin?error=google_link_required',
+    );
+    expect((await c.get('/api/auth/me')).json.user).toBeNull();
+    expect((await existing.get('/api/auth/me')).json.user.can_link_google).toBe(true);
+    const link = await start(existing, '/app/settings');
+    expect((await callback(existing, link.flow, link.state)).headers.get('location')).toBe('/app/settings');
+    const me = (await existing.get('/api/auth/me')).json.user;
+    expect(me.can_link_google).toBe(false);
     expect(me.id).toBe(id);
     expect(me.has_password).toBe(true); // their password still works
   });
