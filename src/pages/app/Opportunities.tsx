@@ -161,23 +161,27 @@ export default function Opportunities({ publicMode = false }: { publicMode?: boo
       {data?.matched && (
         <>
           <SelectInput
-            label="Eligibility"
+            label="Can you apply?"
             value={params.eligibility}
             onChange={(e) => set('eligibility', e.target.value)}
             placeholder="Any"
             options={[
-              { value: 'eligible', label: 'Eligible' },
-              { value: 'potential', label: 'Potential match' },
-              { value: 'insufficient', label: 'Insufficient information' },
+              { value: 'eligible', label: 'You qualify' },
+              { value: 'potential', label: 'You may qualify' },
+              { value: 'insufficient', label: 'Need more details' },
               { value: 'not_eligible', label: 'Not eligible' },
             ]}
           />
           <SelectInput
-            label="Minimum relevance"
+            label="How well it fits"
             value={params.min_score}
             onChange={(e) => set('min_score', e.target.value)}
             placeholder="Any"
-            options={['40', '60', '75'].map((v) => ({ value: v, label: `${v}+` }))}
+            options={[
+              { value: '40', label: '40+ (worth a look)' },
+              { value: '60', label: '60+ (good fit)' },
+              { value: '75', label: '75+ (strong fit)' },
+            ]}
           />
         </>
       )}
@@ -216,7 +220,7 @@ export default function Opportunities({ publicMode = false }: { publicMode?: boo
               to see how well each one matches you.
             </>
           ) : (
-            'Ranked for your profile. Eligibility and relevance are shown separately.'
+            'Best fits first. Each one shows whether you can apply and how well it fits you.'
           )}
         </p>
       </div>

@@ -19,6 +19,9 @@ export interface Env {
   PESAPAL_IPN_ID?: string;
   PESAPAL_IPN_SECRET?: string;
   RELIEFWEB_APPNAME?: string;
+  /** Google sign-in; off until both are set. */
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
 }
 
 export type AppUser = {

@@ -58,9 +58,16 @@ accountRoutes.get('/export', async (c) => {
 /** Permanent account deletion: removes documents from storage and all personal rows (payments kept anonymised for accounting). */
 accountRoutes.post('/delete-account', async (c) => {
   const u = requireUser(c);
-  const { password } = await body(c, z.object({ password: z.string().min(1).max(200) }));
+  const input = await body(
+    c,
+    z.object({ password: z.string().max(200).optional(), confirm: z.string().max(20).optional() }),
+  );
   const row = await c.env.DB.prepare('SELECT password_hash FROM users WHERE id = ?').bind(u.id).first<any>();
-  if (!(await verifyPassword(password, row.password_hash)))
+  // People who only sign in with Google have no password; they confirm by typing DELETE instead.
+  if (String(row.password_hash).startsWith('oauth$')) {
+    if (input.confirm?.trim().toUpperCase() !== 'DELETE')
+      throw badRequest('Type DELETE to confirm.', { confirm: 'Type DELETE to confirm' });
+  } else if (!input.password || !(await verifyPassword(input.password, row.password_hash)))
     throw badRequest('Password is incorrect.', { password: 'Incorrect password' });
   const docs = (
     await c.env.DB.prepare('SELECT storage_key FROM documents WHERE user_id = ?')
@@ -81,6 +88,7 @@ accountRoutes.post('/delete-account', async (c) => {
     c.env.DB.prepare('DELETE FROM notifications WHERE user_id = ?').bind(u.id),
     c.env.DB.prepare('DELETE FROM matches WHERE user_id = ?').bind(u.id),
     c.env.DB.prepare('DELETE FROM sessions WHERE user_id = ?').bind(u.id),
+    c.env.DB.prepare('DELETE FROM user_identities WHERE user_id = ?').bind(u.id),
     c.env.DB.prepare(
       "UPDATE users SET email = ?, name = 'Deleted user', password_hash = 'x', status = 'deleted', deleted_at = ?, updated_at = ? WHERE id = ?",
     ).bind(tomb, ts, ts, u.id),

@@ -34,6 +34,8 @@ const HOURS = Array.from({ length: 24 }, (_, h) => ({
 
 export default function Settings() {
   const { me, refresh } = useAuth();
+  // Accounts created with Google have no password until they set one.
+  const hasPassword = me.user?.has_password !== false;
   const toast = useToast();
   const nav = useNavigate();
   const [name, setName] = useState(me.user?.name ?? '');
@@ -150,7 +152,7 @@ export default function Settings() {
               ]}
             />
             <TextInput
-              label="Minimum relevance for match alerts"
+              label="Only alert me when the fit is at least (0–100)"
               type="number"
               min={0}
               max={100}
@@ -206,15 +208,23 @@ export default function Settings() {
 
       <section className="card space-y-4 p-6">
         <h2 className="text-lg font-semibold">Password</h2>
+        {!hasPassword && (
+          <p className="text-sm text-ink-600">
+            You sign in with Google. You can also set a password, so you can sign in with your email address
+            too.
+          </p>
+        )}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <TextInput
-            label="Current password"
-            type="password"
-            autoComplete="current-password"
-            value={pw.current}
-            onChange={(e) => setPw({ ...pw, current: e.target.value })}
-            error={details.current}
-          />
+          {hasPassword && (
+            <TextInput
+              label="Current password"
+              type="password"
+              autoComplete="current-password"
+              value={pw.current}
+              onChange={(e) => setPw({ ...pw, current: e.target.value })}
+              error={details.current}
+            />
+          )}
           <TextInput
             label="New password"
             type="password"
@@ -233,12 +243,13 @@ export default function Settings() {
               async () => {
                 await api.post('/auth/change-password', pw);
                 setPw({ current: '', next: '' });
+                await refresh();
               },
-              'Password changed; other sessions signed out',
+              hasPassword ? 'Password changed; other sessions signed out' : 'Password set',
             )
           }
         >
-          Change password
+          {hasPassword ? 'Change password' : 'Set a password'}
         </Button>
       </section>
 
@@ -269,12 +280,15 @@ export default function Settings() {
             <Button
               variant="danger"
               loading={busy === 'del'}
-              disabled={!delPw}
+              disabled={hasPassword ? !delPw : delPw.trim().toUpperCase() !== 'DELETE'}
               onClick={() =>
                 run(
                   'del',
                   async () => {
-                    await api.post('/auth/delete-account', { password: delPw });
+                    await api.post(
+                      '/auth/delete-account',
+                      hasPassword ? { password: delPw } : { confirm: delPw },
+                    );
                     await refresh();
                     nav('/');
                   },
@@ -290,13 +304,23 @@ export default function Settings() {
         <Alert tone="bad">
           This removes your profiles, CVs, documents, applications and notifications. It cannot be undone.
         </Alert>
-        <TextInput
-          className="mt-4"
-          label="Confirm with your password"
-          type="password"
-          value={delPw}
-          onChange={(e) => setDelPw(e.target.value)}
-        />
+        {hasPassword ? (
+          <TextInput
+            className="mt-4"
+            label="Confirm with your password"
+            type="password"
+            value={delPw}
+            onChange={(e) => setDelPw(e.target.value)}
+          />
+        ) : (
+          <TextInput
+            className="mt-4"
+            label="Type DELETE to confirm"
+            autoComplete="off"
+            value={delPw}
+            onChange={(e) => setDelPw(e.target.value)}
+          />
+        )}
       </Modal>
     </div>
   );

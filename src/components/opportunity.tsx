@@ -84,17 +84,18 @@ const STATE_STYLE: Record<DisplayState, [string, typeof BadgeCheck]> = {
 };
 
 export const STATE_HELP: Record<DisplayState, string> = {
-  verified_official: "Confirmed on the responsible organisation's official page or authorised portal.",
-  verified_ats: 'Confirmed on a recognised applicant-tracking system (ATS) page operated for the employer.',
+  verified_official: "Taken from the organisation's own official website or portal.",
+  verified_ats: "Taken from the employer's own careers website.",
   aggregator_only:
-    'Found through an aggregator. The original posting has not been confirmed on the employer’s own site.',
-  admin_verified: 'Checked and approved by an Opportunity Radar administrator against the official source.',
-  unverified: 'The source or application destination has not been sufficiently confirmed.',
-  stale: 'The source has not been checked recently, so the status may have changed.',
-  status_uncertain: 'The listing disappeared from its source. It may have closed — confirm before applying.',
-  closed: 'The source shows this opportunity as closed.',
-  expired: 'The published deadline has passed.',
-  cancelled: 'The source published a cancellation.',
+    "Found on a job board. We have not found it on the employer's own website yet, so check there before you apply.",
+  admin_verified: 'Checked by our team against the official source.',
+  unverified: 'We could not confirm where this came from. Check the official source before you apply.',
+  stale: 'We have not been able to check this recently, so it may have changed.',
+  status_uncertain:
+    'This listing has disappeared from where we found it. It may have closed, so check before you apply.',
+  closed: 'The organisation has closed this opportunity.',
+  expired: 'The deadline has passed.',
+  cancelled: 'The organisation has cancelled this opportunity.',
 };
 
 export function VerificationBadge({ state, className }: { state: DisplayState; className?: string }) {
@@ -113,10 +114,10 @@ const ELIG_STYLE: Record<Eligibility, [string, typeof BadgeCheck]> = {
   insufficient: ['text-ink-600 bg-ink-100', AlertTriangle],
 };
 const ELIG_SHORT: Record<Eligibility, string> = {
-  eligible: 'Eligible',
-  potential: 'Potential match',
+  eligible: 'You qualify',
+  potential: 'You may qualify',
   not_eligible: 'Not eligible',
-  insufficient: 'Insufficient information',
+  insufficient: 'Need more details',
 };
 
 export function EligibilityBadge({ value, long }: { value: Eligibility; long?: boolean }) {
@@ -139,7 +140,7 @@ export function ScoreRing({ score, size = 52 }: { score: number | null; size?: n
     <div
       className="relative flex-none"
       style={{ width: size, height: size }}
-      aria-label={score === null ? 'Relevance not scored' : `Relevance ${score} out of 100`}
+      aria-label={score === null ? 'Fit not scored yet' : `Fit ${score} out of 100`}
     >
       <svg width={size} height={size} className="-rotate-90">
         <circle cx={size / 2} cy={size / 2} r={r} stroke="#eff2f9" strokeWidth="5" fill="none" />
@@ -227,7 +228,7 @@ export function OpportunityCard({
         <p className="mt-2 text-xs text-ink-400">
           Source: {o.source.name} · checked {relTime(o.last_checked_at)}
           {o.match?.score !== undefined && o.match && (
-            <span className="sm:hidden"> · Relevance {o.match.score ?? '—'}/100</span>
+            <span className="sm:hidden"> · Fit {o.match.score ?? '—'}/100</span>
           )}
         </p>
       </div>
@@ -306,14 +307,15 @@ export function MatchPanel({ m }: { m: MatchResult }) {
         <ScoreRing score={m.score} size={60} />
       </div>
       <p className="mt-3 text-xs text-ink-500">
-        Relevance{' '}
-        {m.score === null ? 'could not be scored — not enough profile information' : `${m.score}/100`} ·
-        Confidence: {m.confidence}. Relevance measures fit; eligibility is checked separately against stated
-        requirements.
+        {m.score === null
+          ? 'We could not score the fit yet: add more details to your profile.'
+          : `How well it fits you: ${m.score} out of 100.`}{' '}
+        Whether you can apply is checked separately, against what the notice asks for.
+        {m.confidence === 'low' && ' The notice gives few details, so treat this as a rough guide.'}
       </p>
       <div className="mt-4 rounded-lg bg-ink-50 p-3 text-sm font-medium text-ink">{m.next_action}</div>
       {m.disqualifiers.length > 0 && (
-        <Section title="Potential disqualifiers" tone="bad">
+        <Section title="Why you may not be able to apply" tone="bad">
           {m.disqualifiers.map((d) => (
             <li key={d}>{d}</li>
           ))}
@@ -329,28 +331,28 @@ export function MatchPanel({ m }: { m: MatchResult }) {
         </Section>
       )}
       {m.missing.length > 0 && (
-        <Section title="Missing or unconfirmed" tone="warn">
+        <Section title="Things to check or add" tone="warn">
           {m.missing.map((d) => (
             <li key={d}>{d}</li>
           ))}
         </Section>
       )}
       <details className="mt-4 text-sm">
-        <summary className="cursor-pointer font-semibold text-ink-600">Evidence used</summary>
+        <summary className="cursor-pointer font-semibold text-ink-600">What we compared</summary>
         <div className="mt-2 grid gap-3 sm:grid-cols-2">
           <div>
-            <p className="text-xs font-semibold uppercase text-ink-400">Your profile facts</p>
+            <p className="text-[13px] font-medium text-ink-500">From your profile</p>
             <ul className="mt-1 list-disc space-y-0.5 pl-4 text-ink-600">
               {m.facts_used.length ? m.facts_used.map((f) => <li key={f}>{f}</li>) : <li>None recorded</li>}
             </ul>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase text-ink-400">Opportunity requirements</p>
+            <p className="text-[13px] font-medium text-ink-500">What the notice asks for</p>
             <ul className="mt-1 list-disc space-y-0.5 pl-4 text-ink-600">
               {m.requirements_used.length ? (
                 m.requirements_used.map((f) => <li key={f}>{f}</li>)
               ) : (
-                <li>No structured requirements extracted</li>
+                <li>The notice does not list clear requirements</li>
               )}
             </ul>
           </div>

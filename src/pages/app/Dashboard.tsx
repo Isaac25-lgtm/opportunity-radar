@@ -139,7 +139,7 @@ export default function Dashboard() {
               }
             >
               {have.size
-                ? 'Opportunities that are eligible or potential matches with relevance of 40+ appear here. Add more detail to your profile to improve matching.'
+                ? 'Opportunities you can apply for that fit you reasonably well (40 or more out of 100) appear here. Adding more details to your profile improves your matches.'
                 : 'Matches are calculated from your profile facts.'}
             </EmptyState>
           )}

@@ -73,7 +73,12 @@ authRoutes.get('/me', async (c) => {
   )
     .bind(u.id)
     .first<{ n: number }>();
-  return c.json({ user: { ...u }, plan, profiles, unread: unread?.n ?? 0 });
+  const pw = await c.env.DB.prepare('SELECT password_hash FROM users WHERE id = ?')
+    .bind(u.id)
+    .first<{ password_hash: string }>();
+  // Accounts created with Google have no password until the person sets one.
+  const hasPassword = !String(pw?.password_hash ?? '').startsWith('oauth$');
+  return c.json({ user: { ...u, has_password: hasPassword }, plan, profiles, unread: unread?.n ?? 0 });
 });
 
 authRoutes.patch('/me', async (c) => {
@@ -104,9 +109,11 @@ authRoutes.patch('/me', async (c) => {
 authRoutes.post('/change-password', async (c) => {
   const u = requireUser(c);
   await rateLimit(c, 'change-password', 10, 3600, u.id);
-  const input = await body(c, z.object({ current: z.string().min(1).max(200), next: passwordSchema }));
+  const input = await body(c, z.object({ current: z.string().max(200).optional(), next: passwordSchema }));
   const row = await c.env.DB.prepare('SELECT password_hash FROM users WHERE id = ?').bind(u.id).first<any>();
-  if (!(await verifyPassword(input.current, row.password_hash)))
+  // A Google-only account sets its first password without a current one (the session proves who they are).
+  const firstPassword = String(row.password_hash).startsWith('oauth$');
+  if (!firstPassword && !(input.current && (await verifyPassword(input.current, row.password_hash))))
     throw badRequest('Current password is incorrect.', { current: 'Incorrect password' });
   await c.env.DB.batch([
     c.env.DB.prepare('UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?').bind(

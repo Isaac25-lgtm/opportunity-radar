@@ -8,6 +8,8 @@ export type Me = {
     email: string;
     name: string;
     role: 'user' | 'admin';
+    /** False for accounts created with Google until a password is set. */
+    has_password?: boolean;
     timezone: string;
     onboarded_at: string | null;
     created_at: string;

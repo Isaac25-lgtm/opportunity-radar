@@ -66,11 +66,11 @@ export class Client {
       ctx as any,
     );
     await Promise.all(ctx.promises);
-    const set = res.headers.get('set-cookie');
-    if (set) {
-      const m = set.match(/or_session=([^;]*)/);
-      if (m) this.cookie = m[1] ? `or_session=${m[1]}` : '';
-      if (/Max-Age=0/i.test(set)) this.cookie = '';
+    // Read each Set-Cookie separately: a response may clear one cookie while setting the session.
+    const session = res.headers.getSetCookie().find((c) => c.startsWith('or_session='));
+    if (session) {
+      const m = session.match(/^or_session=([^;]*)/);
+      this.cookie = m?.[1] && !/Max-Age=0/i.test(session) ? `or_session=${m[1]}` : '';
     }
     const text = await res.text();
     let json: any = null;

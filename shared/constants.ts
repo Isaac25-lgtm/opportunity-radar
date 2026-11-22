@@ -69,13 +69,13 @@ export type DisplayState =
   | 'status_uncertain';
 
 export const DISPLAY_STATE_LABELS: Record<DisplayState, string> = {
-  verified_official: 'Verified official',
-  verified_ats: 'Verified ATS',
-  aggregator_only: 'Aggregator only',
-  admin_verified: 'Admin verified',
-  unverified: 'Unverified',
-  stale: 'Stale — status uncertain',
-  status_uncertain: 'Status uncertain',
+  verified_official: 'Official source',
+  verified_ats: "Employer's careers site",
+  aggregator_only: 'Job board',
+  admin_verified: 'Checked by our team',
+  unverified: 'Not yet confirmed',
+  stale: 'May be out of date',
+  status_uncertain: 'May have closed',
   closed: 'Closed',
   expired: 'Expired',
   cancelled: 'Cancelled',
@@ -85,10 +85,10 @@ export const ELIGIBILITY = ['eligible', 'potential', 'not_eligible', 'insufficie
 export type Eligibility = (typeof ELIGIBILITY)[number];
 
 export const ELIGIBILITY_LABELS: Record<Eligibility, string> = {
-  eligible: 'Eligible based on available profile',
-  potential: 'Potential match — confirm these requirements',
-  not_eligible: 'Not eligible based on a stated requirement',
-  insufficient: 'Insufficient information',
+  eligible: 'You qualify, based on your profile',
+  potential: 'You may qualify: check the details',
+  not_eligible: 'Not eligible: a requirement is not met',
+  insufficient: 'We need more details in your profile',
 };
 
 export const EDUCATION_LEVELS = [

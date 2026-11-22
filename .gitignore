@@ -12,3 +12,9 @@ playwright-report/
 test-results/
 *.log
 .DS_Store
+
+# Local QA helpers copied in temporarily (may hold local session cookies)
+/persona.json
+/.sweep.mjs
+/.cap.mjs
+/.ps.mjs

@@ -39,8 +39,8 @@ const SECTIONS: Array<[string, Array<[string, string]>]> = [
     'Opportunities and matching',
     [
       [
-        'What does “Eligible based on available profile” mean?',
-        'No stated requirement fails based on the facts in your profile. It is not a guarantee — always read the official notice.',
+        'What does “You qualify” mean?',
+        'Based on what you told us in your profile, you meet every requirement the notice states. It is not a guarantee, so always read the official notice before you apply.',
       ],
       [
         'Why is a score blank?',

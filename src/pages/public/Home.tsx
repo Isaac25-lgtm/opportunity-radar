@@ -144,7 +144,7 @@ const FAQS: Array<[string, string]> = [
   ],
   [
     'Does a high match mean I am eligible?',
-    'Not necessarily. Relevance and eligibility are shown separately. A strong match that fails a stated requirement is marked “Not eligible”, and missing information is shown as “Insufficient information”.',
+    'Not always. We show two things separately: whether you can apply, and how well it fits. A great fit that asks for something you do not have is marked “Not eligible”, and if we need more details from you we say so.',
   ],
   [
     'Do you apply on my behalf?',
@@ -222,7 +222,7 @@ export default function Home() {
                 <ScoreRing score={87} size={48} />
                 <div className="min-w-0">
                   <p className="truncate text-[14.5px] font-semibold">Chief Operating Officer</p>
-                  <p className="text-[12.5px] text-ink-500">Eligible based on available profile</p>
+                  <p className="text-[12.5px] text-ink-500">You qualify, based on your profile</p>
                 </div>
               </div>
               <div className="mt-3 flex flex-wrap gap-1.5">
