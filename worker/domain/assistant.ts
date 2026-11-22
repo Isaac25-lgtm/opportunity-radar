@@ -91,6 +91,7 @@ function planLines(plans: PlanRow[]): string {
         d.cover_letters ? 'cover-letter drafts' : null,
         `alerts: ${d.alert_frequencies.join(', ')}`,
         n(d.max_tracked, 'tracked applications'),
+        n(d.max_documents, 'stored documents'),
       ].filter(Boolean);
       return `- ${p.name} (${price}): ${p.description} Includes ${extras.join('; ')}.`;
     })
@@ -155,10 +156,16 @@ Live A4 preview, three templates (${Object.values(CV_TEMPLATE_LABELS)
     .map((t) => `${t.name}: ${t.blurb}`)
     .join(
       ' ',
-    )}). Start from a profile, from scratch, or import a PDF or Word CV (read in the browser, reviewed before saving). Automatic version history. PDF download via the browser's print dialog; Word export on paid plans. Paid plans can make a tailored copy of a CV for a specific opportunity (it reorders existing content and lists matching and missing keywords) and draft cover letters. It never invents facts: anything missing is left as a [bracketed prompt] for the person to fill in.
+    )}). Start from a profile, from scratch, or import a PDF or Word CV (the file is read on the person's own device and is not uploaded; only the text read from it is sent to the server to split it into sections, and nothing is saved until they review and confirm). Automatic version history. PDF download via the browser's print dialog; Word export on paid plans. Paid plans can make a tailored copy of a CV for a specific opportunity (it reorders existing content and lists matching and missing keywords) and draft cover letters. It never invents facts: anything missing is left as a [bracketed prompt] for the person to fill in.
 
 ## Other features
-Save or dismiss listings, an application and bid tracker with deadline reminders, match alerts (weekly on Free; daily or instant on paid plans) shown in the app, and private storage for supporting documents. Settings allow a full data export and permanent account deletion.
+- Saved: a simple bookmark list of listings ([Saved](/app/saved)). Dismissed listings are hidden from your feed.
+- Tracker: follow each application or bid with its status (interested, preparing, applied, shortlisted, awarded and so on) and its deadline; deadline reminders are sent before it closes ([Tracker](/app/tracker)).
+- Alerts: when new listings arrive, you are alerted about those you qualify or may qualify for and that score at or above your chosen minimum, at the frequency you choose (weekly on Free; daily or instant on paid plans). Alerts appear in the app under [Notifications](/app/notifications), where you also set frequency and minimum score. Email alerts are not available yet (alerts are in the app only), so never suggest switching email alerts on. No alert usually means nothing new matched, the score was below your minimum, or that kind of opportunity is not in your plan.
+- Documents: private storage for certificates, transcripts, company profiles and other supporting documents. Only the account owner can see them; they are never shared.
+- Profiles outside your plan are locked: you can see them, but you need to upgrade to fill them in and get matches.
+- Business profiles record registrations, certificates, yearly turnover, years in business and past contracts, because tenders often require them. Nothing is assumed: missing details make a tender "We need more details".
+- Settings: change your password, connect Google sign-in (when available), change your timezone, export all your data, or permanently delete your account.
 
 ## Plans (current prices; browsing every listing is free on every plan; limits are enforced by the server)
 ${planLines(plans)}

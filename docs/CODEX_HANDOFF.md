@@ -11,7 +11,7 @@ Date: 22 November 2026 · Production: https://opportunity-radar.omodingisaac123.
 | Latest commits      | `21a3270` visual refresh · `07bd191` photo hero · `3dc0d41` USD segments + countries ·      |
 |                     | `6323736` 15-person check + relevance fixes · `c765ee2` scripts + docs                      |
 | Main branch         | `main` on GitHub; all work is pushed there                                                  |
-| Live Worker version | `a1cfa4e3-7e4e-4d80-8a8b-9bae9730e9a5` at 100% (three photos on sign-in and sign-up)        |
+| Live Worker version | `65a2ce14-ff8b-41e7-a1eb-815a110204c6` at 100% (page-aware assistant questions)             |
 | Rollback version    | `2a80ba45-0504-4563-b791-95e6880325eb` (audit fixes, before the assistant)                  |
 | Migrations          | `0004_usd_plan_segments.sql` applied to production (additive)                               |
 | Sample CVs          | `C:\Users\USER\Documents\ChatGPT\CV builder\sample-cvs\` (10 PDFs + PNGs, fictional people) |
@@ -120,6 +120,7 @@ Date: 22 November 2026 · Production: https://opportunity-radar.omodingisaac123.
 
 17. "create an AI chatbot guiding users through the system ... Ask Opportunity Radar", with a DeepSeek key and
     sample questions, "even in the landing page":
+
     - **Widget:** floating dark pill bottom-right on every page including the home page (hidden in the CV editor,
       print view and admin; raised above fixed save bars). Opens a chat styled like the owner's reference: dark
       header, greeting with an AI disclaimer, six suggested questions, streamed answers with page links. Full screen
@@ -129,6 +130,10 @@ Date: 22 November 2026 · Production: https://opportunity-radar.omodingisaac123.
     - **Key:** read from the `DEEPSEEK_API_KEY` Worker secret, never stored in the repository. The owner sets it
       with `npx wrangler secret put DEEPSEEK_API_KEY`; the button appears without a redeploy.
     - **Tests:** `tests/integration/assistant.test.ts` (9, with a stand-in for DeepSeek).
+
+18. "FOR EACH SECTION ONE OPENS THE MOTION AI suggested questions change to guide them there": the assistant's
+    one-tap questions now depend on the page (pricing, CV builder, each profile type, tracker, settings and so on).
+    The product guide gained facts on alerts, saved vs tracked, documents, locked profiles and business details.
 
 ## 3. Plans are segments (new)
 

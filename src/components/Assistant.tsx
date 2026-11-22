@@ -1,7 +1,7 @@
 import { RotateCcw, Send, X } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ASSISTANT_LIMITS, ASSISTANT_NAME, SUGGESTED_QUESTIONS } from '../../shared/assistant';
+import { ASSISTANT_LIMITS, ASSISTANT_NAME, suggestionsFor } from '../../shared/assistant';
 import { api } from '../lib/api';
 import { LogoMark } from './Layout';
 import { cx } from './ui';
@@ -317,7 +317,7 @@ export function Assistant() {
 
             {messages.length === 0 && (
               <div className="flex flex-col items-start gap-2 pl-9">
-                {SUGGESTED_QUESTIONS.map((q) => (
+                {suggestionsFor(pathname).map((q) => (
                   <button
                     key={q}
                     type="button"

@@ -36,6 +36,9 @@ streamed) and is switched on by the `DEEPSEEK_API_KEY` Worker secret: without it
 - **Code:** `worker/domain/assistant.ts` (instructions, DeepSeek call, stream reader), `worker/routes/assistant.ts`
   (`GET /api/assistant/status`, `POST /api/assistant/chat`), `src/components/Assistant.tsx` (widget),
   `shared/assistant.ts` (suggested questions, limits), `shared/help.ts` (help answers shared with the Help page).
+- **Page-aware questions:** the one-tap questions change with the page (`PAGE_SUGGESTIONS` in
+  `shared/assistant.ts`, tested in `tests/unit/assistant.test.ts`). Each must be answerable from the
+  product guide in `worker/domain/assistant.ts`; add a fact there before adding a question.
 - **Always current:** plans and prices are read from the database on every chat; payment and Google sign-in status
   come from the live configuration.
 - **Privacy:** only the conversation, the page path and the plan name are sent; never names, emails, profiles, CVs
