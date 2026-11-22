@@ -129,3 +129,16 @@
     break-inside: avoid;
   }
 }
+
+/* Help assistant panel height. `vh` first for browsers without `dvh` (Chrome < 108, Safari < 15.4):
+   without a height there, the panel grows with the conversation and its header leaves the screen. */
+.assistant-panel {
+  height: 100vh;
+  height: 100dvh;
+}
+@media (min-width: 640px) {
+  .assistant-panel {
+    height: min(660px, calc(100vh - 3rem));
+    height: min(660px, calc(100dvh - 3rem));
+  }
+}

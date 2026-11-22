@@ -1,8 +1,9 @@
-import { RotateCcw, Send, Sparkles, X } from 'lucide-react';
+import { RotateCcw, Send, X } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ASSISTANT_LIMITS, ASSISTANT_NAME, SUGGESTED_QUESTIONS } from '../../shared/assistant';
 import { api } from '../lib/api';
+import { LogoMark } from './Layout';
 import { cx } from './ui';
 
 type Msg = { role: 'user' | 'assistant'; content: string; error?: boolean };
@@ -29,16 +30,17 @@ const saveChat = (m: Msg[]) => {
   }
 };
 
+/** The Opportunity Radar mark in a circle; the light ring keeps it visible on the dark button and header. */
 function Avatar({ size = 'md' }: { size?: 'sm' | 'md' }) {
   return (
     <span
       className={cx(
-        'flex flex-none items-center justify-center rounded-full bg-gradient-to-br from-[#ec7a3d] via-[#c98a8f] to-[#79b4e8] text-white',
+        'flex flex-none items-center justify-center overflow-hidden rounded-full bg-[#171717] ring-1 ring-white/25',
         size === 'sm' ? 'h-7 w-7' : 'h-11 w-11',
       )}
       aria-hidden
     >
-      <Sparkles className={size === 'sm' ? 'h-3.5 w-3.5' : 'h-5 w-5'} />
+      <LogoMark className="h-full w-full scale-[1.18]" />
     </span>
   );
 }
@@ -257,7 +259,7 @@ export function Assistant() {
           role="dialog"
           aria-modal="false"
           aria-label={ASSISTANT_NAME}
-          className="fixed inset-0 z-50 flex h-[100dvh] flex-col overflow-hidden bg-white sm:inset-auto sm:bottom-6 sm:right-6 sm:h-[min(660px,calc(100dvh-3rem))] sm:w-[410px] sm:rounded-[22px] sm:shadow-[0_24px_64px_rgba(11,11,12,0.3)] sm:ring-1 sm:ring-black/5"
+          className="assistant-panel fixed inset-0 z-50 flex flex-col overflow-hidden bg-white sm:inset-auto sm:bottom-6 sm:right-6 sm:w-[410px] sm:rounded-[22px] sm:shadow-[0_24px_64px_rgba(11,11,12,0.3)] sm:ring-1 sm:ring-black/5"
         >
           <header className="flex items-center gap-3 bg-night px-5 py-4 text-white">
             <Avatar />
@@ -296,7 +298,7 @@ export function Assistant() {
 
           <div
             ref={scroller}
-            className="flex-1 space-y-3 overflow-y-auto bg-ink-50 px-4 py-5"
+            className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-ink-50 px-4 py-5"
             aria-live="polite"
           >
             <div className="flex items-end gap-2">
@@ -368,7 +370,7 @@ export function Assistant() {
             <button
               type="submit"
               disabled={busy || !draft.trim()}
-              className="flex h-12 w-12 flex-none items-center justify-center rounded-full bg-gradient-to-br from-[#ec7a3d] to-[#79b4e8] text-white transition disabled:opacity-50"
+              className="flex h-12 w-12 flex-none items-center justify-center rounded-full bg-night text-white transition hover:bg-night-700 disabled:bg-ink-200 disabled:text-ink-500"
               aria-label="Send"
             >
               <Send className="h-5 w-5" aria-hidden />
