@@ -240,8 +240,10 @@ export async function extractText(file: File): Promise<string> {
   const isPdf = head[0] === 0x25 && head[1] === 0x50 && head[2] === 0x44 && head[3] === 0x46;
   const isZip = head[0] === 0x50 && head[1] === 0x4b;
   if (isPdf && name.endsWith('.pdf')) {
-    const pdfjs = await import('pdfjs-dist');
-    const worker = await import('pdfjs-dist/build/pdf.worker.min.mjs?url');
+    // The legacy build includes polyfills (e.g. Promise.withResolvers), so PDF import also works on
+    // browsers older than Chrome 119 / Safari 17.4, which are still common on phones.
+    const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
+    const worker = await import('pdfjs-dist/legacy/build/pdf.worker.min.mjs?url');
     pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
     const pdf = await pdfjs.getDocument({
       data: new Uint8Array(buf),

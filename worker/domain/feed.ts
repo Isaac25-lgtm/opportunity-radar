@@ -4,9 +4,11 @@
  */
 import type { Env } from '../env';
 import { CATEGORIES_BY_PROFILE, type ProfileType } from '../../shared/constants';
+import { allowsMatchCategory } from '../../shared/entitlements';
 import { parseJson } from '../lib/util';
 import {
   matchProfile,
+  rankMatches,
   type MatchOpportunity,
   type MatchResult,
   type ProfileRecord,
@@ -61,6 +63,7 @@ export async function topMatchesForUser(
   profiles: ProfileRow[],
   opts: {
     weights: Record<ProfileType, Weights>;
+    planCode: string;
     allowedTypes: readonly ProfileType[];
     limit?: number;
     minScore?: number;
@@ -71,7 +74,10 @@ export async function topMatchesForUser(
   const best = new Map<string, Scored<any>>();
   for (const p of profiles) {
     if (!opts.allowedTypes.includes(p.type)) continue;
-    const cats = CATEGORIES_BY_PROFILE[p.type];
+    const cats = CATEGORIES_BY_PROFILE[p.type].filter((category) =>
+      allowsMatchCategory(opts.planCode, category),
+    );
+    if (!cats.length) continue;
     const rows = (
       await env.DB.prepare(
         `SELECT ${OPP_LIST_COLUMNS} FROM opportunities o LEFT JOIN sources s ON s.id = o.source_id
@@ -88,10 +94,8 @@ export async function topMatchesForUser(
       if (eligibility !== 'eligible' && eligibility !== 'potential') continue;
       if ((score ?? 0) < (opts.minScore ?? 40)) continue;
       const prev = best.get(s.row.id);
-      if (!prev || (prev.match.score ?? 0) < (score ?? 0)) best.set(s.row.id, s);
+      if (!prev || rankMatches([prev, s])[0] === s) best.set(s.row.id, s);
     }
   }
-  return [...best.values()]
-    .sort((a, b) => (b.match.score ?? 0) - (a.match.score ?? 0))
-    .slice(0, opts.limit ?? 6);
+  return rankMatches([...best.values()]).slice(0, opts.limit ?? 6);
 }

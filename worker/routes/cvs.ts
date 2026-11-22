@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
-import type { AppEnv } from '../env';
+import type { AppEnv, Env } from '../env';
 import { academicProfileSchema, careerProfileSchema } from '../../shared/schemas';
 import {
   cvDataSchema,
@@ -12,7 +12,7 @@ import {
 } from '../../shared/cv';
 import { CV_TEMPLATES } from '../../shared/constants';
 import { requireUser } from '../lib/auth';
-import { badRequest, body, notFound } from '../lib/http';
+import { badRequest, body, conflict, notFound } from '../lib/http';
 import { aiProvider } from '../lib/providers';
 import { rateLimit } from '../lib/security';
 import { incrementUsage, requireFeature, requireWithin, userPlan } from '../lib/store';
@@ -30,18 +30,63 @@ async function ownCv(c: any, id: string) {
   return { u, row: r as any, data: cvDataSchema.parse(parseJson(r.data, {})) };
 }
 
-async function snapshot(env: any, cvId: string, template: string, data: CvData, note: string) {
-  const [inserted] = await env.DB.batch([
+function snapshotStatements(
+  env: Env,
+  cvId: string,
+  template: string,
+  data: CvData,
+  note: string,
+  base: string | null = null,
+) {
+  return [
     env.DB.prepare(
       `INSERT INTO cv_versions (id, cv_id, version, template, data, note, created_at)
        SELECT ?1, ?2, COALESCE(MAX(version), 0) + 1, ?3, ?4, ?5, ?6 FROM cv_versions WHERE cv_id = ?2
+       HAVING ?7 IS NULL OR EXISTS (SELECT 1 FROM cvs WHERE id = ?2 AND updated_at = ?7 AND deleted_at IS NULL)
        RETURNING version`,
-    ).bind(newId('cvv'), cvId, template, JSON.stringify(data), note.slice(0, 200), nowIso()),
+    ).bind(newId('cvv'), cvId, template, JSON.stringify(data), note.slice(0, 200), nowIso(), base),
     env.DB.prepare(
       'DELETE FROM cv_versions WHERE cv_id = ?1 AND version <= (SELECT MAX(version) - 30 FROM cv_versions WHERE cv_id = ?1)',
     ).bind(cvId),
+  ];
+}
+
+async function snapshot(env: Env, cvId: string, template: string, data: CvData, note: string) {
+  await env.DB.batch(snapshotStatements(env, cvId, template, data, note));
+}
+
+/**
+ * Writes a CV and its optional version snapshot in one transaction. `base` is the revision the client
+ * last saw: when given, the write only applies if the CV is still at that revision (otherwise 409).
+ * Clients that send no revision keep the original last-write-wins behaviour, so concurrent saves from
+ * them never conflict. `current` is the stored revision, used so updated_at always moves forward.
+ */
+async function reviseCv(
+  env: Env,
+  id: string,
+  userId: string,
+  base: string | null,
+  current: string,
+  title: string,
+  template: string,
+  data: string,
+  history: D1PreparedStatement[],
+) {
+  const updatedAt = new Date(Math.max(Date.now(), Date.parse(base ?? current) + 1)).toISOString();
+  const results = await env.DB.batch<{ version?: number; id?: string }>([
+    ...history,
+    env.DB.prepare(
+      'UPDATE cvs SET title = ?, template = ?, data = ?, updated_at = ? WHERE id = ? AND user_id = ? AND (? IS NULL OR updated_at = ?) AND deleted_at IS NULL RETURNING id',
+    ).bind(title, template, data, updatedAt, id, userId, base, base),
   ]);
-  return inserted.results[0].version as number;
+  if (!results[results.length - 1].results.length) throw cvChanged();
+  return { updated_at: updatedAt, version: results[0].results[0]?.version ?? null };
+}
+
+function cvChanged() {
+  return conflict(
+    'This CV changed in another session. Copy any edits you want to keep, then reload the editor.',
+  );
 }
 
 cvRoutes.get('/', async (c) => {
@@ -138,28 +183,37 @@ cvRoutes.put('/:id', async (c) => {
     c,
     cvSaveSchema.extend({ snapshot: z.boolean().optional(), note: z.string().max(200).optional() }),
   );
-  const ts = nowIso();
-  await c.env.DB.prepare(
-    'UPDATE cvs SET title = ?, template = ?, data = ?, updated_at = ? WHERE id = ? AND user_id = ?',
-  )
-    .bind(input.title, input.template, JSON.stringify(input.data), ts, row.id, u.id)
-    .run();
+  const base = c.req.query('base_updated_at') ?? null;
+  if (base !== null && base !== row.updated_at) throw cvChanged();
   // Automatic snapshot at most every 10 minutes, or on explicit request.
   const last = await c.env.DB.prepare(
     'SELECT created_at FROM cv_versions WHERE cv_id = ? ORDER BY version DESC LIMIT 1',
   )
     .bind(row.id)
     .first<any>();
-  let version: number | null = null;
-  if (input.snapshot || !last || Date.now() - Date.parse(last.created_at) > 10 * 60_000)
-    version = await snapshot(
-      c.env,
-      row.id,
-      input.template,
-      input.data,
-      input.note ?? (input.snapshot ? 'Saved version' : 'Autosave'),
-    );
-  return c.json({ ok: true, updated_at: ts, version });
+  const history =
+    input.snapshot || !last || Date.now() - Date.parse(last.created_at) > 10 * 60_000
+      ? snapshotStatements(
+          c.env,
+          row.id,
+          input.template,
+          input.data,
+          input.note ?? (input.snapshot ? 'Saved version' : 'Autosave'),
+          base,
+        )
+      : [];
+  const result = await reviseCv(
+    c.env,
+    row.id,
+    u.id,
+    base,
+    row.updated_at,
+    input.title,
+    input.template,
+    JSON.stringify(input.data),
+    history,
+  );
+  return c.json({ ok: true, ...result });
 });
 
 cvRoutes.delete('/:id', async (c) => {
@@ -207,10 +261,17 @@ cvRoutes.post('/:id/versions/:v/restore', async (c) => {
     .bind(row.id, v)
     .first<any>();
   if (!ver) throw notFound('Version not found.');
-  await snapshot(c.env, row.id, row.template, data, `Before restoring version ${v}`);
-  await c.env.DB.prepare('UPDATE cvs SET template = ?, data = ?, updated_at = ? WHERE id = ? AND user_id = ?')
-    .bind(ver.template, ver.data, nowIso(), row.id, u.id)
-    .run();
+  const base = c.req.query('base_updated_at') ?? null;
+  if (base !== null && base !== row.updated_at) throw cvChanged();
+  const history = snapshotStatements(
+    c.env,
+    row.id,
+    row.template,
+    data,
+    `Before restoring version ${v}`,
+    base,
+  );
+  await reviseCv(c.env, row.id, u.id, base, row.updated_at, row.title, ver.template, ver.data, history);
   return c.json({ ok: true });
 });
 

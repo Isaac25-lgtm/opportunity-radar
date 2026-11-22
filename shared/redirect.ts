@@ -5,6 +5,6 @@
  */
 export function safeNext(v: string | null | undefined, fallback: string): string {
   if (!v || !v.startsWith('/') || v.includes('\\')) return fallback;
-  if (v.startsWith('//')) return fallback;
+  if (v.startsWith('//') || Array.from(v).some((ch) => ch.charCodeAt(0) < 32)) return fallback;
   return v;
 }

@@ -370,6 +370,16 @@ describe('helpers', () => {
     expect(countryEligibility(['Commonwealth'], 'Brazilian')).toBe('no');
     expect(countryEligibility(['SADC'], 'Zimbabwean')).toBe('yes');
     expect(countryEligibility(['ECOWAS'], "Côte d'Ivoire")).toBe('yes');
+    expect(countryEligibility(['ECOWAS'], 'Malian')).toBe('no');
+    expect(countryEligibility(['West Africa'], 'Malian')).toBe('yes');
+    expect(countryEligibility(['Asia'], 'Australian')).toBe('no');
+    expect(countryEligibility(['Asia'], 'Jordanian')).toBe('yes');
+    expect(countryEligibility(['East Africa'], 'Malagasy')).toBe('no');
+    expect(countryEligibility(['Southern Africa'], 'Zimbabwean')).toBe('yes');
+    expect(countryEligibility(['East Africa'], 'Zimbabwean')).toBe('no');
+    expect(countryEligibility(['Europe'], 'Cypriot')).toBe('yes');
+    expect(countryEligibility(['Horn of Africa'], 'Ugandan')).toBe('no');
+    expect(countryEligibility(['DRC'], 'Congolese')).toBe('unknown');
     expect(countryEligibility(['European Union'], 'German')).toBe('yes');
     expect(countryEligibility(['UK'], 'British')).toBe('yes');
   });

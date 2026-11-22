@@ -287,6 +287,18 @@ export function checkEnv(env: Env): EnvCheck[] {
     { name: 'DB (D1 binding)', required: true, present: !!env.DB, purpose: 'Primary database' },
     { name: 'DOCS (KV binding)', required: true, present: !!env.DOCS, purpose: 'Private document storage' },
     {
+      name: 'GOOGLE_CLIENT_ID',
+      required: has(env.GOOGLE_CLIENT_SECRET),
+      present: has(env.GOOGLE_CLIENT_ID),
+      purpose: 'Google sign-in client',
+    },
+    {
+      name: 'GOOGLE_CLIENT_SECRET',
+      required: has(env.GOOGLE_CLIENT_ID),
+      present: has(env.GOOGLE_CLIENT_SECRET),
+      purpose: 'Google sign-in client secret',
+    },
+    {
       name: 'APP_URL',
       required: prod,
       present: has(env.APP_URL),

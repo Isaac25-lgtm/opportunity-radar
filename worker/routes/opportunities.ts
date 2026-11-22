@@ -9,7 +9,7 @@ import {
 import { requireUser } from '../lib/auth';
 import { badRequest, notFound } from '../lib/http';
 import { getConfig, getWeights, planForProfileType, userPlan } from '../lib/store';
-import { allowsProfileType } from '../../shared/entitlements';
+import { allowsMatchCategory, allowsProfileType } from '../../shared/entitlements';
 import { countryNamesIn } from '../../shared/countries';
 import { clampInt, nowIso, parseJson } from '../lib/util';
 import { scoreRows, toMatchOpportunity, toProfileRecord } from '../domain/feed';
@@ -89,12 +89,14 @@ opportunityRoutes.get('/', async (c) => {
   const sort = q.sort ?? 'match';
   const order =
     sort === 'deadline'
-      ? 'CASE WHEN o.deadline_at IS NULL THEN 1 ELSE 0 END, o.deadline_at ASC'
-      : 'COALESCE(o.published_at, o.first_seen_at) DESC';
+      ? 'CASE WHEN o.deadline_at IS NULL THEN 1 ELSE 0 END, o.deadline_at ASC, o.id'
+      : 'COALESCE(o.published_at, o.first_seen_at) DESC, o.id';
   const whereSql = where.join(' AND ');
 
+  const plan = u && view !== 'all' ? await userPlan(c.env, u.id) : null;
+  const outsidePlan = plan && view !== 'all' && !allowsProfileType(plan.entitlements, view);
   let profile: any = null;
-  if (u && view !== 'all') {
+  if (u && view !== 'all' && !outsidePlan) {
     profile = await c.env.DB.prepare(
       'SELECT id, type, data FROM profiles WHERE user_id = ? AND type = ? AND deleted_at IS NULL',
     )
@@ -110,9 +112,7 @@ opportunityRoutes.get('/', async (c) => {
     : [];
   const saved = new Map(savedRows.map((r) => [r.opportunity_id, r.state]));
 
-  if (profile) {
-    const plan = await userPlan(c.env, u!.id);
-    const gated = !allowsProfileType(plan.entitlements, view as ProfileType);
+  if (profile && plan && view !== 'all') {
     const rows = (
       await c.env.DB.prepare(
         `SELECT ${OPP_LIST_COLUMNS} FROM opportunities o LEFT JOIN sources s ON s.id = o.source_id WHERE ${whereSql} ORDER BY ${order} LIMIT 400`,
@@ -120,47 +120,50 @@ opportunityRoutes.get('/', async (c) => {
         .bind(...binds)
         .all<any>()
     ).results;
-    if (!gated) {
-      const weights = await getWeights(c.env);
-      let scored = scoreRows(profile, rows, weights);
-      const minScore = q.min_score ? clampInt(q.min_score, 0, 100, 0) : 0;
-      if (minScore) scored = scored.filter((s) => (s.match.score ?? 0) >= minScore);
-      if (q.eligibility) scored = scored.filter((s) => s.match.eligibility === q.eligibility);
-      if (sort === 'match') scored = rankMatches(scored);
-      const total = scored.length;
-      const slice = scored.slice((page - 1) * PAGE, page * PAGE);
-      return c.json({
-        items: slice.map(({ row: r, match }) => ({
-          ...publicOpportunity(r, staleHours),
-          match: {
-            score: match.score,
-            eligibility: match.eligibility,
-            confidence: match.confidence,
-            top_reason: match.reasons[0]?.detail ?? null,
-            missing_count: match.missing.length,
-          },
-          user_state: saved.get(r.id) ?? null,
-        })),
-        total,
-        page,
-        pages: Math.ceil(total / PAGE),
-        matched: true,
-        capped: rows.length >= 400,
-      });
-    }
-    const total = rows.length;
+
+    const weights = await getWeights(c.env);
+    const permitted = rows.filter((row) => allowsMatchCategory(plan.code, row.category));
+    let scored = scoreRows(profile, permitted, weights);
+    const minScore = q.min_score ? clampInt(q.min_score, 0, 100, 0) : 0;
+    if (minScore) scored = scored.filter((s) => (s.match.score ?? 0) >= minScore);
+    if (q.eligibility) scored = scored.filter((s) => s.match.eligibility === q.eligibility);
+    if (sort === 'match') scored = rankMatches(scored);
+    const matches = new Map(scored.map(({ row, match }) => [row.id, match]));
+    const browse =
+      minScore || q.eligibility ? [] : rows.filter((row) => !allowsMatchCategory(plan.code, row.category));
+    const unlock = browse.length ? await planForProfileType(c.env, view, browse[0].category) : null;
+    const ordered =
+      sort === 'match'
+        ? [...scored.map(({ row }) => row), ...browse]
+        : rows.filter(
+            (row) =>
+              matches.has(row.id) ||
+              (!minScore && !q.eligibility && !allowsMatchCategory(plan.code, row.category)),
+          );
+    const total = ordered.length;
     return c.json({
-      items: rows.slice((page - 1) * PAGE, page * PAGE).map((r) => ({
-        ...publicOpportunity(r, staleHours),
-        match: null,
-        user_state: saved.get(r.id) ?? null,
-      })),
+      items: ordered.slice((page - 1) * PAGE, page * PAGE).map((r) => {
+        const match = matches.get(r.id);
+        return {
+          ...publicOpportunity(r, staleHours),
+          match: match
+            ? {
+                score: match.score,
+                eligibility: match.eligibility,
+                confidence: match.confidence,
+                top_reason: match.reasons[0]?.detail ?? null,
+                missing_count: match.missing.length,
+              }
+            : null,
+          upgrade_plan: match ? undefined : unlock?.name,
+          user_state: saved.get(r.id) ?? null,
+        };
+      }),
       total,
       page,
       pages: Math.ceil(total / PAGE),
-      matched: false,
-      gated: 'plan_segment',
-      upgrade_plan: (await planForProfileType(c.env, view as ProfileType))?.name ?? null,
+      matched: true,
+      capped: rows.length >= 400,
     });
   }
 
@@ -176,8 +179,6 @@ opportunityRoutes.get('/', async (c) => {
   ).results;
   const total = count?.n ?? 0;
   // Signed-in people browsing a segment outside their plan are told which plan covers it.
-  const outsidePlan =
-    !!u && view !== 'all' && !allowsProfileType((await userPlan(c.env, u.id)).entitlements, view);
   return c.json({
     ...(outsidePlan
       ? {
@@ -194,7 +195,7 @@ opportunityRoutes.get('/', async (c) => {
     page,
     pages: Math.ceil(total / PAGE),
     matched: false,
-    needs_profile: !!u && view !== 'all',
+    needs_profile: !!u && view !== 'all' && !outsidePlan,
   });
 });
 
@@ -204,7 +205,7 @@ opportunityRoutes.get('/saved', async (c) => {
   const rows = (
     await c.env.DB.prepare(
       `SELECT ${OPP_LIST_COLUMNS}, uo.created_at AS saved_at FROM user_opportunity uo JOIN opportunities o ON o.id = uo.opportunity_id
-       LEFT JOIN sources s ON s.id = o.source_id WHERE uo.user_id = ? AND uo.state = 'saved' ORDER BY uo.created_at DESC LIMIT 200`,
+       LEFT JOIN sources s ON s.id = o.source_id WHERE uo.user_id = ? AND uo.state = 'saved' AND o.moderation = 'approved' ORDER BY uo.created_at DESC LIMIT 200`,
     )
       .bind(u.id)
       .all<any>()
@@ -257,13 +258,21 @@ opportunityRoutes.get('/:id', async (c) => {
     ).results;
     const weights = await getWeights(c.env);
     const mo = toMatchOpportunity(r);
-    out.matches = profiles
-      .filter((p) => (CATEGORIES_BY_PROFILE[p.type as ProfileType] as string[]).includes(r.category))
-      .map((p) =>
-        !allowsProfileType(plan.entitlements, p.type as ProfileType)
-          ? { profile_type: p.type, gated: 'plan_segment' }
-          : matchProfile(toProfileRecord(p), mo, weights),
-      );
+    const matches = [];
+    for (const type of PROFILE_TYPES) {
+      if (!CATEGORIES_BY_PROFILE[type].includes(r.category)) continue;
+      if (!allowsProfileType(plan.entitlements, type) || !allowsMatchCategory(plan.code, r.category)) {
+        matches.push({
+          profile_type: type,
+          gated: 'plan_segment',
+          upgrade_plan: (await planForProfileType(c.env, type, r.category))?.name,
+        });
+      } else {
+        const profile = profiles.find((p) => p.type === type);
+        if (profile) matches.push(matchProfile(toProfileRecord(profile), mo, weights));
+      }
+    }
+    out.matches = matches;
     const st = await c.env.DB.prepare(
       'SELECT state FROM user_opportunity WHERE user_id = ? AND opportunity_id = ?',
     )

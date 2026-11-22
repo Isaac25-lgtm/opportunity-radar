@@ -60,6 +60,10 @@ export function allowsProfileType(e: Entitlements, type: ProfileType): boolean {
   return e.profile_types.includes(type);
 }
 
+export function allowsMatchCategory(planCode: string, category: string): boolean {
+  return planCode !== 'free' || ['job', 'internship', 'graduate_programme'].includes(category);
+}
+
 export function withinLimit(limit: number, used: number): boolean {
   return limit < 0 || used < limit;
 }

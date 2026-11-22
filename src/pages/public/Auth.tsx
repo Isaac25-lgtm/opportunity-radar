@@ -51,6 +51,8 @@ function Shell({ title, subtitle, children }: { title: string; subtitle?: ReactN
 }
 
 const GOOGLE_ERRORS: Record<string, string> = {
+  google_link_required:
+    'Sign in to your existing account with your password first. Then open Settings and select Connect Google.',
   google_unavailable: 'Google sign-in is not available yet. Please use your email address for now.',
   google_cancelled: 'Google sign-in was cancelled. You can try again or use your email address.',
   google_unverified:

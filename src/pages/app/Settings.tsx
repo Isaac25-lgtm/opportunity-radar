@@ -1,6 +1,6 @@
 import { Download } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Alert,
   Button,
@@ -31,6 +31,7 @@ const HOURS = Array.from({ length: 24 }, (_, h) => ({
 
 export default function Settings() {
   const { me, refresh } = useAuth();
+  const [query] = useSearchParams();
   // Accounts created with Google have no password until they set one.
   const hasPassword = me.user?.has_password !== false;
   const toast = useToast();
@@ -67,6 +68,13 @@ export default function Settings() {
     <div className="mx-auto max-w-3xl space-y-6">
       <h1 className="text-[28px] font-semibold">Settings</h1>
       <ErrorAlert error={err} />
+      {query.get('error')?.startsWith('google_') && (
+        <Alert tone="bad" title="Google was not connected">
+          {query.get('error') === 'google_wrong_account'
+            ? `That Google account uses a different email. Choose the Google account for ${me.user?.email ?? 'your account email'} and try again.`
+            : 'Something went wrong while connecting Google. Please try again.'}
+        </Alert>
+      )}
       <section className="card space-y-4 p-6">
         <h2 className="text-lg font-semibold">Account</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -100,6 +108,20 @@ export default function Settings() {
         >
           Save account
         </Button>
+        {me.user?.can_link_google && (
+          <div className="flex flex-col gap-3 border-t border-line pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-medium text-ink">Sign in with Google</p>
+              <p className="text-sm text-ink-500">
+                Connect the Google account that uses {me.user.email}, then use either way to sign in.
+              </p>
+            </div>
+            {/* A full page load: the Google flow is a server redirect, not a client route. */}
+            <a className="btn btn-md btn-outline flex-none" href="/api/auth/google/start?next=/app/settings">
+              Connect Google
+            </a>
+          </div>
+        )}
       </section>
 
       <section className="card p-6">

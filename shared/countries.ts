@@ -60,7 +60,7 @@ const COUNTRIES: Array<[string, Region, string[]]> = [
   [
     'democratic republic of the congo',
     'MAF',
-    ['drc', 'dr congo', 'congolese', 'congo, democratic republic of', 'congo-kinshasa'],
+    ['drc', 'dr congo', 'congo, democratic republic of', 'congo-kinshasa'],
   ],
   ['equatorial guinea', 'MAF', ['equatoguinean']],
   ['gabon', 'MAF', ['gabonese']],
@@ -249,8 +249,8 @@ const EAST_AFRICA = [
 const EAC = EAST_AFRICA.slice(0, 8);
 
 const ECOWAS = [
-  'benin', 'burkina faso', 'cabo verde', "cote d'ivoire", 'gambia', 'ghana', 'guinea', 'guinea-bissau',
-  'liberia', 'mali', 'niger', 'nigeria', 'senegal', 'sierra leone', 'togo',
+  'benin', 'cabo verde', "cote d'ivoire", 'gambia', 'ghana', 'guinea', 'guinea-bissau',
+  'liberia', 'nigeria', 'senegal', 'sierra leone', 'togo',
 ]; // prettier-ignore
 
 const SADC = [
@@ -286,9 +286,12 @@ const inRegions = (country: string, regions: Region[]) => {
 const GROUPS: Array<[string[], (c: string) => boolean]> = [
   [['any', 'all', 'international', 'worldwide', 'all countries', 'global', 'any country', 'all nationalities'], () => true],
   [['africa', 'african countries', 'african nationals', 'pan-african', 'african union'], (c) => inRegions(c, AFRICA_REGIONS)],
+  // World Bank usage: Sudan counts as sub-Saharan.
   [['sub-saharan africa', 'sub saharan africa', 'ssa'], (c) => inRegions(c, AFRICA_REGIONS) && !['algeria', 'egypt', 'libya', 'morocco', 'tunisia'].includes(c)],
   [['north africa', 'northern africa'], (c) => inRegions(c, ['NAF'])],
-  [['east africa', 'eastern africa', 'horn of africa'], (c) => EAST_AFRICA.includes(c)],
+  // Common usage, not the UN grouping: Zambia, Zimbabwe, Malawi and Mozambique count as Southern Africa.
+  [['east africa', 'eastern africa'], (c) => EAST_AFRICA.includes(c)],
+  [['horn of africa'], (c) => ['djibouti', 'eritrea', 'ethiopia', 'somalia'].includes(c)],
   [['eac', 'east african community'], (c) => EAC.includes(c)],
   [['west africa', 'western africa'], (c) => inRegions(c, ['WAF'])],
   [['ecowas'], (c) => ECOWAS.includes(c)],
@@ -298,8 +301,10 @@ const GROUPS: Array<[string[], (c: string) => boolean]> = [
   [['commonwealth', 'commonwealth countries', 'commonwealth nations'], (c) => COMMONWEALTH.includes(c)],
   [['european union', 'eu', 'eu member states'], (c) => EU.includes(c)],
   [['europe'], (c) => inRegions(c, ['EUR'])],
-  [['middle east', 'mena', 'middle east and north africa'], (c) => inRegions(c, ['ME']) || (inRegions(c, ['NAF']) && c !== 'sudan')],
-  [['asia', 'asia-pacific', 'asia pacific'], (c) => inRegions(c, ['AS', 'OC'])],
+  [['mena', 'middle east and north africa'], (c) => inRegions(c, ['ME']) || (inRegions(c, ['NAF']) && c !== 'sudan')],
+  [['middle east'], (c) => inRegions(c, ['ME']) || c === 'egypt'],
+  [['asia'], (c) => inRegions(c, ['AS', 'ME'])],
+  [['asia-pacific', 'asia pacific'], (c) => inRegions(c, ['AS', 'ME', 'OC'])],
   [['latin america', 'latin america and the caribbean', 'lac'], (c) => inRegions(c, ['LAM', 'CAR'])],
   [['caribbean'], (c) => inRegions(c, ['CAR'])],
   [['north america', 'northern america'], (c) => inRegions(c, ['NAM'])],

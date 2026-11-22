@@ -96,7 +96,7 @@ describe('payments (mock provider, no real money)', () => {
       p,
       {
         status: 'completed',
-        amount: 1, // $1 reported for a $25 plan
+        amount: 24.999, // Must not round an underpayment up to the $25 checkout amount.
         currency: 'USD',
         merchantReference: p.merchant_reference,
         confirmationCode: 'x',

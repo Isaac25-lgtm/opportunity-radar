@@ -51,7 +51,7 @@ export class Client {
 
   async req(method: string, path: string, body?: unknown, extra: Record<string, string> = {}) {
     const headers: Record<string, string> = { 'cf-connecting-ip': this.ip, ...extra };
-    if (this.cookie) headers.cookie = this.cookie;
+    if (this.cookie) headers.cookie = [this.cookie, headers.cookie].filter(Boolean).join('; ');
     if (method !== 'GET' && !('x-or-csrf' in extra)) headers['x-or-csrf'] = '1';
     let payload: BodyInit | undefined;
     if (body instanceof FormData) payload = body;

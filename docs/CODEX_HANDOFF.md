@@ -80,7 +80,7 @@ Date: 22 November 2026 · Production: https://opportunity-radar.omodingisaac123.
     - **Auth panel:** the sign-in/up side panel is a photo with a soft bottom fade.
     - **Google sign-in:** lives in `worker/routes/oauth.ts`. It is OpenID Connect with PKCE; state and verifier are
       kept in an HttpOnly cookie scoped to `/api/auth/google`.
-      - Only verified emails are accepted, and an existing account with the same email is linked.
+      - Google must verify the email. Existing users sign in first and choose **Connect Google** in Settings to link the accounts.
       - Google-created accounts get an unusable `oauth$…` password hash. They can set a first password in Settings
         and delete by typing DELETE.
       - Links are stored in `user_identities` (migration 0006).
@@ -88,11 +88,35 @@ Date: 22 November 2026 · Production: https://opportunity-radar.omodingisaac123.
       the UI, which shows "Coming soon" until then. Activation steps are in `RELEASE_REPORT.md` §12.
     - **Tests:** `tests/integration/oauth.test.ts`.
 13. "MAKE SURE THESE ARE WELL EXPLAINED - THESE ARE RANDOM USERS" (the How it works links):
+
     - **How it works page:** rewritten as a plain guide. Each part says who it is for, how to start, what we check,
       how fit is decided, gives an example and names the plan.
     - **Labels:** shown labels are plain everywhere ("You qualify", "You may qualify", "Need more details", "Official
       source", "Job board", "Checked by our team"; "how well it fits" instead of "relevance").
     - **Rule for future copy:** write for someone new to the product; no internal terms.
+
+14. "i anticipated my backend to be python because i will be integrating AI": the owner chose a separate Python
+    AI service, keeping the Cloudflare app as is.
+    - **Service:** `ai-service/` (FastAPI + Claude, `claude-opus-5-5` by default). Endpoints: CV parsing, wording
+      suggestions, cover letters, requirement extraction. Structured outputs; bearer-token auth; 17 pytest tests
+      with a fake model (no key, no cost). See `ai-service/README.md`.
+    - **Never inventing facts** is enforced in code: parsed fields must be found in the CV text; wording and letters
+      that add numbers or names not in the CV are rejected.
+    - **Worker:** `AI_PROVIDER=python` with `AI_SERVICE_URL` (https in production) and `AI_SERVICE_TOKEN`. Answers
+      are re-validated with `cvDataSchema`; any failure falls back to the built-in tools. Cover letters use it when on.
+    - **Status:** built and tested, not hosted. Hosting needs the owner's choice (it costs money), an Anthropic key,
+      and a privacy-notice update.
+15. A Codex audit (`docs/CLAUDE_AUDIT_HANDOFF.md`) was reviewed and merged. Its fixes were kept, with these changes:
+    - **Regions:** East and Southern Africa keep their common-usage meaning (Zambia, Zimbabwe, Malawi and
+      Mozambique are Southern Africa, matching `regionOf`), Cyprus stays in Europe, and sub-Saharan Africa
+      includes Sudan (World Bank usage). The audit's ECOWAS, Horn of Africa, "Congolese", Middle East/MENA and
+      Asia fixes are kept.
+    - **CV saves:** the audit made saves without a revision fail when two arrive together (the existing
+      concurrent-snapshot test caught it on real local D1). The revision check now applies only when the client
+      sends one; the editor always does.
+    - **Settings:** the Google connect link and error use the design system's button and alert.
+16. Found while re-testing: PDF import failed on browsers older than Chrome 119 / Safari 17.4
+    (`Promise.withResolvers`). PDF reading now uses pdf.js's legacy build, which includes the polyfills.
 
 ## 3. Plans are segments (new)
 
@@ -185,8 +209,9 @@ Date: 22 November 2026 · Production: https://opportunity-radar.omodingisaac123.
 
 | Check                                                                   | Result                                         |
 | ----------------------------------------------------------------------- | ---------------------------------------------- |
-| `npx vitest run`                                                        | 236 passed (12 files, incl. 76 persona checks) |
-| `npx playwright test` against `wrangler dev`                            | 15 passed, 3 skipped (intentional)             |
+| `npx vitest run`                                                        | 252 passed (13 files, incl. 76 persona checks) |
+| `ai-service`: `python -m pytest`                                        | 17 passed                                      |
+| `npx playwright test` against `wrangler dev` (Chrome 107)               | 15 passed, 3 skipped (intentional)             |
 | Route sweep: 47 routes × desktop + phone, visitor/user/admin            | 0 errors, 0 failed requests, 0 overflow        |
 | Typecheck, ESLint, Prettier                                             | Clean                                          |
 | Preview: health, plans, 11-step signed-in smoke (deleted), public suite | All passed                                     |

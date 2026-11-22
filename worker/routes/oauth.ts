@@ -6,7 +6,7 @@
  * - `state` and the PKCE verifier live in a short-lived HttpOnly cookie and must match on return;
  * - the code is exchanged server-side with the client secret; the ID token comes straight from Google over TLS,
  *   and its issuer, audience and expiry are checked;
- * - only Google-verified email addresses are accepted, so linking to an existing account by email is safe.
+ * - linking a new Google identity to an existing account also requires its active local session.
  */
 import { Hono, type Context } from 'hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
@@ -31,7 +31,8 @@ export const googleConfigured = (env: Env) => !!(env.GOOGLE_CLIENT_ID && env.GOO
 
 const appUrl = (c: Context<AppEnv>) => c.env.APP_URL ?? new URL(c.req.url).origin;
 const redirectUri = (c: Context<AppEnv>) => `${appUrl(c)}/api/auth/google/callback`;
-const fail = (c: Context<AppEnv>, reason: string) => c.redirect(`/signin?error=google_${reason}`, 302);
+const fail = (c: Context<AppEnv>, reason: string) =>
+  c.redirect(`${c.get('user') ? '/app/settings' : '/signin'}?error=google_${reason}`, 302);
 
 type Flow = { s: string; v: string; n: string };
 const encodeFlow = (f: Flow) => toB64url(new TextEncoder().encode(JSON.stringify(f)));
@@ -61,7 +62,14 @@ function idTokenClaims(idToken: string, clientId: string, now = Date.now()) {
     return null;
   }
   const audOk = Array.isArray(claims.aud) ? claims.aud.includes(clientId) : claims.aud === clientId;
-  if (!ISSUERS.has(claims.iss) || !audOk || typeof claims.exp !== 'number' || claims.exp * 1000 < now)
+  if (
+    !ISSUERS.has(claims.iss) ||
+    !audOk ||
+    (claims.azp !== undefined && claims.azp !== clientId) ||
+    (Array.isArray(claims.aud) && claims.aud.length > 1 && !claims.azp) ||
+    typeof claims.exp !== 'number' ||
+    claims.exp * 1000 <= now
+  )
     return null;
   if (typeof claims.sub !== 'string' || typeof claims.email !== 'string') return null;
   return {
@@ -136,6 +144,7 @@ oauthRoutes.get('/google/callback', async (c) => {
   if (!claims.emailVerified) return fail(c, 'unverified');
 
   const ts = nowIso();
+  const currentUser = c.get('user');
   const linked = await c.env.DB.prepare(
     "SELECT u.id, u.status FROM user_identities i JOIN users u ON u.id = i.user_id WHERE i.provider = 'google' AND i.subject = ?",
   )
@@ -144,6 +153,7 @@ oauthRoutes.get('/google/callback', async (c) => {
   let userId: string;
   let isNew = false;
   if (linked) {
+    if (currentUser && currentUser.id !== linked.id) return fail(c, 'wrong_account');
     if (linked.status !== 'active') return fail(c, 'failed');
     userId = linked.id;
     await c.env.DB.prepare(
@@ -155,12 +165,17 @@ oauthRoutes.get('/google/callback', async (c) => {
     const existing = await c.env.DB.prepare('SELECT id, status FROM users WHERE email = ?')
       .bind(claims.email)
       .first<{ id: string; status: string }>();
+    if (currentUser && currentUser.id !== existing?.id) return fail(c, 'wrong_account');
+    userId = existing?.id ?? newId('usr');
+    const identity = c.env.DB.prepare(
+      "INSERT INTO user_identities (provider, subject, user_id, email, created_at, last_used_at) VALUES ('google', ?, ?, ?, ?, ?)",
+    ).bind(claims.sub, userId, claims.email, ts, ts);
     if (existing) {
       if (existing.status !== 'active') return fail(c, 'failed');
-      userId = existing.id; // Google has verified this address, so it is the same person
+      if (currentUser?.id !== existing.id) return fail(c, 'link_required');
+      await identity.run();
       await audit(c.env, userId, 'user.identity_linked', 'user', userId, { provider: 'google' });
     } else {
-      userId = newId('usr');
       isNew = true;
       const role = isBootstrapAdmin(c.env, claims.email) ? 'admin' : 'user';
       const name = claims.name || claims.email.split('@')[0];
@@ -173,14 +188,10 @@ oauthRoutes.get('/google/callback', async (c) => {
           userId,
           ts,
         ),
+        identity,
       ]);
       await audit(c.env, userId, 'user.signup', 'user', userId, { role, method: 'google' });
     }
-    await c.env.DB.prepare(
-      "INSERT INTO user_identities (provider, subject, user_id, email, created_at, last_used_at) VALUES ('google', ?, ?, ?, ?, ?)",
-    )
-      .bind(claims.sub, userId, claims.email, ts, ts)
-      .run();
   }
   await createSession(c, userId);
   return c.redirect(isNew ? '/app/onboarding' : safeNext(flow.n, '/app'), 302);

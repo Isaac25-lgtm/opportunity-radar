@@ -16,7 +16,7 @@ questions for every one: _can you apply?_ and _how well does it fit?_
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
 ![Python](https://img.shields.io/badge/AI%20service-Python%20%C2%B7%20FastAPI-3776AB?logo=python&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-263%20passing-16a34a)
+![Tests](https://img.shields.io/badge/tests-269%20passing-16a34a)
 ![Coverage](https://img.shields.io/badge/opportunities-worldwide-0b0b0c)
 
 <img src="docs/images/home.jpg" alt="Opportunity Radar home page" width="100%" />
